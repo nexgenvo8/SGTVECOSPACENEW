@@ -59,6 +59,8 @@
 	<string>The app needs permission to save edited images to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>The app needs access to your photo library to select profile images.</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
