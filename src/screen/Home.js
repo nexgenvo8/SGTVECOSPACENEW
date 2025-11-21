@@ -91,12 +91,14 @@ export default function ({ route }) {
   const smallImageWidth = containerWidth * 0.35;
   const imageHeight = 250;
   const smallImageHeight = (imageHeight - 8) / 3;
-  useEffect(() => {
-    if (route.params?.scrollToTop) {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      navigation.setParams({ scrollToTop: false });
-    }
-  }, [route.params?.scrollToTop]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.scrollToTop) {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        navigation.setParams({ scrollToTop: false });
+      }
+    }, [route.params?.scrollToTop])
+  );
   const commentSheetRef = useRef(null);
   const handleSheetChange = (index) => {
     console.log("Sheet changed to:", index);
