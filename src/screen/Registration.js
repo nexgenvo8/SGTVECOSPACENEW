@@ -690,6 +690,7 @@ const Registration = () => {
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 editable={false}
+                multiline={false}
                 style={{
                   ...styles.jamiaTextInput,
                   borderColor: colors.textinputbordercolor,

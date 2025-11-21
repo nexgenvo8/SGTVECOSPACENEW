@@ -1,5 +1,6 @@
 //export const baseUrl = 'http://154.210.160.217:8081/api/';
-export const baseUrl = "https://vecospaceapi.nexgenov8.com/api/";
+// export const baseUrl = "https://vecospaceapi.nexgenov8.com/api/";
+export const baseUrl = "https://sgtapi.vecospace.com/api/";
 
 //Login
 export const LoginApi = "login";

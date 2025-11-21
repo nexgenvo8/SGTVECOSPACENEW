@@ -13,6 +13,7 @@
 		9B85E1DCC28307A0E7781EF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		A116788183359551C2BE129A /* libPods-JMIVECOSPACE.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98E928B3A20126A686D50E5D /* libPods-JMIVECOSPACE.a */; };
 		C8D5AD6AD1EBCAD97BD15EDA /* libPods-JMIVECOSPACE-JMIVECOSPACETests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F64FA898EFD923E9B019A97 /* libPods-JMIVECOSPACE-JMIVECOSPACETests.a */; };
+		F10810B82ED0489A0032C189 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10810B72ED0489A0032C189 /* AppDelegate.swift */; };
 		F1E025AF2D8D7296009FDCDC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1E025AE2D8D7295009FDCDC /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,8 @@
 		98E928B3A20126A686D50E5D /* libPods-JMIVECOSPACE.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-JMIVECOSPACE.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2E5B5E2562DF9F49024CDC7 /* Pods-JMIVECOSPACE-JMIVECOSPACETests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JMIVECOSPACE-JMIVECOSPACETests.debug.xcconfig"; path = "Target Support Files/Pods-JMIVECOSPACE-JMIVECOSPACETests/Pods-JMIVECOSPACE-JMIVECOSPACETests.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F10810B72ED0489A0032C189 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F10810B92ED0489D0032C189 /* JMIVECOSPACE-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JMIVECOSPACE-Bridging-Header.h"; sourceTree = "<group>"; };
 		F195EE3B2D8D49BD00AB750D /* JMIVECOSPACE.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = JMIVECOSPACE.entitlements; path = JMIVECOSPACE/JMIVECOSPACE.entitlements; sourceTree = "<group>"; };
 		F1E025AE2D8D7295009FDCDC /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FEB5C90E2D2DE5D1F5F79333 /* Pods-JMIVECOSPACE.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JMIVECOSPACE.release.xcconfig"; path = "Target Support Files/Pods-JMIVECOSPACE/Pods-JMIVECOSPACE.release.xcconfig"; sourceTree = "<group>"; };
@@ -86,12 +89,14 @@
 		13B07FAE1A68108700A75B9A /* JMIVECOSPACE */ = {
 			isa = PBXGroup;
 			children = (
+				F10810B72ED0489A0032C189 /* AppDelegate.swift */,
 				F195EE3B2D8D49BD00AB750D /* JMIVECOSPACE.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				F1E025AE2D8D7295009FDCDC /* GoogleService-Info.plist */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				F10810B92ED0489D0032C189 /* JMIVECOSPACE-Bridging-Header.h */,
 			);
 			name = JMIVECOSPACE;
 			sourceTree = "<group>";
@@ -200,14 +205,15 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1210;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
 						CreatedOnToolsVersion = 6.2;
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -408,6 +414,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10810B82ED0489A0032C189 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,9 +489,10 @@
 				CODE_SIGN_ENTITLEMENTS = JMIVECOSPACE/JMIVECOSPACE.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0.0;
+				CURRENT_PROJECT_VERSION = 1.0.1;
 				DEVELOPMENT_TEAM = 65GWQCU3Q3;
 				ENABLE_BITCODE = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = JMIVECOSPACE/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SGT VECOSPACE";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -493,7 +501,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -504,6 +512,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "JMIVECOSPACE-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -520,8 +529,9 @@
 				CODE_SIGN_ENTITLEMENTS = JMIVECOSPACE/JMIVECOSPACE.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0.0;
+				CURRENT_PROJECT_VERSION = 1.0.1;
 				DEVELOPMENT_TEAM = 65GWQCU3Q3;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = JMIVECOSPACE/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SGT VECOSPACE";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -530,7 +540,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -541,6 +551,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "JMIVECOSPACE-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -580,6 +591,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -668,6 +680,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -710,6 +723,7 @@
 				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
