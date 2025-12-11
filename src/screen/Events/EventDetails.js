@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -11,32 +11,32 @@ import {
   Modal,
   StyleSheet,
   FlatList,
-} from 'react-native';
-import globalStyles from '../GlobalCSS';
-import Header from '../Header/Header';
-import Colors from '../color';
-import Icon from '../Icons/Icons';
+} from "react-native";
+import globalStyles from "../GlobalCSS";
+import Header from "../Header/Header";
+import Colors from "../color";
+import Icon from "../Icons/Icons";
 import {
   AreYouGoingInEvent,
   baseUrl,
   DeleteEvents,
   UpdateCareerbusiness,
   DeleteCareerBusiness,
-} from '../baseURL/api';
-import ImagePicker from 'react-native-image-crop-picker';
-import {showError, showSuccess} from '../components/Toast';
-import {useTheme} from '../../theme/ThemeContext';
+} from "../baseURL/api";
+import ImagePicker from "react-native-image-crop-picker";
+import { showError, showSuccess } from "../components/Toast";
+import { useTheme } from "../../theme/ThemeContext";
 
-const EventDetails = ({navigation, route}) => {
-  const {Item = {}, Career = {}} = route.params || {};
+const EventDetails = ({ navigation, route }) => {
+  const { Item = {}, Career = {} } = route.params || {};
   // console.log('ItemCareerCareerCareer', Career);
-  const {isDark, colors, toggleTheme} = useTheme();
+  const { isDark, colors, toggleTheme } = useTheme();
   const [images, setImages] = useState([]);
   const [image, setImage] = useState(null);
   const [imagesName, setImagesName] = useState([]);
   const [base64, setBase64] = useState([]);
   const [base64Logo, setBase64Logo] = useState([]);
-  const [selectedValue1, setSelectedValue1] = useState('Share with Public');
+  const [selectedValue1, setSelectedValue1] = useState("Share with Public");
   const [modalVisibleImg, setModalVisibleImg] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isOpen2, setIsOpen2] = useState(false);
@@ -44,18 +44,18 @@ const EventDetails = ({navigation, route}) => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
 
   const toggleDropdown2 = () => setIsOpen2(!isOpen2);
-  const options2 = ['Yes', 'Maybe', 'No'];
-  const statusMapping = {Yes: 1, Maybe: 2, No: 3};
+  const options2 = ["Yes", "Maybe", "No"];
+  const statusMapping = { Yes: 1, Maybe: 2, No: 3 };
 
-  const selectOption2 = async option => {
+  const selectOption2 = async (option) => {
     setSelectedValue1(option);
     setIsOpen2(false);
     const status = statusMapping[option];
     try {
       const response = await fetch(`${baseUrl}${AreYouGoingInEvent}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId: Item?.Organiser?.UserId,
@@ -65,35 +65,35 @@ const EventDetails = ({navigation, route}) => {
       });
 
       const data = await response.json();
-      console.log('data ', data);
+      console.log("data ", data);
       if (response.ok) {
-        Alert.alert('Success', `You Select "${option}" for Going in Event`);
+        Alert.alert("Success", `You Select "${option}" for Going in Event`);
       } else {
-        Alert.alert('Error', data.message || 'Something went wrong!');
+        Alert.alert("Error", data.message || "Something went wrong!");
       }
     } catch (error) {
-      console.error('API Error:', error);
-      Alert.alert('Error', 'Failed to update status.');
+      console.error("API Error:", error);
+      Alert.alert("Error", "Failed to update status.");
     }
   };
 
   const handleDeleteComment = () => {
     Alert.alert(
-      'Confirmation',
-      'Are you sure you want to delete this Event?',
+      "Confirmation",
+      "Are you sure you want to delete this Event?",
       [
         {
-          text: 'No',
-          style: 'cancel',
+          text: "No",
+          style: "cancel",
         },
         {
-          text: 'Yes',
+          text: "Yes",
           onPress: async () => {
             try {
               const response = await fetch(`${baseUrl}${DeleteEvents}`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                   id: Item?.id,
@@ -101,75 +101,75 @@ const EventDetails = ({navigation, route}) => {
               });
 
               const data = await response.json();
-              console.log('data ------- ', data);
+              console.log("data ------- ", data);
 
               if (response.ok) {
                 navigation.goBack();
               }
             } catch (error) {
-              console.error('Delete Error:', error);
+              console.error("Delete Error:", error);
             }
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false }
     );
   };
 
   const DeleteCareerBusinessApi = () => {
     Alert.alert(
-      'Confirmation',
-      'Are you sure you want to delete this Business?',
+      "Confirmation",
+      "Are you sure you want to delete this Business?",
       [
         {
-          text: 'No',
-          style: 'cancel',
+          text: "No",
+          style: "cancel",
         },
         {
-          text: 'Yes',
+          text: "Yes",
           onPress: async () => {
             try {
               const response = await fetch(
                 `${baseUrl}${DeleteCareerBusiness}`,
                 {
-                  method: 'POST',
+                  method: "POST",
                   headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                   },
 
                   body: JSON.stringify({
                     id: Career?.id,
                   }),
-                },
+                }
               );
 
               const data = await response.json();
-              console.log('data ------- ', data);
+              console.log("data ------- ", data);
 
               if (response.ok) {
                 showSuccess(data.message);
                 navigation.goBack();
               }
             } catch (error) {
-              console.error('Delete Error:', error);
+              console.error("Delete Error:", error);
             }
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false }
     );
   };
 
   const selectImage = () => {
     ImagePicker.openPicker({
       multiple: false,
-      mediaType: 'photo',
+      mediaType: "photo",
       compressImageQuality: 0.8,
       includeBase64: true,
     })
-      .then(selectedImage => {
+      .then((selectedImage) => {
         const imagePath = selectedImage.path;
-        const imageName = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+        const imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
         const base64Image = selectedImage.data;
 
         const imageObj = {
@@ -181,14 +181,14 @@ const EventDetails = ({navigation, route}) => {
         setImage(imageObj);
         uploadImage(imageObj);
       })
-      .catch(error => {
-        console.error('Image selection cancelled:', error);
+      .catch((error) => {
+        console.error("Image selection cancelled:", error);
       });
   };
 
-  const uploadImage = async imageObj => {
+  const uploadImage = async (imageObj) => {
     if (!Career || !imageObj) {
-      showError('Please select an image before uploading.');
+      showError("Please select an image before uploading.");
       return;
     }
     const UpdateCareerbusinessApiUrl = `${baseUrl}${UpdateCareerbusiness}`;
@@ -223,41 +223,41 @@ const EventDetails = ({navigation, route}) => {
     try {
       setLoading(true);
       const response = await fetch(UpdateCareerbusinessApiUrl, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
       });
 
-      const contentType = response.headers.get('content-type');
+      const contentType = response.headers.get("content-type");
       let data;
 
-      if (contentType && contentType.includes('application/json')) {
+      if (contentType && contentType.includes("application/json")) {
         data = await response.json();
-        console.log(data, 'API response');
+        console.log(data, "API response");
       } else {
         const text = await response.text();
-        console.log('Non-JSON response:', text);
-        throw new Error('Server returned non-JSON response');
+        console.log("Non-JSON response:", text);
+        throw new Error("Server returned non-JSON response");
       }
 
       if (response.ok) {
-        showSuccess('Image updated successfully.');
+        showSuccess("Image updated successfully.");
         if (data.uploadedImages && data.uploadedImages.length > 0) {
           setUploadedImageUrl(data.uploadedImages[0].imageUrl);
         }
       } else {
-        showError(data?.message || 'Failed to update.');
+        showError(data?.message || "Failed to update.");
       }
     } catch (error) {
-      console.error('Upload Error:', error);
-      showError(error.message || 'Something went wrong.');
+      console.error("Upload Error:", error);
+      showError(error.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
   const openURL = () => {
-    Linking.openURL(Item?.websiteurl).catch(err =>
-      console.error("Couldn't open URL", err),
+    Linking.openURL(Item?.websiteurl).catch((err) =>
+      console.error("Couldn't open URL", err)
     );
   };
   // const latitude = 28.6139; // Example Latitude (New Delhi)
@@ -275,32 +275,36 @@ const EventDetails = ({navigation, route}) => {
   const location = Item?.eventVenue;
   const openMap = () => {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      location,
+      location
     )}`;
 
-    Linking.openURL(url).catch(err => console.error("Couldn't open map", err));
+    Linking.openURL(url).catch((err) =>
+      console.error("Couldn't open map", err)
+    );
   };
   return (
     <SafeAreaView
       style={{
         ...globalStyles.SafeAreaView,
         backgroundColor: colors.background,
-      }}>
+      }}
+    >
       <Header
-        title={Career?.CompanyBusinessName ? 'Career Details' : 'Event Details'}
+        title={Career?.CompanyBusinessName ? "Career Details" : "Event Details"}
         navigation={navigation}
       />
-      <View style={{flex: 1}}>
-        <ScrollView style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }}>
           <View
             style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
+              flexDirection: "row",
+              flexWrap: "wrap",
               borderBottomWidth: Career?.CompanyBusinessName ? 1 : 0,
               borderColor: Career?.CompanyBusinessName
                 ? colors.textinputbordercolor
-                : 'transparent',
-            }}>
+                : "transparent",
+            }}
+          >
             {(() => {
               const fallbackImageUri =
                 Item?.Images?.length > 0
@@ -312,9 +316,9 @@ const EventDetails = ({navigation, route}) => {
               const imageUriToUse = uploadedImageUrl || fallbackImageUri;
 
               const fullImageUri = imageUriToUse
-                ? imageUriToUse.startsWith('http')
+                ? imageUriToUse.startsWith("http")
                   ? imageUriToUse
-                  : `https://vecospaceapi.nexgenov8.com/api/${imageUriToUse}`
+                  : `https://sgtapi.vecospace.com/api/${imageUriToUse}`
                 : null;
 
               return (
@@ -322,8 +326,8 @@ const EventDetails = ({navigation, route}) => {
                   <Image
                     source={
                       fullImageUri
-                        ? {uri: fullImageUri}
-                        : require('../../assets/noimageplaceholder.png')
+                        ? { uri: fullImageUri }
+                        : require("../../assets/noimageplaceholder.png")
                     }
                     style={{
                       width: 150,
@@ -347,25 +351,27 @@ const EventDetails = ({navigation, route}) => {
           </View>
           <View
             style={{
-              flexDirection: 'row',
-              position: 'absolute',
+              flexDirection: "row",
+              position: "absolute",
               right: 10,
               top: 10,
-            }}>
+            }}
+          >
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate(
-                  Career?.CompanyBusinessName ? 'AddCareer' : 'AddEvent',
+                  Career?.CompanyBusinessName ? "AddCareer" : "AddEvent",
                   {
                     Item: Item,
                     Career: Career,
-                  },
+                  }
                 )
-              }>
+              }
+            >
               <Icon
                 name="pencil"
                 size={17}
-                style={{paddingHorizontal: 5}}
+                style={{ paddingHorizontal: 5 }}
                 color={colors.placeholderTextColor}
                 type="Octicons"
               />
@@ -374,7 +380,8 @@ const EventDetails = ({navigation, route}) => {
             <TouchableOpacity
               onPress={() =>
                 Career.id ? DeleteCareerBusinessApi() : handleDeleteComment()
-              }>
+              }
+            >
               <Icon
                 name="delete"
                 size={20}
@@ -389,23 +396,25 @@ const EventDetails = ({navigation, route}) => {
                 ? null
                 : isDark
                 ? colors.textinputBackgroundcolor
-                : 'rgba(0,0,0,0.7)',
+                : "rgba(0,0,0,0.7)",
               padding: 20,
               borderBottomWidth: Career?.CompanyBusinessName ? 1 : 0,
               borderColor: Career?.CompanyBusinessName
                 ? colors.textinputbordercolor
-                : '',
-            }}>
+                : "",
+            }}
+          >
             <Text
               style={{
                 fontSize: 25,
-                fontWeight: '500',
+                fontWeight: "500",
                 color: Career?.CompanyBusinessName
                   ? isDark
                     ? colors.textColor
-                    : 'black'
-                  : 'white',
-              }}>
+                    : "black"
+                  : "white",
+              }}
+            >
               {Item?.eventName || Career?.CompanyBusinessName}
             </Text>
             {/* {Career?.CompanyBusinessName ? (
@@ -421,16 +430,17 @@ const EventDetails = ({navigation, route}) => {
           </View>
           <View
             style={{
-              flexDirection: 'row',
+              flexDirection: "row",
               marginTop: 10,
               marginLeft: Career?.CompanyBusinessName ? 20 : 0,
               borderBottomWidth: Career?.CompanyBusinessName ? 1 : 0,
               borderColor: Career?.CompanyBusinessName
                 ? colors.textinputbordercolor
-                : '',
-            }}>
+                : "",
+            }}
+          >
             {Career?.CompanyBusinessName ? null : (
-              <View style={{padding: 20}}>
+              <View style={{ padding: 20 }}>
                 <Icon
                   type="AntDesign"
                   name="clockcircleo"
@@ -447,10 +457,11 @@ const EventDetails = ({navigation, route}) => {
                     style={{
                       ...globalStyles?.FS_16_FW_B,
                       color: colors.textColor,
-                    }}>
+                    }}
+                  >
                     Contact Person:
                   </Text>
-                  <Text style={{fontSize: 16, color: colors.textColor}}>
+                  <Text style={{ fontSize: 16, color: colors.textColor }}>
                     {Career?.CompanyBusinessName}
                   </Text>
                 </View>
@@ -461,12 +472,13 @@ const EventDetails = ({navigation, route}) => {
                   style={{
                     ...globalStyles?.FS_16_FW_B,
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   {Career?.CompanyBusinessName
-                    ? 'Number of Employees:'
-                    : 'Start'}
+                    ? "Number of Employees:"
+                    : "Start"}
                 </Text>
-                <Text style={{fontSize: 16}}>
+                <Text style={{ fontSize: 16 }}>
                   {Item?.eventDate} {Item?.starttime}
                   {Career?.EmpnoId}
                   {/*Career?.EmpnoId this for the value then completed by backend   */}
@@ -478,12 +490,13 @@ const EventDetails = ({navigation, route}) => {
                   style={{
                     ...globalStyles?.FS_16_FW_B,
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   {Career?.CompanyBusinessName
-                    ? 'Year of Establishment:'
-                    : 'End'}
+                    ? "Year of Establishment:"
+                    : "End"}
                 </Text>
-                <Text style={{fontSize: 16, color: colors.textColor}}>
+                <Text style={{ fontSize: 16, color: colors.textColor }}>
                   {Item?.eventDate} {Item?.endtime}
                   {Career?.EstablishedYear}
                 </Text>
@@ -494,27 +507,30 @@ const EventDetails = ({navigation, route}) => {
                   style={{
                     ...globalStyles?.FS_16_FW_B,
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   {/* Event Type:{' '}
                    */}
-                  {Career?.CompanyBusinessName ? 'Location:' : 'Event Type:'}{' '}
+                  {Career?.CompanyBusinessName ? "Location:" : "Event Type:"}{" "}
                 </Text>
-                <Text style={{fontSize: 16, color: colors.textColor}}>
+                <Text style={{ fontSize: 16, color: colors.textColor }}>
                   {Item?.eventType || Career?.CityName} {Career?.StateId}
                 </Text>
               </View>
               {Career?.CompleteAddress ? (
                 <View
                   style={{
-                    flexDirection: 'row',
+                    flexDirection: "row",
                     paddingVertical: 5,
-                    flexWrap: 'wrap',
-                  }}>
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Text
                     style={{
                       ...globalStyles?.FS_16_FW_B,
                       color: colors.textColor,
-                    }}>
+                    }}
+                  >
                     Address:
                   </Text>
                   <Text
@@ -522,7 +538,8 @@ const EventDetails = ({navigation, route}) => {
                       fontSize: 16,
                       flexShrink: 1,
                       color: colors.textColor,
-                    }}>
+                    }}
+                  >
                     {Career?.CompleteAddress}
                   </Text>
                 </View>
@@ -530,8 +547,8 @@ const EventDetails = ({navigation, route}) => {
             </View>
           </View>
           {Career?.CompanyBusinessName ? null : (
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <View style={{padding: 17}}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ padding: 17 }}>
                 <Icon
                   type="Entypo"
                   name="location-pin"
@@ -539,14 +556,15 @@ const EventDetails = ({navigation, route}) => {
                   color={colors.backIconColor}
                 />
               </View>
-              <TouchableOpacity style={{flexShrink: 1}} onPress={openMap}>
+              <TouchableOpacity style={{ flexShrink: 1 }} onPress={openMap}>
                 <View style={globalStyles?.FD_Row_PV_5}>
                   <Text
                     style={{
-                      fontWeight: 'bold',
+                      fontWeight: "bold",
                       fontSize: 16,
                       color: colors.AppmainColor,
-                    }}>
+                    }}
+                  >
                     {Item?.eventVenue}
                   </Text>
                 </View>
@@ -559,18 +577,20 @@ const EventDetails = ({navigation, route}) => {
               style={{
                 flex: 0.95,
                 backgroundColor: colors.AppmainColor,
-                flexDirection: 'row',
-                justifyContent: 'center',
+                flexDirection: "row",
+                justifyContent: "center",
                 padding: 10,
                 margin: 10,
                 borderRadius: 10,
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontSize: 18,
-                  fontWeight: 'bold',
+                  fontWeight: "bold",
                   color: colors.ButtonTextColor,
-                }}>
+                }}
+              >
                 Are You Going
               </Text>
 
@@ -580,28 +600,30 @@ const EventDetails = ({navigation, route}) => {
                   name="down"
                   size={20}
                   color={colors.ButtonTextColor}
-                  style={{paddingLeft: 10}}
+                  style={{ paddingLeft: 10 }}
                 />
               </TouchableOpacity>
 
               <View
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   left: 200,
                   top: 0,
-                }}>
+                }}
+              >
                 {isOpen2 && (
                   <View
                     style={{
                       backgroundColor: colors.modelBackground,
                       borderRadius: 4,
                       elevation: 5, // For shadow on Android
-                      shadowColor: '#000', // For shadow on iOS
-                      shadowOffset: {width: 0, height: 2},
+                      shadowColor: "#000", // For shadow on iOS
+                      shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.2,
                       padding: 10,
                       zIndex: 999,
-                    }}>
+                    }}
+                  >
                     {options2.map((option, index) => (
                       <TouchableOpacity
                         key={index}
@@ -609,8 +631,9 @@ const EventDetails = ({navigation, route}) => {
                           ...globalStyles.dropdownItemShare,
                           borderColor: colors.textinputbordercolor,
                         }}
-                        onPress={() => selectOption2(option)}>
-                        <Text style={{fontSize: 14, color: colors.textColor}}>
+                        onPress={() => selectOption2(option)}
+                      >
+                        <Text style={{ fontSize: 14, color: colors.textColor }}>
                           {option}
                         </Text>
                       </TouchableOpacity>
@@ -621,30 +644,32 @@ const EventDetails = ({navigation, route}) => {
             </TouchableOpacity>
           )}
           {Career?.CompanyBusinessName ? null : (
-            <View style={{margin: 10}}>
+            <View style={{ margin: 10 }}>
               <Text
-                style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+                style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+              >
                 Guest List
               </Text>
 
               {Item?.Guestlist?.map((guest, index) => (
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('ProfileDetails', {
+                    navigation.navigate("ProfileDetails", {
                       Item: guest,
                     })
                   }
                   key={index}
                   style={{
-                    flexDirection: 'row',
+                    flexDirection: "row",
                     marginTop: 20,
-                  }}>
+                  }}
+                >
                   <View>
                     <Image
                       source={{
                         uri: guest?.ProfilePhoto
                           ? guest?.ProfilePhoto
-                          : require('../../assets/placeholderprofileimage.png'),
+                          : require("../../assets/placeholderprofileimage.png"),
                       }}
                       style={{
                         width: 50,
@@ -660,10 +685,11 @@ const EventDetails = ({navigation, route}) => {
                       style={{
                         ...globalStyles?.FS_16_FW_B,
                         color: colors.textColor,
-                      }}>
+                      }}
+                    >
                       {guest?.UserName}
                     </Text>
-                    <Text style={{color: colors.placeholderTextColor}}>
+                    <Text style={{ color: colors.placeholderTextColor }}>
                       {guest?.CompanyName}
                     </Text>
                   </View>
@@ -674,7 +700,8 @@ const EventDetails = ({navigation, route}) => {
           {Item?.eventBrief ? (
             <View style={globalStyles?.MH_10_PV_30}>
               <Text
-                style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+                style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+              >
                 Brief profile of the Event
               </Text>
               <Text
@@ -682,7 +709,8 @@ const EventDetails = ({navigation, route}) => {
                   paddingVertical: 10,
                   fontSize: 15,
                   color: colors.textColor,
-                }}>
+                }}
+              >
                 {Item?.eventBrief}
               </Text>
             </View>
@@ -690,7 +718,8 @@ const EventDetails = ({navigation, route}) => {
           {Item?.eventDetails ? (
             <View style={globalStyles?.MH_10_PV_30}>
               <Text
-                style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+                style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+              >
                 Details about the Event
               </Text>
               <Text
@@ -698,7 +727,8 @@ const EventDetails = ({navigation, route}) => {
                   paddingVertical: 10,
                   fontSize: 15,
                   color: colors.textColor,
-                }}>
+                }}
+              >
                 {Item?.eventDetails}
               </Text>
             </View>
@@ -706,7 +736,8 @@ const EventDetails = ({navigation, route}) => {
           {Item?.eventAgenda ? (
             <View style={globalStyles?.MH_10_PV_30}>
               <Text
-                style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+                style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+              >
                 Agenda of the Event
               </Text>
               <Text
@@ -714,7 +745,8 @@ const EventDetails = ({navigation, route}) => {
                   paddingVertical: 10,
                   fontSize: 15,
                   color: colors.textColor,
-                }}>
+                }}
+              >
                 {Item?.eventAgenda}
               </Text>
             </View>
@@ -722,7 +754,8 @@ const EventDetails = ({navigation, route}) => {
           {Item?.websiteurl ? (
             <View style={globalStyles?.MH_10_PV_30}>
               <Text
-                style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+                style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+              >
                 Website URL
               </Text>
               <TouchableOpacity onPress={openURL}>
@@ -731,7 +764,8 @@ const EventDetails = ({navigation, route}) => {
                     paddingVertical: 10,
                     fontSize: 15,
                     color: colors.AppmainColor,
-                  }}>
+                  }}
+                >
                   {Item?.websiteurl}
                 </Text>
               </TouchableOpacity>
@@ -741,15 +775,16 @@ const EventDetails = ({navigation, route}) => {
             {Item?.Images?.length > 0 ? (
               <Text
                 style={{
-                  fontWeight: 'bold',
+                  fontWeight: "bold",
                   fontSize: 20,
                   margin: 10,
                   color: colors.textColor,
-                }}>
+                }}
+              >
                 Photographs
               </Text>
             ) : null}
-            <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
               {Item?.Images?.length > 0
                 ? Item.Images.map((img, index) => (
                     <View style={{}}>
@@ -757,10 +792,11 @@ const EventDetails = ({navigation, route}) => {
                         onPress={() => {
                           setSelectedImageIndex(index);
                           setModalVisibleImg(true);
-                        }}>
+                        }}
+                      >
                         <Image
                           key={index}
-                          source={{uri: img.imageName}}
+                          source={{ uri: img.imageName }}
                           style={{
                             backgroundColor: Colors?.lite_gray,
                             width: 90,
@@ -775,17 +811,20 @@ const EventDetails = ({navigation, route}) => {
                         visible={modalVisibleImg}
                         transparent={true}
                         animationType="slide"
-                        onRequestClose={() => setModalVisibleImg(false)}>
+                        onRequestClose={() => setModalVisibleImg(false)}
+                      >
                         <SafeAreaView
                           style={{
                             flex: 1,
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                          }}>
+                            backgroundColor: "rgba(0,0,0,0.8)",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
                           <TouchableOpacity
-                            style={{...styles.closeButtonimg}}
-                            onPress={() => setModalVisibleImg(false)}>
+                            style={{ ...styles.closeButtonimg }}
+                            onPress={() => setModalVisibleImg(false)}
+                          >
                             <Text style={styles.closeTextimg}>Close</Text>
                           </TouchableOpacity>
 
@@ -800,9 +839,9 @@ const EventDetails = ({navigation, route}) => {
                                 offset: 600 * index,
                                 index,
                               })}
-                              renderItem={({item}) => (
+                              renderItem={({ item }) => (
                                 <Image
-                                  source={{uri: item.imageName}}
+                                  source={{ uri: item.imageName }}
                                   style={{
                                     width: 600,
                                     height: 600,
@@ -816,7 +855,7 @@ const EventDetails = ({navigation, route}) => {
                             />
                           ) : (
                             <Image
-                              source={{uri: Item.Images[0].imageName}}
+                              source={{ uri: Item.Images[0].imageName }}
                               style={{
                                 width: 600,
                                 height: 600,
@@ -832,29 +871,31 @@ const EventDetails = ({navigation, route}) => {
                 : null}
             </View>
           </View>
-          <View style={{marginHorizontal: 10, marginTop: 20}}>
+          <View style={{ marginHorizontal: 10, marginTop: 20 }}>
             <Text
-              style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
+              style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+            >
               {Career?.CompanyBusinessName
-                ? 'Posted By'
-                : 'About the organiser'}
+                ? "Posted By"
+                : "About the organiser"}
             </Text>
           </View>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('ProfileDetails', {
+              navigation.navigate("ProfileDetails", {
                 Item: Item?.Organiser || Career?.UserDetails,
               })
             }
-            style={{margin: 10, flexDirection: 'row', alignItems: 'center'}}>
-            <View style={{margin: 10}}>
+            style={{ margin: 10, flexDirection: "row", alignItems: "center" }}
+          >
+            <View style={{ margin: 10 }}>
               <Image
                 source={
                   Item?.Organiser?.ProfilePhoto
-                    ? {uri: Item.Organiser.ProfilePhoto}
+                    ? { uri: Item.Organiser.ProfilePhoto }
                     : Career?.UserDetails?.ProfilePhoto
-                    ? {uri: Career.UserDetails.ProfilePhoto}
-                    : require('../../assets/placeholderprofileimage.png')
+                    ? { uri: Career.UserDetails.ProfilePhoto }
+                    : require("../../assets/placeholderprofileimage.png")
                 }
                 style={{
                   backgroundColor: Colors?.lite_gray,
@@ -865,41 +906,43 @@ const EventDetails = ({navigation, route}) => {
               />
             </View>
             {(Item?.Organiser || Career?.CompanyBusinessName) && (
-              <View style={{marginVertical: 5}}>
+              <View style={{ marginVertical: 5 }}>
                 <Text
                   style={{
                     fontSize: 15,
-                    fontWeight: 'bold',
+                    fontWeight: "bold",
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   {Item?.Organiser?.UserName || Career?.UserDetails?.UserName}
                 </Text>
-                <Text style={{color: colors.placeholderTextColor}}>
+                <Text style={{ color: colors.placeholderTextColor }}>
                   {Item?.Organiser?.CompanyName ||
                     Career?.UserDetails?.CompanyName}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
-          <View style={{marginHorizontal: 10}}>
+          <View style={{ marginHorizontal: 10 }}>
             <Text
-              style={{...globalStyles?.FS_20_FW_B, color: colors.textColor}}>
-              {Career?.CompanyBusinessName ? 'Description' : 'Event venue'}
+              style={{ ...globalStyles?.FS_20_FW_B, color: colors.textColor }}
+            >
+              {Career?.CompanyBusinessName ? "Description" : "Event venue"}
             </Text>
           </View>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             {Career?.CompanyBusinessName ? (
               <>
-                <View style={{margin: 10}}>
-                  <Text style={{color: colors.textColor, fontSize: 15}}>
+                <View style={{ margin: 10 }}>
+                  <Text style={{ color: colors.textColor, fontSize: 15 }}>
                     {Career?.LongDescription}
                   </Text>
                 </View>
               </>
             ) : (
               <>
-                {' '}
-                <View style={{padding: 17}}>
+                {" "}
+                <View style={{ padding: 17 }}>
                   <Icon
                     type="Entypo"
                     name="location-pin"
@@ -907,23 +950,25 @@ const EventDetails = ({navigation, route}) => {
                     color={colors.backIconColor}
                   />
                 </View>
-                <View style={{flexShrink: 1}}>
-                  <View style={{paddingVertical: 5}}>
+                <View style={{ flexShrink: 1 }}>
+                  <View style={{ paddingVertical: 5 }}>
                     <Text
                       style={{
-                        fontWeight: 'bold',
+                        fontWeight: "bold",
                         fontSize: 16,
                         color: colors.AppmainColor,
-                      }}>
+                      }}
+                    >
                       {Item?.eventVenue} {Item?.eventCountry}
                     </Text>
 
                     <Text
                       style={{
-                        fontWeight: 'bold',
+                        fontWeight: "bold",
                         fontSize: 16,
                         color: colors.AppmainColor,
-                      }}>
+                      }}
+                    >
                       Open in Google Maps
                     </Text>
                   </View>
@@ -939,11 +984,11 @@ const EventDetails = ({navigation, route}) => {
 
 const styles = StyleSheet.create({
   inputContainer: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
+    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     width: 200,
     marginHorizontal: 8,
@@ -954,23 +999,23 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     paddingHorizontal: 10,
     fontSize: 14,
-    color: '#000',
+    color: "#000",
   },
   inputIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
   },
 
   itemText: {
     fontSize: 14,
-    color: 'black',
+    color: "black",
   },
   dropdown: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 5,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
 
   text: {
@@ -983,12 +1028,12 @@ const styles = StyleSheet.create({
   },
 
   buttonClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: "#2196F3",
   },
   textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
   image: {
@@ -999,31 +1044,31 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: '#999',
+    color: "#999",
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     padding: 15,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start', // Align items at the top
+    flexDirection: "row",
+    alignItems: "flex-start", // Align items at the top
   },
   firstImage: {
-    width: '78%',
+    width: "78%",
     height: 495,
     marginRight: 10, // Spacing between big and small images
     borderRadius: 8,
@@ -1041,15 +1086,15 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   rowimg: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   firstImageimg: {
     height: 200,
     borderRadius: 10,
   },
   smallImagesColumnimg: {
-    flexDirection: 'column',
+    flexDirection: "column",
     marginLeft: 10,
   },
   smallImageimg: {
@@ -1059,20 +1104,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   moreContainerimg: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     padding: 10,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   moreTextimg: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   modalContainerimg: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalImageimg: {
     width: 600,
@@ -1080,15 +1125,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   closeButtonimg: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     // alignItems:'center',
     marginRight: 20,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     padding: 10,
     borderRadius: 5,
   },
   closeTextimg: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

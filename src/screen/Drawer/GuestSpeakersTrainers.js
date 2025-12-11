@@ -429,7 +429,12 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
                   Entertainment artist/group etc, register yourself on{" "}
                   {universityFullName}. The benefits to you will be: Please read
                   these{" "}
-                  <Text style={{ color: colors.AppmainColor }}>Terms </Text>
+                  <Text
+                    onPress={() => navigation.navigate("TermsScreen")}
+                    style={{ color: colors.AppmainColor }}
+                  >
+                    Terms{" "}
+                  </Text>
                   for details.
                 </Text>
               </View>

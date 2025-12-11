@@ -181,7 +181,6 @@ function DrawerNavigator(props) {
           drawerLabel: "Home",
         }}
       />
-
       <Drawer.Screen
         name={
           userProfileData?.Data?.usersType == 1
@@ -670,7 +669,7 @@ export default function App() {
   const linking = {
     prefixes: [
       "http://vecospaceapi.nexgenov8.com",
-      "https://vecospaceapi.nexgenov8.com",
+      "https://sgtapi.vecospace.com",
     ],
     config: {
       screens: {

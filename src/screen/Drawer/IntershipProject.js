@@ -1088,12 +1088,9 @@ const IntershipProject = ({ navigation, route }) => {
       setErrorSkill(true);
       return;
     }
-
-    // Prevent rapid taps using ref
     if (isAddingRef.current) return;
     isAddingRef.current = true;
 
-    // Deduplicate with latest list
     setSkillsList((prevSkills) => {
       const alreadyExists = prevSkills.some(
         (s) => s.toLowerCase() === trimmedSkill.toLowerCase()

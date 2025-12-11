@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState, useRef} from 'react';
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -10,24 +10,24 @@ import {
   Alert,
   FlatList,
   RefreshControl,
-} from 'react-native';
+} from "react-native";
 import {
   baseUrl,
   contactList,
   removecontact,
   SentJoinGroup,
-} from '../baseURL/api';
-import Colors from '../color';
-import globalStyles from '../GlobalCSS';
-import Header from '../Header/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from '../Icons/Icons';
-import {showSuccess} from '../components/Toast';
-import {useTheme} from '../../theme/ThemeContext';
+} from "../baseURL/api";
+import Colors from "../color";
+import globalStyles from "../GlobalCSS";
+import Header from "../Header/Header";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "../Icons/Icons";
+import { showSuccess } from "../components/Toast";
+import { useTheme } from "../../theme/ThemeContext";
 
-const ContactList = ({navigation, route}) => {
-  const {Item = {}, InviteFriends = false} = route.params || {};
-  const {isDark, colors, toggleTheme} = useTheme();
+const ContactList = ({ navigation, route }) => {
+  const { Item = {}, InviteFriends = false } = route.params || {};
+  const { isDark, colors, toggleTheme } = useTheme();
   const [userData, setUserData] = useState(null);
   const [knownPeopleData, setKnownPeopleData] = useState([]);
   const [page, setPage] = useState(1);
@@ -39,14 +39,21 @@ const ContactList = ({navigation, route}) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userDta = await AsyncStorage.getItem('userData');
+      const userDta = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userDta);
       setUserData(parsedData);
     };
     fetchUserData();
   }, []);
+  // useEffect(() => {
+  //   if (Item && userData?.User?.userId) {
+  //     fetchContactList(1, true);
+  //   }
+  // }, [Item, userData?.User?.userId]);
+  const hasFetchedOnce = useRef(false);
   useEffect(() => {
-    if (Item && userData?.User?.userId) {
+    if (Item && userData?.User?.userId && !hasFetchedOnce.current) {
+      hasFetchedOnce.current = true;
       fetchContactList(1, true);
     }
   }, [Item, userData?.User?.userId]);
@@ -67,52 +74,68 @@ const ContactList = ({navigation, route}) => {
   };
 
   const renderFooter = () => {
-    if (!loading && !refreshing) return null;
-    return (
-      <ActivityIndicator
-        size="large"
-        color="#0000ff"
-        style={{marginVertical: 10}}
-      />
-    );
+    if (loading) {
+      return (
+        <ActivityIndicator
+          size="large"
+          color={colors.AppmainColor}
+          style={{ marginVertical: 10 }}
+        />
+      );
+    }
+
+    // Show "No more contacts" when data finished
+    if (!hasMoreData && knownPeopleData.length > 0) {
+      return (
+        <View style={{ paddingVertical: 15, alignItems: "center" }}>
+          <Text style={{ color: colors.placeholderTextColor, fontSize: 14 }}>
+            No more contacts to show
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   const fetchContactList = async (pageNumber = 1, isRefresh = false) => {
-    if (loading || !hasMoreData) return;
+    if (!hasMoreData || loading || isFetching.current) return;
 
-    setLoading(true);
     isFetching.current = true;
+    setLoading(true);
+
     const payload = JSON.stringify({
-      userId: Item?.UserId ? Item?.UserId : userData?.User?.userId,
-      groupId: Item?.id || '',
+      userId: Item?.UserId ?? userData?.User?.userId,
+      groupId: Item?.id || "",
       page: pageNumber,
       per_page: PAGE_SIZE,
     });
+
     try {
       const response = await fetch(`${baseUrl}${contactList}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: payload,
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = JSON.parse(text);
 
-      if (response.ok) {
-        const newData = data?.DataList || [];
+      const newData = data?.DataList || [];
 
-        if (pageNumber === 1) {
-          setKnownPeopleData(newData);
-        } else {
-          setKnownPeopleData(prevData => [...prevData, ...newData]);
-        }
+      if (pageNumber === 1) {
+        setKnownPeopleData(newData);
+      } else {
+        setKnownPeopleData((prev) => [...prev, ...newData]);
+      }
 
-        setHasMoreData(newData.length === PAGE_SIZE);
+      setHasMoreData(newData.length === PAGE_SIZE);
+
+      if (newData.length > 0) {
         setPage(pageNumber + 1);
       }
     } catch (error) {
-      console.error('Fetch Error:', error);
+      console.error("Fetch Error:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -120,24 +143,82 @@ const ContactList = ({navigation, route}) => {
     }
   };
 
-  const removeContact = async ({item}) => {
-    console.log('item?.UserId', item?.UserId);
+  // const fetchContactList = async (pageNumber = 1, isRefresh = false) => {
+  //   if (loading || !hasMoreData) return;
+
+  //   setLoading(true);
+  //   isFetching.current = true;
+
+  //   const payload = JSON.stringify({
+  //     userId: Item?.UserId ? Item?.UserId : userData?.User?.userId,
+  //     groupId: Item?.id || '',
+  //     page: pageNumber,
+  //     per_page: PAGE_SIZE,
+  //   });
+  //   //console.log(payload, 'payloadpayloadpayloadpayloadpayload');
+
+  //   try {
+  //     const response = await fetch(`${baseUrl}${contactList}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: payload,
+  //     });
+
+  //     const text = await response.text();
+  //     console.log('Raw response:', text);
+
+  //     if (!response.ok) {
+  //       console.error('Server returned error:', response.status, text);
+  //       return;
+  //     }
+
+  //     let data;
+  //     try {
+  //       data = JSON.parse(text);
+  //     } catch (e) {
+  //       console.error('JSON parse error:', e, text);
+  //       return;
+  //     }
+
+  //     const newData = data?.DataList || [];
+
+  //     if (pageNumber === 1) {
+  //       setKnownPeopleData(newData);
+  //     } else {
+  //       setKnownPeopleData(prevData => [...prevData, ...newData]);
+  //     }
+
+  //     setHasMoreData(newData.length === PAGE_SIZE);
+  //     setPage(pageNumber + 1);
+  //   } catch (error) {
+  //     console.error('Fetch Error:', error);
+  //   } finally {
+  //     setLoading(false);
+  //     setRefreshing(false);
+  //     isFetching.current = false;
+  //   }
+  // };
+
+  const removeContact = async ({ item }) => {
+    console.log("item?.UserId", item?.UserId);
     Alert.alert(
-      'Confirmation',
-      'Are you sure you want to delete this Contact?',
+      "Confirmation",
+      "Are you sure you want to delete this Contact?",
       [
         {
-          text: 'No',
-          style: 'cancel',
+          text: "No",
+          style: "cancel",
         },
         {
-          text: 'Yes',
+          text: "Yes",
           onPress: async () => {
             try {
               const response = await fetch(`${baseUrl}${removecontact}`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                   removeBy: userData?.User?.userId,
@@ -146,48 +227,49 @@ const ContactList = ({navigation, route}) => {
               });
               const data = await response.json();
               if (response.ok) {
-                console.log('Deleted contact successfully:', data);
-                setKnownPeopleData(prevData =>
-                  prevData.filter(contact => contact.id !== item.id),
+                console.log("Deleted contact successfully:", data);
+                setKnownPeopleData((prevData) =>
+                  prevData.filter((contact) => contact.id !== item.id)
                 );
               } else {
                 console.error(
-                  'Failed to delete contact:',
+                  "Failed to delete contact:",
                   response.status,
-                  data,
+                  data
                 );
               }
             } catch (error) {
-              console.error('Fetch Error delete contact:', error);
+              console.error("Fetch Error delete contact:", error);
             }
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false }
     );
   };
-  const renderContacts = ({item}) => {
+  const renderContacts = ({ item }) => {
     return (
       <TouchableOpacity
         onPress={() =>
           item.IsBlocked === false
-            ? navigation.navigate('ProfileDetails', {Item: item})
+            ? navigation.navigate("ProfileDetails", { Item: item })
             : null
         }
         style={{
-          flexDirection: 'row',
-          padding: 20,
+          flexDirection: "row",
+          padding: 10,
           marginHorizontal: 10,
           borderBottomWidth: 0.5,
-          alignItems: 'center',
-          position: 'relative',
+          alignItems: "center",
+          position: "relative",
           borderColor: colors.textinputbordercolor,
-        }}>
+        }}
+      >
         <Image
           source={
             item?.ProfilePhoto
-              ? {uri: item?.ProfilePhoto}
-              : require('../../assets/placeholderprofileimage.png')
+              ? { uri: item?.ProfilePhoto }
+              : require("../../assets/placeholderprofileimage.png")
           }
           style={{
             width: 61,
@@ -195,12 +277,12 @@ const ContactList = ({navigation, route}) => {
             borderRadius: 40,
             marginRight: 5,
             borderWidth: 3,
-            borderColor: 'yellow',
+            borderColor: "yellow",
             backgroundColor: Colors.lite_gray,
           }}
         />
-        {item?.IsOnline === 'Online' && (
-          <View style={{position: 'absolute', left: -10}}>
+        {item?.IsOnline === "Online" && (
+          <View style={{ position: "absolute", left: -10 }}>
             <Icon
               type="Entypo"
               name="dot-single"
@@ -209,12 +291,13 @@ const ContactList = ({navigation, route}) => {
             />
           </View>
         )}
-        <View style={{flex: 1, padding: 10}}>
+        <View style={{ flex: 1, padding: 10 }}>
           <Text
-            style={{...globalStyles?.FS_16_FW_400, color: colors.textColor}}>
+            style={{ ...globalStyles?.FS_16_FW_400, color: colors.textColor }}
+          >
             {item?.UserName}
           </Text>
-          <Text style={{color: colors.placeholderTextColor, marginBottom: 5}}>
+          <Text style={{ color: colors.placeholderTextColor, marginBottom: 5 }}>
             at {item?.CompanyName}
           </Text>
         </View>
@@ -223,18 +306,20 @@ const ContactList = ({navigation, route}) => {
             onPress={() => handleJoinGroup(item)}
             style={{
               backgroundColor: colors.AppmainColor,
-              alignSelf: 'flex-start',
+              alignSelf: "flex-start",
               padding: 5,
               borderRadius: 5,
-            }}>
-            <Text style={{color: colors.textColor, fontWeight: '600'}}>
+            }}
+          >
+            <Text style={{ color: colors.textColor, fontWeight: "600" }}>
               {item?.IsGroupMember}
             </Text>
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity
-          onPress={() => removeContact({item})}
-          style={{padding: 10}}>
+          onPress={() => removeContact({ item })}
+          style={{ padding: 10 }}
+        >
           <Icon
             name="user-times"
             size={18}
@@ -246,7 +331,7 @@ const ContactList = ({navigation, route}) => {
     );
   };
 
-  const handleJoinGroup = async item => {
+  const handleJoinGroup = async (item) => {
     const requestBody = {
       senderUserId: userData?.User?.userId,
       receiverUserId: item?.UserId,
@@ -254,13 +339,13 @@ const ContactList = ({navigation, route}) => {
     };
     try {
       const response = await fetch(`${baseUrl}${SentJoinGroup}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
       });
-      console.log('requestBody ', requestBody);
+      console.log("requestBody ", requestBody);
       const text = await response.text();
 
       const data = await response.json();
@@ -268,10 +353,10 @@ const ContactList = ({navigation, route}) => {
         // navigation.goBack();
         showSuccess(data.Message);
       } else {
-        console.error('Error joining:', data);
+        console.error("Error joining:", data);
       }
     } catch (error) {
-      console.error('Network error:', error);
+      console.error("Network error:", error);
     }
   };
   return (
@@ -279,28 +364,52 @@ const ContactList = ({navigation, route}) => {
       style={{
         ...globalStyles.SafeAreaView,
         backgroundColor: colors.background,
-      }}>
+      }}
+    >
       <Header
-        title={Item?.UserId ? 'Contact List' : 'My Contact List'}
+        title={Item?.UserId ? "Contact List" : "My Contact List"}
         navigation={navigation}
       />
 
-      <View style={{flex: 1}}>
-        <FlatList
-          data={knownPeopleData}
-          renderItem={renderContacts}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          }
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 20}}
-        />
+      <View style={{ flex: 1 }}>
+        {knownPeopleData.length === 0 && !loading && !refreshing ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: colors.placeholderTextColor,
+                fontSize: 16,
+                fontWeight: "500",
+              }}
+            >
+              No contacts available.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={knownPeopleData}
+            renderItem={renderContacts}
+            keyExtractor={(item, index) =>
+              item.id?.toString() || index.toString()
+            }
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

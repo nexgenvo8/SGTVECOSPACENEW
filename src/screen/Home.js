@@ -67,19 +67,24 @@ import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedScrollHandler,
+  withTiming,
+} from "react-native-reanimated";
 import CommonBottomSheet from "./components/CommonBottomSheet";
 import { DrawerActions } from "@react-navigation/native";
 import { fetchAndStoreUserProfile } from "../utils/profile";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
-import { useAnimatedStyle } from "react-native-reanimated";
 import CommonLoader from "./components/CommonLoader";
 import RenderHtml from "react-native-render-html";
 import Pusher from "pusher-js";
 import { useTheme } from "../theme/ThemeContext";
 import { appIcon } from "../constants";
-// import {SafeAreaView} from 'react-native-safe-area-context';
-export default function ({ route }) {
+
+export default function ({ route, tabBarVisible }) {
   const { Item = {}, AdditionalData = [] } = route.params || {};
   const navigation = useNavigation();
   const { isDark, colors, toggleTheme } = useTheme();
@@ -91,6 +96,7 @@ export default function ({ route }) {
   const smallImageWidth = containerWidth * 0.35;
   const imageHeight = 250;
   const smallImageHeight = (imageHeight - 8) / 3;
+  const [inputHeight, setInputHeight] = useState(70);
   useFocusEffect(
     React.useCallback(() => {
       if (route.params?.scrollToTop) {
@@ -104,7 +110,6 @@ export default function ({ route }) {
     console.log("Sheet changed to:", index);
   };
   const windowWidth = Dimensions.get("window").width;
-
   const [number, onChangeNumber] = useState("");
   const [number1, onChangeNumber1] = useState("");
   const [postText, setPostText] = useState("");
@@ -159,6 +164,7 @@ export default function ({ route }) {
   const [modalImageVisible, setModalImageVisible] = useState(false);
   const [isCommentSending, setIsCommentSending] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const isCommentEmpty = !number.trim();
   const isPostEmpty = !postText?.trim();
   const openImageModal = (imageUrl, index = 0) => {
@@ -171,6 +177,7 @@ export default function ({ route }) {
     setImages(updated);
   };
   const [initialLoading, setInitialLoading] = useState(true);
+
   const onShare = async () => {
     const payload = JSON.stringify({
       postId: passImageInModal?.id?.toString(),
@@ -240,18 +247,15 @@ export default function ({ route }) {
       )
     );
     try {
-      const response = await fetch(
-        "https://vecospaceapi.nexgenov8.com/api/addlike",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            postId: post.id,
-            postType: post.PostType,
-            userId: userData?.User?.userId,
-          }),
-        }
-      );
+      const response = await fetch("https://sgtapi.vecospace.com/api/addlike", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: post.id,
+          postType: post.PostType,
+          userId: userData?.User?.userId,
+        }),
+      });
       const data = await response.json();
       console.log("Add Like Response:", data);
       if (!response.ok || data.Status !== 1) {
@@ -314,12 +318,16 @@ export default function ({ route }) {
     setCurrentPage(1);
     fetchPosts(1, true);
   };
+  const onEndReachedCalledDuringMomentum = useRef(true);
   const handleLoadMore = () => {
     if (isFirstLoad.current) return;
     if (loading || refreshing || initialLoading) return;
     if (!hasMoreData) return;
-    const nextPage = currentPage + 1;
-    fetchPosts(nextPage);
+    if (onEndReachedCalledDuringMomentum.current) return;
+    fetchPosts(currentPage + 1);
+    onEndReachedCalledDuringMomentum.current = true;
+    // const nextPage = currentPage + 1;
+    // fetchPosts(nextPage);
   };
   const fetchPosts = async (
     page = 1,
@@ -334,7 +342,7 @@ export default function ({ route }) {
     } else if (page === 1 && !isAfterPost) {
       setInitialLoading(true);
     } else {
-      setLoading(true);
+      setLoadingMore(true);
     }
 
     try {
@@ -346,6 +354,8 @@ export default function ({ route }) {
         userId: userData?.User?.userId,
         page: page,
       });
+      // console.log(body, 'bodybodybodybodybody');
+
       const response = await fetch(`${baseUrl}${postlist}`, {
         method: "POST",
         headers: {
@@ -365,7 +375,7 @@ export default function ({ route }) {
           setHasMoreData(false);
         }
       } else {
-        showError("Error", data.message || "Failed to fetch posts");
+        showError(data.Message);
       }
     } catch (error) {
       showError("Failed to fetch posts. Please try again later.");
@@ -373,6 +383,7 @@ export default function ({ route }) {
     } finally {
       setInitialLoading(false);
       setLoading(false);
+      setLoadingMore(false);
       setRefreshing(false);
     }
   };
@@ -858,13 +869,15 @@ export default function ({ route }) {
       if (isCurrentlyExpanded && flatListRef.current) {
         setTimeout(() => {
           flatListRef.current.scrollToIndex({ index, animated: true });
-        }, 100); // Small delay to allow UI to collapse before scrolling
+        }, 100);
       }
 
       return updated;
     });
   };
   const renderItem = ({ item, index }) => {
+    // console.log(item, 'itemitemitemitemitemitemitemitem');
+    const isLiked = likedPosts[item?.id] ?? item?.IsLiked ?? false;
     const getTimeAgo = (dateString) => {
       const then = moment(dateString, "DD-MMM-YYYY, hh:mm:ssa");
       const now = moment();
@@ -884,13 +897,10 @@ export default function ({ route }) {
       return `${diffYears}y ago`;
     };
 
-    // const getTimeAgo = dateString => {
-    //   return moment(dateString, 'DD-MMM-YYYY, hh:mm:ssa').fromNow();
-    // };
     const isExpanded = expandedPosts[index] || false;
     const isUserPost = item.UserId === userData?.User?.userId;
     const formatText = (text) => {
-      if (!text) return "<p>No content available.</p>";
+      if (!text) return "";
       return text.startsWith("<")
         ? text
         : `<p>${text.replace(/\n/g, "<br/>")}</p>`;
@@ -903,11 +913,15 @@ export default function ({ route }) {
     };
 
     const fullFormattedText = formatText(item?.PostText);
-    const rawShortText = truncateText(
-      item?.PostText || "No content available."
-    );
+    const rawShortText = truncateText(item?.PostText || "");
     const shortFormattedText = formatText(rawShortText);
-
+    function convertUrlsToLinks(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, (url) => `<a href="${url}">${url}</a>`);
+    }
+    const processedHTML = convertUrlsToLinks(
+      isExpanded ? fullFormattedText : shortFormattedText
+    );
     return (
       <View
         style={{
@@ -1002,29 +1016,22 @@ export default function ({ route }) {
           ) : null}
           <RenderHTML
             contentWidth={windowWidth}
-            source={{
-              html: isExpanded ? fullFormattedText : shortFormattedText,
-            }}
+            source={{ html: processedHTML }}
+            ignoredDomTags={["table", "tbody", "tr", "td", "img"]}
             tagsStyles={{
+              a: {
+                color: colors.AppmainColor,
+                textDecorationLine: "underline",
+                fontWeight: "600",
+              },
               p: {
                 color: colors.textColor,
                 fontSize: 14,
-                lineHeight: 20,
-                textAlign: "justify",
-                marginTop: 0,
-                marginBottom: 0,
-                padding: 0,
               },
-              body: {
-                margin: 0,
-                padding: 0,
-                color: colors.textColor,
-              },
-              h4: {
-                color: colors.AppmainColor,
-                fontWeight: "700",
-                marginTop: 0,
-                marginBottom: 0,
+            }}
+            renderersProps={{
+              a: {
+                onPress: (_, href) => Linking.openURL(href),
               },
             }}
           />
@@ -1193,7 +1200,6 @@ export default function ({ route }) {
             </Text>
           </View>
         </View>
-
         <View
           style={{
             flexDirection: "row",
@@ -1211,9 +1217,8 @@ export default function ({ route }) {
               //  color={isLiked ? Colors.main_primary : '#888'}
               // color={'#888'}
               color={
-                item?.IsLiked || likedPosts[item?.id]
-                  ? colors.AppmainColor
-                  : colors.placeholderTextColor
+                //item?.IsLiked || likedPosts[item?.id]
+                isLiked ? colors.AppmainColor : colors.placeholderTextColor
               }
               style={{ paddingRight: 5 }}
             />
@@ -1225,7 +1230,7 @@ export default function ({ route }) {
             onPress={() => {
               setItemOfPost(item);
               setModalVisible1();
-              //commentSheetRef.current?.open();
+              // commentSheetRef.current?.open();
             }}
           >
             <CommIcon
@@ -1302,7 +1307,7 @@ export default function ({ route }) {
               }}
             >
               <Text style={{ paddingLeft: 20, color: colors.AppmainColor }}>
-                *Reply
+                Reply
               </Text>
             </TouchableOpacity>
 
@@ -1593,14 +1598,118 @@ export default function ({ route }) {
         { backgroundColor: colors.lightbackground },
       ]}
     >
+      {/* <Animated.View
+        style={[
+          {
+            zIndex: 10,
+            backgroundColor: colors.background,
+            marginHorizontal: 0,
+            paddingTop: 0,
+            justifyContent: 'space-evenly',
+          },
+          animatedHeaderStyle,
+        ]}>
+        {Item?.id ? (
+          Item?.optionalId
+        ) : !Item?.optionalId ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-evenly',
+            }}>
+            <TouchableOpacity
+              hitSlop={20}
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
+              <Text
+                style={{
+                  color: colors.textColor,
+                  fontWeight: 'bold',
+                  fontSize: 27,
+                }}>
+                ☰
+              </Text>
+            </TouchableOpacity>
+
+            <Image
+              source={require('../assets/appicon.png')}
+              style={{width: 30, height: 30}}
+            />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('GlobalSearch')}
+              style={{
+                ...styles.inputContainer,
+                borderColor: colors.textinputbordercolor,
+              }}>
+              <Text
+                style={{
+                  ...styles.input,
+                  color: colors.placeholderTextColor,
+                }}>
+                Search
+              </Text>
+              <TouchableOpacity
+              //onPress={handleSearch}
+              >
+                <Icon
+                  name="search"
+                  size={20}
+                  color={colors.placeholderTextColor}
+                  type="MaterialIcons"
+                />
+              </TouchableOpacity>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
+              <Icon
+                name="chatbubbles"
+                size={20}
+                color={colors.textColor}
+                type="Ionicons"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationsScreen')}>
+              <Icon
+                name="bell"
+                size={20}
+                color={colors.textColor}
+                type="FontAwesome"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('KnowledgeHub')}>
+              <Icon
+                name="book"
+                size={20}
+                color={colors.textColor}
+                type="FontAwesome"
+              />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </Animated.View> */}
+
       <FlatList
+        //Animated.FlatList
         ref={flatListRef}
         data={postData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        // keyExtractor={(item, index) => index.toString()}
         onEndReached={handleLoadMore}
+        onMomentumScrollBegin={() => {
+          onEndReachedCalledDuringMomentum.current = false;
+        }}
         onEndReachedThreshold={0.5}
+        contentContainerStyle={{
+          paddingBottom: 40,
+          flexGrow: 1,
+        }}
+        // onScroll={scrollHandler}
+        // scrollEventThrottle={16}
         ListHeaderComponent={
           <>
             <View
@@ -1640,8 +1749,7 @@ export default function ({ route }) {
                       ☰
                     </Text>
                   </TouchableOpacity>
-
-                  <Image source={appIcon} style={{ width: 30, height: 32 }} />
+                  <Image source={appIcon} style={{ width: 30, height: 30 }} />
 
                   <TouchableOpacity
                     onPress={() => navigation.navigate("GlobalSearch")}
@@ -1772,7 +1880,7 @@ export default function ({ route }) {
                       </View>
                     )}
 
-                    <TextInput
+                    {/* <TextInput
                       style={{
                         ...globalStyles.PostTextViewINPut,
                         textAlignVertical: "top",
@@ -1787,7 +1895,29 @@ export default function ({ route }) {
                       keyboardType="default"
                       multiline
                       placeholderTextColor={colors.placeholderTextColor}
+                    /> */}
+                    <TextInput
+                      style={{
+                        ...globalStyles.PostTextViewINPut,
+                        height: Math.max(70, Math.min(inputHeight, 200)),
+                        textAlignVertical: "top",
+                        color: colors.textColor,
+                        borderColor: postTextErr
+                          ? "red"
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                      multiline
+                      value={postText}
+                      onChangeText={handleTextChange}
+                      placeholder="What's in your mind?"
+                      placeholderTextColor={colors.placeholderTextColor}
+                      onContentSizeChange={(e) => {
+                        setInputHeight(e.nativeEvent.contentSize.height);
+                      }}
+                      scrollEnabled={inputHeight > 200}
                     />
+
                     {showList && contacts.length > 0
                       ? contacts.map((item, index) => {
                           return (
@@ -2032,152 +2162,6 @@ export default function ({ route }) {
                         </View>
                       )}
                     </View>
-                    {/* <View
-                      style={{
-                        marginTop: 15,
-                        borderTopWidth: 1,
-                        borderBottomWidth: 1.5,
-                        borderBottomColor: colors.AppmainColor,
-                        borderColor: colors.textinputbordercolor,
-                        paddingBottom: 10,
-                        width: '100%',
-                      }}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          marginTop: 10,
-                        }}>
-                        <TouchableOpacity
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            paddingVertical: 6,
-                            paddingHorizontal: 8,
-                            borderRadius: 8,
-                            borderColor: colors.textinputbordercolor,
-                            flexShrink: 1,
-                            marginRight: 6,
-                          }}
-                          onPress={selectImages}>
-                          <Icon
-                            name="image"
-                            size={15}
-                            color={colors.textColor}
-                            type="Entypo"
-                            style={{marginRight: 5}}
-                          />
-                          <Text
-                            style={{
-                              color: colors.textColor,
-                              flexShrink: 1,
-                            }}
-                            numberOfLines={1}>
-                            Post Picture
-                          </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            paddingVertical: 6,
-                            paddingHorizontal: 8,
-                            marginRight: 6,
-                            borderColor: colors.textinputbordercolor,
-                            flexShrink: 1,
-                            maxWidth: 110,
-                          }}
-                          onPress={toggleDropdown}>
-                          <Text
-                            style={{
-                              ...styles.text,
-                              color: colors.textColor,
-                              marginRight: 4,
-                              flexShrink: 1,
-                            }}
-                            numberOfLines={1}>
-                            {selectedValue}
-                          </Text>
-                          <Icon
-                            name="down"
-                            size={15}
-                            color={colors.textColor}
-                            type="AntDesign"
-                          />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          disabled={isPostEmpty || isPosting}
-                          onPress={async () => {
-                            if (isPostEmpty || isPosting) return;
-
-                            setIsPosting(true);
-                            setLoading(true);
-
-                            try {
-                              await postAdd();
-                            } catch (error) {
-                              console.error('Post error:', error);
-                            } finally {
-                              setIsPosting(false);
-                              setLoading(false);
-                            }
-                          }}
-                          style={{
-                            backgroundColor: colors.AppmainColor,
-                            paddingVertical: 6,
-                            paddingHorizontal: 12,
-                            borderRadius: 8,
-                            opacity: isPostEmpty || isPosting ? 0.6 : 1,
-                          }}>
-                          {isPosting ? (
-                            <ActivityIndicator size="small" color="#fff" />
-                          ) : (
-                            <Text
-                              style={{
-                                color: colors.ButtonTextColor,
-                                fontWeight: '500',
-                              }}>
-                              Post
-                            </Text>
-                          )}
-                        </TouchableOpacity>
-                      </View>
-
-                      {isOpen && (
-                        <View
-                          style={{
-                            ...globalStyles.dropdownListShare,
-                            borderColor: colors.textinputbordercolor,
-                            backgroundColor: colors.background,
-                            marginTop: 10,
-                          }}>
-                          {options.map((option, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              style={{
-                                ...globalStyles.dropdownItemShare,
-                                borderBottomColor: colors.textinputbordercolor,
-                              }}
-                              onPress={() => selectOption(option)}>
-                              <Text
-                                numberOfLines={1}
-                                style={{
-                                  ...styles.text,
-                                  color: colors.textColor,
-                                }}>
-                                {option}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
-                    </View> */}
                   </>
                 ) : null}
               </View>
@@ -2185,13 +2169,13 @@ export default function ({ route }) {
           </>
         }
         ListFooterComponent={
-          loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
+          loadingMore ? (
+            <ActivityIndicator size="large" color={colors.AppmainColor} />
           ) : !hasMoreData ? (
             <Text
               style={{
                 textAlign: "center",
-                marginVertical: 10,
+                marginVertical: 20,
                 color: colors.textColor,
               }}
             >
@@ -2201,6 +2185,28 @@ export default function ({ route }) {
         }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        ListEmptyComponent={
+          !loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  marginTop: 20,
+                  fontSize: 16,
+                  color: colors.textColor,
+                }}
+              >
+                No posts available
+              </Text>
+            </View>
+          ) : null
         }
       />
       <Modal
@@ -2621,7 +2627,9 @@ export default function ({ route }) {
               >
                 <View style={{ paddingLeft: 10 }}>
                   <FlatList
-                    data={[...commentList].reverse()}
+                    ref={flatListRef}
+                    data={commentList}
+                    // data={[...commentList].reverse()}
                     renderItem={renderItem1}
                     keyExtractor={(item) => item.id?.toString()}
                     showsVerticalScrollIndicator={false}
@@ -2720,6 +2728,130 @@ export default function ({ route }) {
         </KeyboardAvoidingWrapper>
         {/* </CommonBottomSheet> */}
       </Modal>
+
+      {/* <CommonBottomSheet ref={commentSheetRef} onChange={handleSheetChange}>
+        <View
+          style={{
+            backgroundColor: colors.modelBackground,
+            padding: 20,
+          }}>
+          <TouchableOpacity
+            onPress={() => commentSheetRef.current?.close()}
+            style={{alignSelf: 'flex-end'}}>
+            <Icon
+              name="cross"
+              size={25}
+              color={colors.textColor}
+              type="Entypo"
+            />
+          </TouchableOpacity>
+          <View style={{alignItems: 'center'}}>
+            <Text
+              style={{
+                ...globalStyles.commentTitle,
+                color: colors.textColor,
+              }}>
+              Comments
+            </Text>
+          </View>
+          <FlatList
+            data={[...commentList].reverse()}
+            renderItem={renderItem1}
+            keyExtractor={item => item.id?.toString()}
+            showsVerticalScrollIndicator={false}
+            onEndReachedThreshold={0.2}
+            onEndReached={() => {
+              if (hasMoreData && !isLoadingMore) {
+                fetchCommentList(page + 1);
+              }
+            }}
+            refreshing={isRefreshing}
+            onRefresh={() => fetchCommentList(1, true)}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <ActivityIndicator
+                  style={{marginVertical: 20}}
+                  size="small"
+                  color="#888"
+                />
+              ) : null
+            }
+            contentContainerStyle={{
+              paddingBottom: 30,
+              paddingTop: 10,
+              paddingHorizontal: 10,
+            }}
+          />
+          <View
+            style={{
+              ...globalStyles.ViewCommentImg,
+              borderColor: colors.textinputbordercolor,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 10,
+            }}>
+            <Image
+              source={
+                userProfileData?.Data?.profilePhoto
+                  ? {uri: userProfileData?.Data?.profilePhoto}
+                  : require('../assets/placeholderprofileimage.png')
+              }
+              style={globalStyles.ImgComment}
+            />
+
+            <TextInput
+              style={[
+                globalStyles.textInputComment,
+                {
+                  flex: 1,
+                  color: colors.textColor,
+                },
+              ]}
+              onChangeText={onChangeNumber}
+              value={number}
+              placeholder="Write your Comment"
+              keyboardType="default"
+              multiline
+              placeholderTextColor={colors.placeholderTextColor}
+            />
+
+            <TouchableOpacity
+              disabled={isCommentEmpty || isCommentSending}
+              style={{
+                padding: 10,
+                opacity: isCommentEmpty || isCommentSending ? 0.4 : 1,
+              }}
+              onPress={async () => {
+                if (isCommentEmpty || isCommentSending) return;
+                if (!number.trim()) {
+                  showError('Comment cannot be empty.');
+                  return;
+                }
+
+                setIsCommentSending(true);
+
+                try {
+                  if (deleteValue.length === 0) {
+                    await fetchAddComment();
+                  } else {
+                    await handleUpdateComment();
+                  }
+                } catch (error) {
+                  console.error('Send error:', error);
+                } finally {
+                  setIsCommentSending(false);
+                }
+              }}>
+              <Icon
+                name="paper-plane"
+                size={20}
+                color={colors.placeholderTextColor}
+                type="Entypo"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </CommonBottomSheet> */}
     </SafeAreaView>
   );
 }
@@ -2818,10 +2950,6 @@ const styles = StyleSheet.create({
   fullHeightContent: {
     flex: 1,
     height: "100%",
-    // minHeight: '100%',
-    // padding: 36,
-    // alignItems: 'center',
-    // justifyContent: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

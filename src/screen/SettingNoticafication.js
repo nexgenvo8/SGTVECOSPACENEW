@@ -155,8 +155,6 @@ const SettingNoticafication = ({ navigation }) => {
       setE_mail5(settingData?.Data?.emailApplyProject || false);
       setE_mail6(settingData?.Data?.emailContactNewPosition || false);
       setE_mail7(settingData?.Data?.notiJoiningGroup || false);
-      // add the value of notify section checkbox
-
       setNotifyMe(settingData.Data.notiPostGroup || false);
       setNotifyMe1(settingData.Data.notiTagingCompany || false);
       setNotifyMe2(settingData.Data.notiPostCommentsAllow || false);
@@ -209,7 +207,13 @@ const SettingNoticafication = ({ navigation }) => {
             />
           </View>
 
-          <View style={{ marginHorizontal: 12, marginTop: 10 }}>
+          <View
+            style={{
+              marginHorizontal: 12,
+              marginTop: 10,
+              // backgroundColor: "red",
+            }}
+          >
             <View style={{ flexDirection: "row" }}>
               <Icon
                 name={settingData?.Data?.sendMeEmail ? "check" : "cross"}
@@ -220,6 +224,7 @@ const SettingNoticafication = ({ navigation }) => {
               <Text
                 style={{
                   fontSize: 16,
+                  color: colors.textColor,
                 }}
               >
                 When someone sends me a message
@@ -238,6 +243,8 @@ const SettingNoticafication = ({ navigation }) => {
                   fontSize: 16,
                   flexShrink: 1,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone comments on something I posted or commented on
@@ -255,13 +262,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone likes something I posted
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.newContactRequest ? "check" : "cross"}
                 size={settingData?.Data?.newContactRequest ? 20 : 22}
@@ -272,13 +287,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When I receive new contact requests
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.pendingContactRequest ? "check" : "cross"
@@ -291,13 +314,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 If I have any pending contact requests
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.emailApplyProject ? "check" : "cross"}
                 size={settingData?.Data?.emailApplyProject ? 20 : 22}
@@ -308,13 +339,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone applies to the Project I posted
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.emailContactNewPosition ? "check" : "cross"
@@ -328,13 +367,21 @@ const SettingNoticafication = ({ navigation }) => {
                   fontSize: 16,
                   flexShrink: 1,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When a contact of mine has a new position or employer
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.notiJoiningGroup ? "check" : "cross"}
                 size={settingData?.Data?.notiJoiningGroup ? 20 : 22}
@@ -346,6 +393,8 @@ const SettingNoticafication = ({ navigation }) => {
                   fontSize: 16,
                   flexShrink: 1,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone sends group joining request to My Group
@@ -397,13 +446,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone posts in My Group
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.notiTagingCompany ? "check" : "cross"}
                 size={settingData?.Data?.notiTagingCompany ? 20 : 22}
@@ -414,13 +471,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone tags your company in his post
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.notiPostCommentsAllow ? "check" : "cross"
@@ -433,13 +498,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone comments on something I posted or commented on
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.notiPostLikesAllow ? "check" : "cross"}
                 size={settingData?.Data?.notiPostLikesAllow ? 20 : 22}
@@ -450,12 +523,20 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone likes something I posted
               </Text>
             </View>
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.notiNewPositionEmployer ? "check" : "cross"
@@ -468,13 +549,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When a contact of mine has a new position or employer
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.notiMeetingRequest ? "check" : "cross"}
                 size={settingData?.Data?.notiMeetingRequest ? 20 : 22}
@@ -485,13 +574,21 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When a contact of mine sends me a meeting request
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.notiProjectApplied ? "check" : "cross"}
                 size={settingData?.Data?.notiProjectApplied ? 20 : 22}
@@ -502,6 +599,8 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 {" "}
@@ -509,7 +608,13 @@ const SettingNoticafication = ({ navigation }) => {
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.notiJoinGroupRequestAllow
@@ -525,13 +630,21 @@ const SettingNoticafication = ({ navigation }) => {
                   fontSize: 16,
                   flexShrink: 1,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 When someone wants to Join a group that I have created
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={
                   settingData?.Data?.notiNewArticlesAllow ? "check" : "cross"
@@ -545,6 +658,8 @@ const SettingNoticafication = ({ navigation }) => {
                   fontSize: 16,
                   flexShrink: 1,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 {" "}
@@ -552,7 +667,13 @@ const SettingNoticafication = ({ navigation }) => {
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", marginVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginVertical: 10,
+                width: "100%",
+              }}
+            >
               <Icon
                 name={settingData?.Data?.userBirthdayAllow ? "check" : "cross"}
                 size={settingData?.Data?.userBirthdayAllow ? 20 : 22}
@@ -563,6 +684,8 @@ const SettingNoticafication = ({ navigation }) => {
                 style={{
                   fontSize: 16,
                   color: colors.textColor,
+                  flex: 1,
+                  flexWrap: "wrap",
                 }}
               >
                 {" "}
@@ -634,6 +757,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone sends me a message
@@ -658,6 +783,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone comments on something I posted or commented on
@@ -682,6 +809,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone likes something I posted
@@ -706,6 +835,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When I receive new contact requests
@@ -730,6 +861,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     If I have any pending contact requests
@@ -754,6 +887,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone applies to the Project I posted
@@ -778,6 +913,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When a contact of mine has a new position or employer
@@ -802,6 +939,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone sends group joining request to My Group
@@ -884,6 +1023,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone posts in My Group
@@ -908,6 +1049,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone tags your company in his post
@@ -932,6 +1075,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone comments on something I posted or commented on
@@ -956,6 +1101,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone likes something I posted
@@ -980,6 +1127,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When a contact of mine has a new position or employer
@@ -1004,6 +1153,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When a contact of mine sends me a meeting request
@@ -1028,6 +1179,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone applies to a Project I posted
@@ -1052,6 +1205,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When someone wants to Join a group that I have created
@@ -1076,6 +1231,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     When a contact of mine publishes a new article
@@ -1100,6 +1257,8 @@ const SettingNoticafication = ({ navigation }) => {
                     style={{
                       ...styles.modalTextSection,
                       color: colors.textColor,
+                      flex: 1,
+                      flexWrap: "wrap",
                     }}
                   >
                     On the Birthday of a contact of mine

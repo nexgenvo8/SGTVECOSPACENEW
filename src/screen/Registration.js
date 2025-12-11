@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Dimensions,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import Colors from "./color";
@@ -54,11 +55,25 @@ const Registration = () => {
   const [companyName, setCompanyName] = useState("");
   const [industryList, setIndustryList] = useState([]);
   const [selectedIndustry, setSelectedIndustry] = useState(null);
+  const [errors, setErrors] = useState({});
+  const { width, height } = Dimensions.get("window");
+  const [isModalVisible, setModalVisible] = useState(false);
+  const handleRegistrationSuccess = () => {
+    setModalVisible(true); // Show the modal after successful registration
+  };
+  const navigateToLogin = () => {
+    setModalVisible(false); // Close the modal
+    navigation.navigate("Login"); // Navigate to the Login screen
+  };
   const roleTypeMap = {
     Student: 1,
     Faculty: 2,
     Alumni: 3,
     "Industry Professional": 4,
+  };
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -76,8 +91,6 @@ const Registration = () => {
     "November",
     "December",
   ];
-  // const currentYear = new Date().getFullYear();
-  // const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
   const currentYear = new Date().getFullYear();
   const passingyears =
     selectedRole == "Alumni"
@@ -85,6 +98,7 @@ const Registration = () => {
       : Array.from({ length: 8 }, (_, i) => 2023 + i);
   const startYear = currentYear - 10;
   const years = Array.from({ length: 100 }, (_, i) => startYear - i);
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const renderOptions = (data, onSelect) => (
@@ -116,7 +130,6 @@ const Registration = () => {
       })}
     </ScrollView>
   );
-
   useEffect(() => {
     fetchCourses();
     fetchDepartments();
@@ -185,7 +198,153 @@ const Registration = () => {
       console.error("Error fetching Industries:", error);
     }
   };
+  const validateForm = () => {
+    let tempErrors = {};
+
+    // ---------- BASIC DETAILS ----------
+    if (!firstName.trim()) {
+      tempErrors.firstName = true;
+      showError("First name is required");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    if (!lastName.trim()) {
+      tempErrors.lastName = true;
+      showError("Last name is required");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    if (!email.trim()) {
+      tempErrors.email = true;
+      showError("Email is required");
+      setErrors(tempErrors);
+      return false;
+    }
+    if (!isValidEmail(email)) {
+      tempErrors.email = true;
+      showError("Invalid email format");
+      setErrors(tempErrors);
+      return false;
+    }
+    if (!phone.trim() || phone.length !== 10) {
+      tempErrors.phone = true;
+      showError("Valid 10-digit phone number required");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    // ---------- BIRTHDAY ----------
+    if (!selectedDay) {
+      tempErrors.day = true;
+      showError("Please select birth day");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    if (!selectedMonth) {
+      tempErrors.month = true;
+      showError("Please select birth month");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    if (!selectedYear) {
+      tempErrors.year = true;
+      showError("Please select birth year");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    // ---------- GENDER ----------
+    if (!selectedGender) {
+      tempErrors.gender = true;
+      showError("Please select gender");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    // ---------- ROLE ----------
+    if (!selectedRole) {
+      tempErrors.role = true;
+      showError("Please select role");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    // ---------- ROLE-BASED VALIDATION ----------
+    // Faculty
+    if (selectedRole === "Faculty" && !selectedDepartment) {
+      tempErrors.department = true;
+      showError("Please select department");
+      setErrors(tempErrors);
+      return false;
+    }
+
+    // Industry Professional
+    if (selectedRole === "Industry Professional" && !selectedIndustry) {
+      tempErrors.industry = true;
+      showError("Please select industry");
+      setErrors(tempErrors);
+      return false;
+    }
+    if (
+      selectedRole !== "Faculty" &&
+      selectedRole !== "Industry Professional"
+    ) {
+      if (!selectedCourse) {
+        tempErrors.course = true;
+        showError("Please select course");
+        setErrors(tempErrors);
+        return false;
+      }
+
+      if (!selectedDepartment) {
+        tempErrors.department = true;
+        showError("Please select department");
+        setErrors(tempErrors);
+        return false;
+      }
+
+      if (!passingYear) {
+        tempErrors.passingYear = true;
+        showError("Please select passing year");
+        setErrors(tempErrors);
+        return false;
+      }
+    }
+
+    // Alumni + Industry Professional require Job + Company
+    if (selectedRole === "Alumni" || selectedRole === "Industry Professional") {
+      if (!jobTitle.trim()) {
+        tempErrors.jobTitle = true;
+        showError("Job title is required");
+        setErrors(tempErrors);
+        return false;
+      }
+
+      if (!companyName.trim()) {
+        tempErrors.companyName = true;
+        showError("Company name is required");
+        setErrors(tempErrors);
+        return false;
+      }
+    }
+
+    setErrors({});
+    return true;
+  };
   const handleRegister = async () => {
+    // if (!email) {
+    //   // showError("Email is required");
+    //   return;
+    // }
+    // if (!isValidEmail(email)) {
+    //   showError("Please enter a valid email address");
+    //   return;
+    // }
+    if (!validateForm()) return;
     const payload = {
       firstName,
       lastName,
@@ -194,16 +353,21 @@ const Registration = () => {
       day: selectedDay,
       month: months.indexOf(selectedMonth) + 1,
       year: selectedYear,
-      gender: selectedGender === "male" ? "Male" : "Female",
+      gender:
+        selectedGender === "male"
+          ? "Male"
+          : selectedGender === "female"
+          ? "Female"
+          : "Other",
       userstype: roleTypeMap[selectedRole],
       employmentId: 101,
       membershipId: 2001,
-      templateId: 45,
+      templateId: 123,
       jobTitle: jobTitle || "Null",
-      passingyear: parseInt(passingYear) || "Null",
+      passingyear: parseInt(passingYear) || 0,
       departmentname: selectedDepartment?.DepartmentName || "Null",
-      companyName: companyName || "company Name",
-      industryId: selectedIndustry.Id || 1,
+      companyName: companyName || "Company Name.",
+      industryId: selectedIndustry?.Id || 1,
       countryName: "India",
       cityName: "Delhi",
       locationName: "South Extension",
@@ -230,7 +394,6 @@ const Registration = () => {
       profilePhoto: null,
     };
     console.log(payload, "payloadpayloadpayloadpayloadpayload");
-
     try {
       const response = await fetch(`${baseUrl}${RegistrationApi}`, {
         method: "POST",
@@ -240,17 +403,14 @@ const Registration = () => {
         },
         body: JSON.stringify(payload),
       });
-
       const result = await response.json();
       console.log("Server response:", result);
-
       if (response.ok) {
         showSuccess("Registration successful!");
-        navigation.navigate("Login");
+        // navigation.navigate("Login");
+        handleRegistrationSuccess();
       } else {
-        showError(
-          "Registration failed: " + (result.message || "Unknown error")
-        );
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -300,22 +460,32 @@ const Registration = () => {
               <TextInput
                 style={{
                   ...styles.inputText,
-                  borderColor: colors.textinputbordercolor,
+                  borderColor: errors.firstName
+                    ? "red"
+                    : colors.textinputbordercolor,
                   color: colors.textColor,
                 }}
                 value={firstName}
-                onChangeText={setFirstName}
+                onChangeText={(text) => {
+                  setFirstName(text);
+                  setErrors({ ...errors, firstName: null });
+                }}
                 placeholder="First name"
                 placeholderTextColor={colors.placeholderTextColor}
               />
               <TextInput
                 style={{
                   ...styles.inputText,
-                  borderColor: colors.textinputbordercolor,
+                  borderColor: errors.lastName
+                    ? "red"
+                    : colors.textinputbordercolor,
                   color: colors.textColor,
                 }}
                 value={lastName}
-                onChangeText={setLastName}
+                onChangeText={(text) => {
+                  setLastName(text);
+                  setErrors({ ...errors, lastName: null });
+                }}
                 placeholder="Last name"
                 placeholderTextColor={colors.placeholderTextColor}
               />
@@ -323,11 +493,14 @@ const Registration = () => {
             <TextInput
               style={{
                 ...styles.emailTextInput,
-                borderColor: colors.textinputbordercolor,
+                borderColor: errors.email ? "red" : colors.textinputbordercolor,
                 color: colors.textColor,
               }}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                setErrors({ ...errors, email: null });
+              }}
               placeholder="Email"
               placeholderTextColor={colors.placeholderTextColor}
             />
@@ -336,11 +509,14 @@ const Registration = () => {
               keyboardType="numeric"
               style={{
                 ...styles.emailTextInput,
-                borderColor: colors.textinputbordercolor,
+                borderColor: errors.phone ? "red" : colors.textinputbordercolor,
                 color: colors.textColor,
               }}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                setPhone(text);
+                setErrors({ ...errors, phone: null });
+              }}
               placeholder="Phone "
               placeholderTextColor={colors.placeholderTextColor}
             />
@@ -351,7 +527,7 @@ const Registration = () => {
               <TouchableOpacity
                 style={{
                   ...styles.dayBox,
-                  borderColor: colors.textinputbordercolor,
+                  borderColor: errors.day ? "red" : colors.textinputbordercolor,
                 }}
                 onPress={() => setCurrentPicker("day")}
               >
@@ -369,7 +545,9 @@ const Registration = () => {
               <TouchableOpacity
                 style={{
                   ...styles.dayBox,
-                  borderColor: colors.textinputbordercolor,
+                  borderColor: errors.month
+                    ? "red"
+                    : colors.textinputbordercolor,
                 }}
                 onPress={() => setCurrentPicker("month")}
               >
@@ -388,7 +566,9 @@ const Registration = () => {
                 onPress={() => setCurrentPicker("year")}
                 style={{
                   ...styles.dayBox,
-                  borderColor: colors.textinputbordercolor,
+                  borderColor: errors.year
+                    ? "red"
+                    : colors.textinputbordercolor,
                 }}
               >
                 <Text style={{ ...styles.dayText, color: colors.textColor }}>
@@ -451,7 +631,30 @@ const Registration = () => {
                   Female
                 </Text>
               </TouchableOpacity>
-              <View></View>
+              {/* <View></View> */}
+              <TouchableOpacity
+                style={styles.maleBox}
+                onPress={() => setSelectedGender("Others")}
+              >
+                <View
+                  style={{
+                    ...styles.maleCircleBox,
+                    borderColor: colors.textinputbordercolor,
+                  }}
+                >
+                  {selectedGender === "Others" && (
+                    <View
+                      style={{
+                        ...styles.selectedCircle,
+                        backgroundColor: colors.AppmainColor,
+                      }}
+                    />
+                  )}
+                </View>
+                <Text style={{ ...styles.maleText, color: colors.textColor }}>
+                  Others
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.studentMainBox}>
@@ -482,7 +685,9 @@ const Registration = () => {
                   onPress={() => setCurrentPicker("department")}
                   style={{
                     ...styles.StudentBox,
-                    borderColor: colors.textinputbordercolor,
+                    borderColor: errors.department
+                      ? "red"
+                      : colors.textinputbordercolor,
                   }}
                 >
                   <Text
@@ -508,7 +713,9 @@ const Registration = () => {
                   onPress={() => setCurrentPicker("Industry")}
                   style={{
                     ...styles.StudentBox,
-                    borderColor: colors.textinputbordercolor,
+                    borderColor: errors.industry
+                      ? "red"
+                      : colors.textinputbordercolor,
                   }}
                 >
                   <Text
@@ -534,7 +741,9 @@ const Registration = () => {
                     onPress={() => setCurrentPicker("course")}
                     style={{
                       ...styles.StudentBox,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.course
+                        ? "red"
+                        : colors.textinputbordercolor,
                     }}
                   >
                     <Text
@@ -560,7 +769,9 @@ const Registration = () => {
                     onPress={() => setCurrentPicker("department")}
                     style={{
                       ...styles.StudentBox,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.department
+                        ? "red"
+                        : colors.textinputbordercolor,
                     }}
                   >
                     <Text
@@ -585,7 +796,9 @@ const Registration = () => {
                     onPress={() => setCurrentPicker("passingYear")}
                     style={{
                       ...styles.StudentBox,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.passingYear
+                        ? "red"
+                        : colors.textinputbordercolor,
                     }}
                   >
                     <Text
@@ -610,22 +823,32 @@ const Registration = () => {
                   <TextInput
                     style={{
                       ...styles.inputText,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.jobTitle
+                        ? "red"
+                        : colors.textinputbordercolor,
                       color: colors.textColor,
                     }}
                     value={jobTitle}
-                    onChangeText={setJobTitle}
+                    onChangeText={(text) => {
+                      setJobTitle(text);
+                      setErrors({ ...errors, jobTitle: null });
+                    }}
                     placeholder="Enter Job Title"
                     placeholderTextColor={colors.placeholderTextColor}
                   />
                   <TextInput
                     style={{
                       ...styles.inputText,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.companyName
+                        ? "red"
+                        : colors.textinputbordercolor,
                       color: colors.textColor,
                     }}
                     value={companyName}
-                    onChangeText={setCompanyName}
+                    onChangeText={(text) => {
+                      setCompanyName(text);
+                      setErrors({ ...errors, companyName: null });
+                    }}
                     placeholder="Company Name"
                     placeholderTextColor={colors.placeholderTextColor}
                   />
@@ -636,7 +859,9 @@ const Registration = () => {
                     onPress={() => setCurrentPicker("Industry")}
                     style={{
                       ...styles.StudentBox,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.industry
+                        ? "red"
+                        : colors.textinputbordercolor,
                     }}
                   >
                     <Text
@@ -663,22 +888,32 @@ const Registration = () => {
                   <TextInput
                     style={{
                       ...styles.inputText,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.jobTitle
+                        ? "red"
+                        : colors.textinputbordercolor,
                       color: colors.textColor,
                     }}
                     value={jobTitle}
-                    onChangeText={setJobTitle}
+                    onChangeText={(text) => {
+                      setJobTitle(text);
+                      setErrors({ ...errors, jobTitle: null });
+                    }}
                     placeholder="Enter Job Title"
                     placeholderTextColor={colors.placeholderTextColor}
                   />
                   <TextInput
                     style={{
                       ...styles.inputText,
-                      borderColor: colors.textinputbordercolor,
+                      borderColor: errors.companyName
+                        ? "red"
+                        : colors.textinputbordercolor,
                       color: colors.textColor,
                     }}
                     value={companyName}
-                    onChangeText={setCompanyName}
+                    onChangeText={(text) => {
+                      setCompanyName(text);
+                      setErrors({ ...errors, companyName: null });
+                    }}
                     placeholder="Company Name"
                     placeholderTextColor={colors.placeholderTextColor}
                   />
@@ -687,15 +922,15 @@ const Registration = () => {
             )}
             {selectedRole !== "Industry Professional" && (
               <TextInput
-                numberOfLines={1}
-                ellipsizeMode="tail"
+                // numberOfLines={1}
+                // ellipsizeMode="tail"
                 editable={false}
-                multiline={false}
                 style={{
                   ...styles.jamiaTextInput,
                   borderColor: colors.textinputbordercolor,
+                  width: "100%",
                 }}
-                placeholder={`${universityFullName}`}
+                placeholder="New Delhi Institute of Management"
                 placeholderTextColor={colors.placeholderTextColor}
               />
             )}
@@ -856,6 +1091,97 @@ const Registration = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        transparent
+        animationType="slide"
+        visible={isModalVisible}
+        backdropOpacity={0.5}
+        style={{ justifyContent: "center", alignItems: "center", margin: 0 }}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              width: width * 0.9, // 90% of screen width
+              maxHeight: height * 0.6, // max 60% of screen height
+              backgroundColor: colors.modelBackground,
+              borderRadius: 15,
+              padding: 20,
+              alignSelf: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* Title */}
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "600",
+                marginBottom: 15,
+                color: colors.textColor,
+                textAlign: "center",
+              }}
+            >
+              Registration Successful!
+            </Text>
+
+            {/* Description */}
+            <Text
+              style={{
+                fontSize: 16,
+                color: colors.textColor,
+                textAlign: "center",
+                marginBottom: 20,
+                lineHeight: 20,
+              }}
+            >
+              We’ve sent you an email to confirm your registration on{" "}
+              {universityFullName}. Please open the email and follow the steps
+              to complete your registration.
+              {"\n\n"}
+              If you can’t find email, check your Spam,Promotions, or Other
+              folders.
+            </Text>
+
+            {/* Buttons */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginTop: 20,
+              }}
+            >
+              {/* Back to Login Button */}
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  marginRight: 10,
+                  backgroundColor: colors.AppmainColor,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+                onPress={navigateToLogin}
+              >
+                <Text
+                  style={{
+                    color: "#fff", // Button text color
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Back to Login
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -959,7 +1285,7 @@ const styles = StyleSheet.create({
 
   StudentBox: {
     width: "48%",
-    height: 40, // fixed height
+    height: 40,
     borderWidth: 1,
     paddingHorizontal: 10,
     borderRadius: 8,

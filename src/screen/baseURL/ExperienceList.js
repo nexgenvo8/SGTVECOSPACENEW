@@ -10,8 +10,8 @@ import {
   ListProfessionalExp,
   ListSkills,
   SendMessage,
-} from './api';
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+} from "./api";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -28,21 +28,21 @@ import {
   Button,
   Alert,
   RefreshControl,
-} from 'react-native';
+} from "react-native";
 
-import PencilIcon from 'react-native-vector-icons/Octicons';
-import DeleteIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import RNFS from 'react-native-fs';
-import Icon from '../Icons/Icons';
-import Colors from '../color';
-import {showError, showSuccess} from '../components/Toast';
+import PencilIcon from "react-native-vector-icons/Octicons";
+import DeleteIcon from "react-native-vector-icons/MaterialCommunityIcons";
+import RNFS from "react-native-fs";
+import Icon from "../Icons/Icons";
+import Colors from "../color";
+import { showError, showSuccess } from "../components/Toast";
 
 export const getExperienceList = async (userId, setListExperience) => {
   try {
     const response = await fetch(`${baseUrl}${ListProfessionalExp}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         userId: userId,
@@ -57,16 +57,16 @@ export const getExperienceList = async (userId, setListExperience) => {
       showError(data.message);
     }
   } catch (error) {
-    console.error('Fetch Error Education List:', error);
+    console.error("Fetch Error Education List:", error);
   }
 };
 // Education Api's List
 export const getEducationList = async (userId, setListEducation) => {
   try {
     const response = await fetch(`${baseUrl}${ListEducation}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         // userId: userData?.User?.userId,
@@ -77,23 +77,23 @@ export const getEducationList = async (userId, setListEducation) => {
     const data = await response.json();
 
     if (response.ok) {
-      console.log('Education List ---', data);
+      console.log("Education List ---", data);
       // setListEducation(data);
       setListEducation(data?.Data);
     } else {
-      showError('Error', data.message);
+      showError("Error", data.message);
     }
   } catch (error) {
-    console.error('getEducationList Error:', error);
+    console.error("getEducationList Error:", error);
   }
 };
 // SkillsList Api's List
 export const SkillsList = async (userId, setKeyValue) => {
   try {
     const response = await fetch(`${baseUrl}${ListSkills}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         userId: userId,
@@ -101,14 +101,14 @@ export const SkillsList = async (userId, setKeyValue) => {
     });
 
     const data = await response.json();
-    console.log('Listing Skills data ----', data);
+    console.log("Listing Skills data ----", data);
 
     if (response.ok) {
       const InterestsData = data.Data;
       setKeyValue(InterestsData);
     }
   } catch (error) {
-    console.error('Fetch Error SkillsList:', error);
+    console.error("Fetch Error SkillsList:", error);
   } finally {
     setLoading(false);
   }
@@ -117,9 +117,9 @@ export const SkillsList = async (userId, setKeyValue) => {
 export const fetchExploringListUpdate = async (userId, setJmiValue) => {
   try {
     const response = await fetch(`${baseUrl}${ListExploring}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         userId: userId, // Ensure userId exists
@@ -127,7 +127,7 @@ export const fetchExploringListUpdate = async (userId, setJmiValue) => {
     });
 
     const data = await response.json();
-    console.log('Listing exploring data ----', data);
+    console.log("Listing exploring data ----", data);
 
     if (response.ok) {
       const exploringData = data.Data;
@@ -135,7 +135,7 @@ export const fetchExploringListUpdate = async (userId, setJmiValue) => {
       setJmiValue(exploringData);
     }
   } catch (error) {
-    console.error('Fetch Error:', error);
+    console.error("Fetch Error:", error);
   } finally {
     setLoading(false);
   }
@@ -144,9 +144,9 @@ export const fetchExploringListUpdate = async (userId, setJmiValue) => {
 export const InterestsList = async (userId, setInterestsValue) => {
   try {
     const response = await fetch(`${baseUrl}${Listinterest}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         userId: userId,
@@ -154,14 +154,14 @@ export const InterestsList = async (userId, setInterestsValue) => {
     });
 
     const data = await response.json();
-    console.log('Listing Interests data ----', data);
+    console.log("Listing Interests data ----", data);
 
     if (response.ok) {
       const InterestsData = data.Data;
       setInterestsValue(InterestsData);
     }
   } catch (error) {
-    console.error('Fetch Error:', error);
+    console.error("Fetch Error:", error);
   } finally {
     setLoading(false);
   }
@@ -171,7 +171,7 @@ export const InterestsList = async (userId, setInterestsValue) => {
 //   // setLoading(true);
 //   try {
 //     const response = await fetch(
-//       'https://vecospaceapi.nexgenov8.com/api/addlike',
+//       'https://sgtapi.vecospace.com/api/addlike',
 //       {
 //         method: 'POST',
 //         headers: {
@@ -200,31 +200,28 @@ export const InterestsList = async (userId, setInterestsValue) => {
 // };
 export const fetchAddLike = async (postId, postType, userId) => {
   try {
-    const response = await fetch(
-      'https://vecospaceapi.nexgenov8.com/api/addlike',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId,
-          postType,
-          userId,
-        }),
+    const response = await fetch("https://sgtapi.vecospace.com/api/addlike", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        postId,
+        postType,
+        userId,
+      }),
+    });
 
     const data = await response.json();
-    console.log('Add Like Response:', data);
+    console.log("Add Like Response:", data);
 
     if (response.ok) {
       return data; // ✅ return data
     } else {
-      throw new Error('API Error');
+      throw new Error("API Error");
     }
   } catch (error) {
-    console.error('Fetch Error fetchAddLike:', error);
+    console.error("Fetch Error fetchAddLike:", error);
     return null;
   }
 };
@@ -236,7 +233,7 @@ export const fetchArticles = async (
   page,
   entityName,
   setArticleList,
-  setInitialLoading,
+  setInitialLoading
 ) => {
   // if (loading || !hasMore) return; // Prevent multiple simultaneous requests
   // setLoading(true);
@@ -244,14 +241,14 @@ export const fetchArticles = async (
 
   try {
     const response = await fetch(`${baseUrl}${Listarticle}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id: '',
+        id: "",
         userId: userId,
-        search: '',
+        search: "",
         per_page: per_page,
         page: page,
         entityName: entityName,
@@ -260,12 +257,12 @@ export const fetchArticles = async (
 
     const data = await response.json();
     if (response.ok) {
-      console.log('Fetched Articles:', data?.Data);
+      console.log("Fetched Articles:", data?.Data);
       setArticleList(data);
     }
     if (setInitialLoading) setInitialLoading(false);
   } catch (error) {
-    console.error('Fetch Error fetchArticles:', error);
+    console.error("Fetch Error fetchArticles:", error);
   } finally {
     setLoading(false);
     if (setInitialLoading) setInitialLoading(false);
@@ -274,21 +271,21 @@ export const fetchArticles = async (
 export const handleDeleteComment = (item, apiName) => {
   // console.log("item",item)
   Alert.alert(
-    'Confirmation',
-    'Are you sure you want to delete this Comment?',
+    "Confirmation",
+    "Are you sure you want to delete this Comment?",
     [
       {
-        text: 'No',
-        style: 'cancel',
+        text: "No",
+        style: "cancel",
       },
       {
-        text: 'Yes',
+        text: "Yes",
         onPress: async () => {
           try {
             const response = await fetch(`${baseUrl}${apiName}`, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 id: item?.Id || item?.item?.Id,
@@ -300,33 +297,34 @@ export const handleDeleteComment = (item, apiName) => {
             CommentList();
             if (response.ok) {
               // setDeletePost(true);
-              showSuccess('Item deleted successfully.');
+              showSuccess("Item deleted successfully.");
             } else {
-              showError('Failed to delete the item.');
+              showError("Failed to delete the item.");
             }
           } catch (error) {
-            console.error('Delete Error:', error);
+            console.error("Delete Error:", error);
           }
         },
       },
     ],
-    {cancelable: false},
+    { cancelable: false }
   );
 };
 // this CommentList View UI
-export const renderItem1 = item => {
+export const renderItem1 = (item) => {
   return (
     <View
       style={{
         flex: 1,
-        flexDirection: 'row',
+        flexDirection: "row",
         marginVertical: 10,
-      }}>
+      }}
+    >
       <Image
         source={{
           uri: item.ProfilePhoto
             ? item.ProfilePhoto
-            : require('../../assets/placeholderprofileimage.png'),
+            : require("../../assets/placeholderprofileimage.png"),
         }}
         style={{
           width: 50,
@@ -337,33 +335,38 @@ export const renderItem1 = item => {
       <View
         style={{
           marginLeft: 10,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
           flex: 1,
-        }}>
+        }}
+      >
         <View>
-          <Text style={{fontWeight: '700', fontSize: 15}}>{item.UserName}</Text>
-          <Text style={{fontSize: 13}}>{item.Comment}</Text>
+          <Text style={{ fontWeight: "700", fontSize: 15 }}>
+            {item.UserName}
+          </Text>
+          <Text style={{ fontSize: 13 }}>{item.Comment}</Text>
         </View>
 
-        <View style={{flexDirection: 'row'}}>
+        <View style={{ flexDirection: "row" }}>
           <TouchableOpacity
             onPress={() => {
               setDeleteValue(item);
               onChangeNumber(item.Comment);
-            }}>
+            }}
+          >
             <PencilIcon
               name="pencil"
               size={20}
               color="#888"
-              style={{paddingRight: 10}}
+              style={{ paddingRight: 10 }}
             />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              handleDeleteComment({item: item});
-            }}>
+              handleDeleteComment({ item: item });
+            }}
+          >
             <DeleteIcon name="delete" size={20} color="#888" />
           </TouchableOpacity>
         </View>
@@ -375,9 +378,9 @@ export const renderItem1 = item => {
 export const CommentList = async (postId, postType, setCommentList) => {
   try {
     const response = await fetch(`${baseUrl}${listcomment}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         postId: postId,
@@ -386,13 +389,13 @@ export const CommentList = async (postId, postType, setCommentList) => {
     });
 
     const data = await response.json();
-    console.log('Comment Data ----', data);
+    console.log("Comment Data ----", data);
 
     if (response.ok) {
       setCommentList(data.DataList); // Append new posts to the existing list
     }
   } catch (error) {
-    console.error('Fetch Error CommentList:', error);
+    console.error("Fetch Error CommentList:", error);
   } finally {
     // setLoading(false);
   }
@@ -400,9 +403,9 @@ export const CommentList = async (postId, postType, setCommentList) => {
 export const getIndustryList = async (industry, setIndustryData) => {
   try {
     const response = await fetch(`${baseUrl}${listoption}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         optionType: industry,
@@ -417,7 +420,7 @@ export const getIndustryList = async (industry, setIndustryData) => {
       showError(data.message);
     }
   } catch (error) {
-    console.error('Fetch Error Industry List:', error);
+    console.error("Fetch Error Industry List:", error);
   }
 };
 export const sendMessage = async (
@@ -426,9 +429,9 @@ export const sendMessage = async (
   userData,
   baseUrl,
   SendMessage,
-  setFileShareBase64,
+  setFileShareBase64
 ) => {
-  const convertUrlToBase64 = async url => {
+  const convertUrlToBase64 = async (url) => {
     try {
       const downloadDest = `${RNFS.CachesDirectoryPath}/temp.pdf`;
       const response = await RNFS.downloadFile({
@@ -438,15 +441,15 @@ export const sendMessage = async (
 
       if (response.statusCode === 200) {
         // Convert the file to Base64
-        const base64Data = await RNFS.readFile(downloadDest, 'base64');
-        console.log('Base64 String:', base64Data);
+        const base64Data = await RNFS.readFile(downloadDest, "base64");
+        console.log("Base64 String:", base64Data);
         setFileShareBase64(base64Data);
         return base64Data;
       } else {
-        console.error('File download failed:', response);
+        console.error("File download failed:", response);
       }
     } catch (error) {
-      console.error('Error converting to Base64:', error);
+      console.error("Error converting to Base64:", error);
     }
   };
 
@@ -455,22 +458,22 @@ export const sendMessage = async (
   if (fileShareBase64) {
     try {
       const response = await fetch(`${baseUrl}${SendMessage}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           senderId: userData?.User?.userId,
           receiverId: receiverId,
           chatText: selectedUsers?.name,
-          attachmentName: fileShareBase64 ? 'send.png' : null,
+          attachmentName: fileShareBase64 ? "send.png" : null,
           attachment: fileShareBase64,
         }),
       });
 
       if (response.ok) {
-        showSuccess('Message Sent!');
+        showSuccess("Message Sent!");
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     }
   }
 };
@@ -479,15 +482,15 @@ export const fetchContactList = async (
   baseUrl,
   contactList,
   setContacts,
-  setLoadingContacts,
+  setLoadingContacts
 ) => {
   setLoadingContacts(true);
 
   if (userData?.User?.userId || userData?.Data?.userId) {
     try {
       const response = await fetch(`${baseUrl}${contactList}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: userData?.User?.userId || userData?.Data?.userId,
         }),
@@ -503,14 +506,14 @@ export const fetchContactList = async (
         }
       } else {
         console.log(
-          'Error',
-          'Failed to fetch contacts in Experience List screen',
+          "Error",
+          "Failed to fetch contacts in Experience List screen"
         );
       }
     } catch (error) {
       console.error(
-        'Fetch Error  fetchContactList Experience List screen:',
-        error,
+        "Fetch Error  fetchContactList Experience List screen:",
+        error
       );
     } finally {
       setLoadingContacts(false);
@@ -522,20 +525,20 @@ export const fetchHiglight = async (
   baseUrl,
   HighLight,
   setHighlight,
-  setLoadingContacts,
+  setLoadingContacts
 ) => {
   setLoadingContacts(true);
 
   if (userData?.Data?.userId) {
     try {
       const response = await fetch(`${baseUrl}${HighLight}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: 1,
           userId: userData?.Data?.userId,
-          postId: '',
-          postType: '',
+          postId: "",
+          postType: "",
           activitPostType: 1,
           per_page: 20,
           page: 1,
@@ -547,12 +550,12 @@ export const fetchHiglight = async (
           setHighlight(data?.TotalItems);
         }
       } else {
-        showError('Failed to fetch contacts.');
+        showError("Failed to fetch contacts.");
       }
     } catch (error) {
       console.error(
-        'Fetch Error fetchHiglight in Experience List screen:',
-        error,
+        "Fetch Error fetchHiglight in Experience List screen:",
+        error
       );
     } finally {
       setLoadingContacts(false);
@@ -573,7 +576,7 @@ export const UserSearchModal = ({
 }) => {
   const sendMessage = async (receiverId, selectedUsers) => {
     // console.log('selectedUsers', selectedUsers);
-    const convertUrlToBase64 = async url => {
+    const convertUrlToBase64 = async (url) => {
       try {
         const downloadDest = `${RNFS.CachesDirectoryPath}/temp.pdf`;
 
@@ -585,35 +588,35 @@ export const UserSearchModal = ({
 
         if (response.statusCode === 200) {
           // Convert the file to Base64
-          var base64Data = await RNFS.readFile(downloadDest, 'base64');
-          console.log('Base64 String:', base64Data);
+          var base64Data = await RNFS.readFile(downloadDest, "base64");
+          console.log("Base64 String:", base64Data);
           setFileShareBase64(base64Data);
 
           try {
             const response = await fetch(`${baseUrl}${SendMessage}`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 senderId: userData?.User?.userId,
                 receiverId: receiverId,
                 chatText: selectedUsers?.PostText,
-                attachmentName: 'send.png',
+                attachmentName: "send.png",
                 attachment: base64Data,
               }),
             });
 
             if (response.ok) {
-              showError('Share');
+              showError("Share");
             }
           } catch (error) {
-            console.error('Error sending message:', error);
+            console.error("Error sending message:", error);
           }
           return base64Data;
         } else {
-          console.error('File download failed:', response);
+          console.error("File download failed:", response);
         }
       } catch (error) {
-        console.error('Error converting to Base64:', error);
+        console.error("Error converting to Base64:", error);
       }
     };
 
@@ -626,25 +629,32 @@ export const UserSearchModal = ({
       <View
         style={{
           flex: 1,
-          justifyContent: 'center',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-        }}>
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.5)",
+        }}
+      >
         <View
           style={{
-            backgroundColor: 'white',
+            backgroundColor: "white",
             padding: 20,
             borderRadius: 10,
             marginHorizontal: 20,
             marginTop: 20,
-          }}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 10}}>
+          }}
+        >
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
+            <Text
+              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+            >
               Search User
             </Text>
             <TouchableOpacity
               onPress={() => {
                 setModalVisibleShare(false);
-              }}>
+              }}
+            >
               <Icon name="cross" size={15} color="black" type="Entypo" />
             </TouchableOpacity>
           </View>
@@ -654,7 +664,7 @@ export const UserSearchModal = ({
             placeholder="Enter user name"
             style={{
               borderWidth: 1,
-              borderColor: '#ddd',
+              borderColor: "#ddd",
               borderRadius: 5,
               padding: 10,
               marginBottom: 10,
@@ -668,13 +678,14 @@ export const UserSearchModal = ({
           ) : (
             <FlatList
               data={filteredContacts}
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <TouchableOpacity
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
                     padding: 5,
-                  }}>
+                  }}
+                >
                   {/* Custom Checkbox */}
                   <TouchableOpacity
                     onPress={() => toggleSelection(item.UserId)}
@@ -683,37 +694,38 @@ export const UserSearchModal = ({
                       height: 20,
                       borderWidth: 2,
                       borderColor: selectedUsers.includes(item.UserId)
-                        ? 'blue'
-                        : '#aaa',
+                        ? "blue"
+                        : "#aaa",
                       backgroundColor: selectedUsers.includes(item.UserId)
-                        ? 'blue'
-                        : 'transparent',
-                      justifyContent: 'center',
-                      alignItems: 'center',
+                        ? "blue"
+                        : "transparent",
+                      justifyContent: "center",
+                      alignItems: "center",
                       borderRadius: 5,
                       marginRight: 10,
-                    }}>
+                    }}
+                  >
                     {selectedUsers.includes(item.UserId) && (
-                      <Text style={{color: 'white', fontWeight: 'bold'}}>
+                      <Text style={{ color: "white", fontWeight: "bold" }}>
                         ✓
                       </Text>
                     )}
                   </TouchableOpacity>
 
                   <Image
-                    style={{width: 40, height: 40, borderRadius: 20}}
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
                     source={{
                       uri: item?.ProfilePhoto
                         ? item?.ProfilePhoto
-                        : require('../../assets/placeholderprofileimage.png'),
+                        : require("../../assets/placeholderprofileimage.png"),
                     }}
                   />
 
-                  <View style={{padding: 10, flex: 1}}>
-                    <Text style={{fontSize: 16, fontWeight: '600'}}>
+                  <View style={{ padding: 10, flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontWeight: "600" }}>
                       {item?.UserName}
                     </Text>
-                    <Text style={{color: Colors.gray, marginBottom: 5}}>
+                    <Text style={{ color: Colors.gray, marginBottom: 5 }}>
                       {item?.JobTitle} at {item?.CompanyName}
                     </Text>
                   </View>
@@ -726,7 +738,7 @@ export const UserSearchModal = ({
           <TouchableOpacity
             onPress={async () => {
               if (selectedUsers.length === 0) {
-                showError('Please select a user to share.');
+                showError("Please select a user to share.");
                 return;
               }
 
@@ -740,9 +752,10 @@ export const UserSearchModal = ({
               padding: 10,
               borderRadius: 5,
               marginTop: 10,
-              alignItems: 'center',
-            }}>
-            <Text style={{color: 'white', fontWeight: 'bold'}}>Share</Text>
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>Share</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -753,22 +766,22 @@ export const ViewCountApi = async (
   endpoint,
   id,
   userData,
-  setLoadingContacts,
+  setLoadingContacts
 ) => {
-  const Dta = {id: id, userId: userData?.User?.userId};
-  console.log('endpoint', endpoint, Dta);
+  const Dta = { id: id, userId: userData?.User?.userId };
+  console.log("endpoint", endpoint, Dta);
   try {
     setLoadingContacts(true);
     const response = await fetch(`${baseUrl}${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(Dta),
     });
 
     const data = await response.json();
-    console.log('ViewCountApi ------> ', endpoint, data);
+    console.log("ViewCountApi ------> ", endpoint, data);
   } catch (error) {
     console.error(`Error fetching ${endpoint}:`, error);
   } finally {

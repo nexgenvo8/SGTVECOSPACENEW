@@ -366,7 +366,7 @@ const PlacementRegistration = ({ navigation }) => {
             </Text>
             {isFormDisabled && registrationNo ? (
               <Text style={{ ...styles.UPCText, color: colors.AppmainColor }}>
-                You are registered with UPC No#:{" "}
+                You are registered with {registrationNo.slice(0, 3)} No#:{" "}
                 <Text
                   style={{
                     fontWeight: "bold",

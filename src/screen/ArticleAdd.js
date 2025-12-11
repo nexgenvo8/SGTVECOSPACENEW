@@ -1,4 +1,10 @@
-import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   SafeAreaView,
@@ -9,27 +15,32 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import globalStyles from './GlobalCSS';
-import Header from './Header/Header';
-import Colors from './color';
-import ImagePicker from 'react-native-image-crop-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from './Icons/Icons';
-import {baseUrl, addarticle, updatearticle, GroupAddPost} from './baseURL/api';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import KeyboardAvoidingWrapper from './components/KeyboardAvoidingWrapper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {showError} from './components/Toast';
-import {useTheme} from '../theme/ThemeContext';
+} from "react-native";
+import globalStyles from "./GlobalCSS";
+import Header from "./Header/Header";
+import Colors from "./color";
+import ImagePicker from "react-native-image-crop-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "./Icons/Icons";
+import {
+  baseUrl,
+  addarticle,
+  updatearticle,
+  GroupAddPost,
+} from "./baseURL/api";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { showError } from "./components/Toast";
+import { useTheme } from "../theme/ThemeContext";
 
-const ArticleAdd = ({navigation, route}) => {
+const ArticleAdd = ({ navigation, route }) => {
   const isFocused = useIsFocused();
-  const {Item = {}, GroupDetails = {}} = route.params || {};
-  const {isDark, colors, toggleTheme} = useTheme();
+  const { Item = {}, GroupDetails = {} } = route.params || {};
+  const { isDark, colors, toggleTheme } = useTheme();
   // State Variables
-  const [headline, setHeadline] = useState('');
-  const [description, setDescription] = useState('');
+  const [headline, setHeadline] = useState("");
+  const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
   const [imagesName, setImagesName] = useState([]);
   const [base64, setBase64] = useState([]);
@@ -42,12 +53,12 @@ const ArticleAdd = ({navigation, route}) => {
   // Fetch User Data
   const fetchUserData = useCallback(async () => {
     try {
-      const userDta = await AsyncStorage.getItem('userData');
+      const userDta = await AsyncStorage.getItem("userData");
       if (userDta) {
         setUserData(JSON.parse(userDta));
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error("Error fetching user data:", error);
     }
   }, []);
 
@@ -55,10 +66,10 @@ const ArticleAdd = ({navigation, route}) => {
     fetchUserData();
     if (Item?.ArticleId) {
       const rawHTML = Item?.PostText;
-      const plainText = rawHTML.replace(/<[^>]*>/g, '');
-      setHeadline(Item?.PostTitle || '');
+      const plainText = rawHTML.replace(/<[^>]*>/g, "");
+      setHeadline(Item?.PostTitle || "");
       //setDescription(Item?.PostText || '');
-      setDescription(plainText || '');
+      setDescription(plainText || "");
       setImages(Item?.Images[0]?.PostImage ? [Item?.Images[0]?.PostImage] : []);
     }
   }, [Item, isFocused, fetchUserData]);
@@ -68,20 +79,20 @@ const ArticleAdd = ({navigation, route}) => {
     try {
       const image = await ImagePicker.openPicker({
         multiple: false,
-        mediaType: 'photo',
+        mediaType: "photo",
         compressImageQuality: 0.8,
         includeBase64: true,
       });
 
       const imagePath = image.path;
-      const imageName = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+      const imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
       const base64Image = image.data;
 
       setImages([imagePath]);
       setImagesName([imageName]);
       setBase64([base64Image]);
     } catch (error) {
-      console.error('Image selection cancelled:', error);
+      console.error("Image selection cancelled:", error);
     }
   };
   const handleCheckboxToggle = () => {
@@ -99,7 +110,7 @@ const ArticleAdd = ({navigation, route}) => {
     setErrorDescription(false);
 
     if (!checked) {
-      showError('Please check the confirmation box before Save.');
+      showError("Please check the confirmation box before Save.");
       return;
     }
 
@@ -134,7 +145,7 @@ const ArticleAdd = ({navigation, route}) => {
         id: Item?.ArticleId,
         userId: userData?.User?.userId,
         groupId: GroupDetails?.id ? 1 : 0,
-        ...(GroupDetails?.id && {shareType: 1}),
+        ...(GroupDetails?.id && { shareType: 1 }),
         postType: GroupDetails?.id ? 4 : 3,
         postTitle: headline,
         postText: description,
@@ -145,26 +156,26 @@ const ArticleAdd = ({navigation, route}) => {
 
       try {
         const response = await fetch(`${baseUrl}${apiEndpoint}`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: requestData,
         });
 
-        const contentType = response.headers.get('content-type');
+        const contentType = response.headers.get("content-type");
 
         if (!response.ok) {
-          if (contentType && contentType.includes('application/json')) {
+          if (contentType && contentType.includes("application/json")) {
             const errorData = await response.json();
-            showError(errorData?.message || 'Failed to add article');
+            showError(errorData?.message || "Failed to add article");
           } else {
             const text = await response.text();
-            console.error('Non-JSON response:', text);
+            console.error("Non-JSON response:", text);
           }
           return;
         }
         const data = await response.json();
         if (response.ok) {
-          console.log('Article Added:', data);
+          console.log("Article Added:", data);
           // if (apiEndpoint === addarticle) {
           //   navigation.navigate({
           //     name: 'Articles',
@@ -176,15 +187,15 @@ const ArticleAdd = ({navigation, route}) => {
           // }
           navigation.goBack();
         } else {
-          showError(data.message || 'Failed to add article');
+          showError(data.message || "Failed to add article");
         }
       } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error("Fetch Error:", error);
       } finally {
         setLoading(false);
       }
     } else {
-      showError('Please fill all required fields');
+      showError("Please fill all required fields");
     }
   };
   return (
@@ -192,14 +203,15 @@ const ArticleAdd = ({navigation, route}) => {
       style={{
         ...globalStyles.SafeAreaView,
         backgroundColor: colors.background,
-      }}>
+      }}
+    >
       <Header
         title={
           GroupDetails?.id
-            ? 'Group Post'
+            ? "Group Post"
             : Item?.ArticleId
-            ? 'Edit Article'
-            : 'Add Article'
+            ? "Edit Article"
+            : "Add Article"
         }
         navigation={navigation}
       />
@@ -208,8 +220,12 @@ const ArticleAdd = ({navigation, route}) => {
           <ScrollView>
             <View style={globalStyles.MT_20}>
               <Text
-                style={{...globalStyles.FS_18_FW_600, color: colors.textColor}}>
-                {GroupDetails?.id ? 'Write a group post' : 'Add Article'}
+                style={{
+                  ...globalStyles.FS_18_FW_600,
+                  color: colors.textColor,
+                }}
+              >
+                {GroupDetails?.id ? "Write a group post" : "Add Article"}
               </Text>
             </View>
 
@@ -221,22 +237,25 @@ const ArticleAdd = ({navigation, route}) => {
                   borderColor: colors.textinputbordercolor,
                   backgroundColor: colors.textinputBackgroundcolor,
                 }}
-                onPress={selectImage}>
+                onPress={selectImage}
+              >
                 <Text
                   style={{
                     ...globalStyles.FS_18_FW_600,
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   {GroupDetails?.id
-                    ? 'Select Post Image'
-                    : 'Select Article Image'}
+                    ? "Select Post Image"
+                    : "Select Article Image"}
                 </Text>
               </TouchableOpacity>
             ) : (
               <>
                 <TouchableOpacity
                   onPress={() => setImages([])}
-                  style={globalStyles.AS_End_PV_5}>
+                  style={globalStyles.AS_End_PV_5}
+                >
                   <Icon
                     name="cross"
                     size={20}
@@ -247,7 +266,7 @@ const ArticleAdd = ({navigation, route}) => {
                 <View style={globalStyles.containerArticle}>
                   <Image
                     style={globalStyles.firstImage}
-                    source={{uri: images[0]}}
+                    source={{ uri: images[0] }}
                   />
                 </View>
               </>
@@ -260,20 +279,20 @@ const ArticleAdd = ({navigation, route}) => {
                 color: colors.textColor,
                 backgroundColor: colors.textinputBackgroundcolor,
               }}
-              onChangeText={val => {
+              onChangeText={(val) => {
                 setHeadline(val);
                 setErrorHeadline(false);
               }}
               value={headline}
               placeholder={
                 GroupDetails?.id
-                  ? 'Title for group post'
-                  : 'Write your Headline'
+                  ? "Title for group post"
+                  : "Write your Headline"
               }
               placeholderTextColor={colors.placeholderTextColor}
             />
             {errorHeadline && (
-              <Text style={{color: 'red', marginTop: 5}}>
+              <Text style={{ color: "red", marginTop: 5 }}>
                 Headline is required
               </Text>
             )}
@@ -287,35 +306,39 @@ const ArticleAdd = ({navigation, route}) => {
                 height: 200,
                 marginVertical: 10,
               }}
-              onChangeText={val => {
+              onChangeText={(val) => {
                 setDescription(val);
                 setErrorDescription(false);
               }}
               value={description}
               placeholder={
                 GroupDetails?.id
-                  ? 'Group post description'
-                  : 'Article description'
+                  ? "Group post description"
+                  : "Article description"
               }
               multiline
               placeholderTextColor={colors.placeholderTextColor}
             />
             {errorDescription && (
-              <Text style={{color: 'red', marginTop: 5}}>
+              <Text style={{ color: "red", marginTop: 5 }}>
                 Description is required
               </Text>
             )}
             <View style={globalStyles.IconViewArticles}>
               <TouchableOpacity onPress={handleCheckboxToggle}>
                 <MaterialCommunityIcons
-                  name={checked ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                  name={checked ? "checkbox-marked" : "checkbox-blank-outline"}
                   size={24}
                   color={colors.AppmainColor}
-                  style={{marginRight: 10}}
+                  style={{ marginRight: 10 }}
                 />
               </TouchableOpacity>
               <Text
-                style={{...globalStyles.TextArticles, color: colors.textColor}}>
+                style={{
+                  ...globalStyles.TextArticles,
+                  color: colors.textColor,
+                }}
+              >
                 I confirm that I am authorized to Post this article on Jamia
                 Millia Islamia VECOSPACE and if any image is used, I have the
                 rights to use the image.
@@ -325,13 +348,14 @@ const ArticleAdd = ({navigation, route}) => {
             <TouchableOpacity
               style={[
                 globalStyles.saveButton,
-                {backgroundColor: colors.AppmainColor},
+                { backgroundColor: colors.AppmainColor },
                 {
                   opacity: checked ? 1 : 0.8,
                 },
               ]}
               onPress={articleAdd}
-              disabled={!checked || loading}>
+              disabled={!checked || loading}
+            >
               {loading ? (
                 <ActivityIndicator color={colors.AppmainColor} />
               ) : (
@@ -339,7 +363,8 @@ const ArticleAdd = ({navigation, route}) => {
                   style={{
                     ...globalStyles.saveButtonText,
                     color: colors.ButtonTextColor,
-                  }}>
+                  }}
+                >
                   Save
                 </Text>
               )}

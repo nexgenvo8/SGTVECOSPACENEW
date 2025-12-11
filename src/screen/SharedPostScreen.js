@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
-} from 'react-native';
+} from "react-native";
 import {
   AddComment,
   Addlike,
@@ -33,42 +33,42 @@ import {
   UpdateComment,
   WhatsAppShare,
   Profile_Detail,
-} from './baseURL/api';
-import Header from './Header/Header';
-import RenderHTML from 'react-native-render-html';
-import globalStyles from './GlobalCSS';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import moment from 'moment';
-import Colors from './color';
-import {fetchContactList} from './baseURL/ExperienceList';
-import KeyboardAvoidingWrapper from './components/KeyboardAvoidingWrapper';
-import LikeIcon from 'react-native-vector-icons/AntDesign';
-import CommIcon from 'react-native-vector-icons/FontAwesome';
-import Icon from '../screen/Icons/Icons';
-import Iconback from 'react-native-vector-icons/AntDesign';
-import RenderHtml from 'react-native-render-html';
-import ImageViewer from 'react-native-image-zoom-viewer';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import RNFS from 'react-native-fs';
-import {showSuccess} from './components/Toast';
+} from "./baseURL/api";
+import Header from "./Header/Header";
+import RenderHTML from "react-native-render-html";
+import globalStyles from "./GlobalCSS";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import moment from "moment";
+import Colors from "./color";
+import { fetchContactList } from "./baseURL/ExperienceList";
+import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
+import LikeIcon from "react-native-vector-icons/AntDesign";
+import CommIcon from "react-native-vector-icons/FontAwesome";
+import Icon from "../screen/Icons/Icons";
+import Iconback from "react-native-vector-icons/AntDesign";
+import RenderHtml from "react-native-render-html";
+import ImageViewer from "react-native-image-zoom-viewer";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import RNFS from "react-native-fs";
+import { showSuccess } from "./components/Toast";
 
-const SharedPostScreen = ({route, navigation}) => {
-  const {postId, postType} = route.params || {};
+const SharedPostScreen = ({ route, navigation }) => {
+  const { postId, postType } = route.params || {};
   const [expandedPosts, setExpandedPosts] = useState({});
-  const [likedPosts, setLikedPosts] = useState('');
+  const [likedPosts, setLikedPosts] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible1, setModalVisible1] = useState(false);
-  const [username, setUsername] = useState('');
-  const [number1, onChangeNumber1] = useState('');
+  const [username, setUsername] = useState("");
+  const [number1, onChangeNumber1] = useState("");
   const [passImageInModal, setPassImageInModal] = useState();
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [modalVisibleShare, setModalVisibleShare] = useState(false);
   const [post, setPost] = useState([]);
   const [loading, setLoading] = useState(true);
-  const screenWidth = Dimensions.get('window').width;
-  const [selectedValue, setSelectedValue] = useState('Public');
-  const [selectedValue1, setSelectedValue1] = useState('Share with Public');
+  const screenWidth = Dimensions.get("window").width;
+  const [selectedValue, setSelectedValue] = useState("Public");
+  const [selectedValue1, setSelectedValue1] = useState("Share with Public");
   const [isOpen, setIsOpen] = useState(false);
   const [isOpen2, setIsOpen2] = useState(false);
   const [filteredContacts, setFilteredContacts] = useState([]);
@@ -93,7 +93,7 @@ const SharedPostScreen = ({route, navigation}) => {
   const [deletePost, setDeletePost] = useState(false);
   const [userData, setUserData] = useState([]);
   const [itemOfPost, setItemOfPost] = useState([]);
-  const [number, onChangeNumber] = useState('');
+  const [number, onChangeNumber] = useState("");
   const isCommentEmpty = !number.trim();
   const containerWidth = screenWidth - 40;
   const largeImageWidth = containerWidth * 0.65;
@@ -103,37 +103,37 @@ const SharedPostScreen = ({route, navigation}) => {
   const scrollViewRef = useRef(null);
   const toggleDropdown = () => setIsOpen(!isOpen);
   const toggleDropdown2 = () => setIsOpen2(!isOpen2);
-  const toggleExpand = index => {
-    setExpandedPosts(prevState => ({
+  const toggleExpand = (index) => {
+    setExpandedPosts((prevState) => ({
       ...prevState,
       [index]: !prevState[index],
     }));
   };
-  const selectOption2 = option => {
-    if (option == 'Share with Message') {
+  const selectOption2 = (option) => {
+    if (option == "Share with Message") {
       openModal();
     }
     setSelectedValue1(option);
     setIsOpen2(false);
   };
-  const toggleSelection = userId => {
-    setSelectedUsers(prevSelected =>
+  const toggleSelection = (userId) => {
+    setSelectedUsers((prevSelected) =>
       prevSelected.includes(userId)
-        ? prevSelected.filter(id => id !== userId)
-        : [...prevSelected, userId],
+        ? prevSelected.filter((id) => id !== userId)
+        : [...prevSelected, userId]
     );
   };
-  const handleUserSelect = user => {
-    if (!selectedUsers.some(u => u.UserId === user.UserId)) {
+  const handleUserSelect = (user) => {
+    if (!selectedUsers.some((u) => u.UserId === user.UserId)) {
       const newSelectedUsers = [...selectedUsers, user];
       setSelectedUsers(newSelectedUsers);
-      setPostText('');
+      setPostText("");
     }
     setShowList(false);
   };
-  const handleRemoveUser = user => {
-    setSelectedUsers(prevUsers =>
-      prevUsers.filter(u => u.UserId !== user.UserId),
+  const handleRemoveUser = (user) => {
+    setSelectedUsers((prevUsers) =>
+      prevUsers.filter((u) => u.UserId !== user.UserId)
     );
   };
   useEffect(() => {
@@ -142,11 +142,11 @@ const SharedPostScreen = ({route, navigation}) => {
         userData,
         baseUrl,
         contactList,
-        res => {
+        (res) => {
           setContacts(res);
           setFilteredContacts(res);
         },
-        setLoadingContacts,
+        setLoadingContacts
       );
     }
   }, [modalVisibleShare]);
@@ -154,16 +154,16 @@ const SharedPostScreen = ({route, navigation}) => {
     fetchContactList(userData);
     setModalVisibleShare(true);
   };
-  const options = ['Public', 'My Contacts'];
+  const options = ["Public", "My Contacts"];
   const options2 = [
-    'Share with Public',
-    'Share with My Contacts',
-    'Share with Message',
-    'Share To  Extenal Social Media',
+    "Share with Public",
+    "Share with My Contacts",
+    "Share with Message",
+    "Share To  Extenal Social Media",
   ];
 
   const UserValue = async () => {
-    const userDta = await AsyncStorage.getItem('userData');
+    const userDta = await AsyncStorage.getItem("userData");
     const parsedData = JSON.parse(userDta);
     setUserData(parsedData);
   };
@@ -173,47 +173,47 @@ const SharedPostScreen = ({route, navigation}) => {
   useFocusEffect(
     useCallback(() => {
       const fetchLatestProfile = async () => {
-        const userData = await AsyncStorage.getItem('userData');
+        const userData = await AsyncStorage.getItem("userData");
         const parsedUserData = JSON.parse(userData);
 
         try {
           const response = await fetch(`${baseUrl}${Profile_Detail}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({userId: parsedUserData?.User?.userId}),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: parsedUserData?.User?.userId }),
           });
 
           const profile = await response.json();
 
           if (response.ok) {
             await AsyncStorage.setItem(
-              'userProfileData',
-              JSON.stringify(profile),
+              "userProfileData",
+              JSON.stringify(profile)
             );
             setUserProfileData(profile);
           } else {
-            console.log('Profile fetch error', profile);
+            console.log("Profile fetch error", profile);
           }
         } catch (err) {
-          console.log('Error fetching updated profile', err);
+          console.log("Error fetching updated profile", err);
         }
       };
 
       fetchLatestProfile();
-    }, []),
+    }, [])
   );
   const sendMessage = async (receiverId, selectedUsers) => {
-    console.log('Sending to:', receiverId, 'Post:', selectedUsers);
-    const cleanHtmlWithSpacing = html => {
-      if (!html) return '';
+    console.log("Sending to:", receiverId, "Post:", selectedUsers);
+    const cleanHtmlWithSpacing = (html) => {
+      if (!html) return "";
       return html
-        .replace(/<\/(div|p|br|h[1-6])>/gi, ' ')
-        .replace(/<[^>]*>/g, '')
-        .replace(/\s+/g, ' ')
+        .replace(/<\/(div|p|br|h[1-6])>/gi, " ")
+        .replace(/<[^>]*>/g, "")
+        .replace(/\s+/g, " ")
         .trim();
     };
 
-    const downloadImageAsFile = async url => {
+    const downloadImageAsFile = async (url) => {
       const fileName = `image_${Date.now()}.jpg`;
       const downloadDest = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
@@ -227,14 +227,14 @@ const SharedPostScreen = ({route, navigation}) => {
           return {
             uri: `file://${downloadDest}`,
             name: fileName,
-            type: 'image/jpeg',
+            type: "image/jpeg",
           };
         } else {
-          console.warn('⚠️ Image download failed:', result.statusCode);
+          console.warn("⚠️ Image download failed:", result.statusCode);
           return null;
         }
       } catch (error) {
-        console.error('Download error:', error);
+        console.error("Download error:", error);
         return null;
       }
     };
@@ -246,32 +246,32 @@ const SharedPostScreen = ({route, navigation}) => {
     }
 
     const formData = new FormData();
-    formData.append('senderId', userData?.User?.userId?.toString());
-    formData.append('receiverId', receiverId?.toString());
+    formData.append("senderId", userData?.User?.userId?.toString());
+    formData.append("receiverId", receiverId?.toString());
     formData.append(
-      'chatText',
+      "chatText",
       cleanHtmlWithSpacing(
-        selectedUsers?.PostText || selectedUsers?.PostTitle || 'No message',
-      ),
+        selectedUsers?.PostText || selectedUsers?.PostTitle || "No message"
+      )
     );
 
-    formData.append('optionalType', 'PostShare');
+    formData.append("optionalType", "PostShare");
 
-    formData.append('optionalId', selectedUsers?.id?.toString() || '');
+    formData.append("optionalId", selectedUsers?.id?.toString() || "");
 
     if (fileData) {
-      formData.append('attachmentName', fileData.name);
-      formData.append('attachment', fileData);
+      formData.append("attachmentName", fileData.name);
+      formData.append("attachment", fileData);
     } else {
-      formData.append('attachmentName', '');
+      formData.append("attachmentName", "");
     }
-    console.log(formData, 'formDataformDataformData');
+    console.log(formData, "formDataformDataformData");
 
     try {
       const response = await fetch(`${baseUrl}${SendMessage}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
         },
         body: formData,
       });
@@ -280,18 +280,18 @@ const SharedPostScreen = ({route, navigation}) => {
 
       if (response.ok) {
         const result = JSON.parse(resText);
-        console.log('✅ Message sent:', result);
-        showSuccess(result.message || 'Message sent successfully');
+        console.log("✅ Message sent:", result);
+        showSuccess(result.message || "Message sent successfully");
         setModalVisible(false);
       } else {
-        console.error('Server error:', resText);
+        console.error("Server error:", resText);
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
       setModalVisible(false);
     }
   };
-  const handleContactSearch = query => {
+  const handleContactSearch = (query) => {
     setUsername(query);
     const trimmed = query.trim().toLowerCase();
 
@@ -300,13 +300,13 @@ const SharedPostScreen = ({route, navigation}) => {
       return;
     }
 
-    const filtered = contacts.filter(user =>
-      user?.UserName?.toLowerCase().includes(trimmed),
+    const filtered = contacts.filter((user) =>
+      user?.UserName?.toLowerCase().includes(trimmed)
     );
     setFilteredContacts(filtered);
   };
   const handleAddComment = (postId, newCountFromServer = null) => {
-    setCommentCounts(prevCounts => ({
+    setCommentCounts((prevCounts) => ({
       ...prevCounts,
       [postId]:
         newCountFromServer !== null
@@ -315,7 +315,7 @@ const SharedPostScreen = ({route, navigation}) => {
     }));
   };
   const handleDeltComment = (postId, newCountFromServer = null) => {
-    setCommentCounts(prevCounts => ({
+    setCommentCounts((prevCounts) => ({
       ...prevCounts,
       [postId]:
         newCountFromServer !== null
@@ -323,62 +323,59 @@ const SharedPostScreen = ({route, navigation}) => {
           : Math.max((prevCounts[postId] ?? 0) - 1, 0),
     }));
   };
-  const toggleLike = async post => {
+  const toggleLike = async (post) => {
     const postId = post.id;
     const isLiked = likedPosts[postId] || false;
     const updatedLikeStatus = !isLiked;
     const updatedLikeCount = updatedLikeStatus
       ? post.TotalLike + 1
       : Math.max(post.TotalLike - 1, 0);
-    setLikedPosts(prev => ({...prev, [postId]: updatedLikeStatus}));
-    setPostData(prevData =>
-      prevData.map(item =>
-        item.id === postId ? {...item, TotalLike: updatedLikeCount} : item,
-      ),
+    setLikedPosts((prev) => ({ ...prev, [postId]: updatedLikeStatus }));
+    setPostData((prevData) =>
+      prevData.map((item) =>
+        item.id === postId ? { ...item, TotalLike: updatedLikeCount } : item
+      )
     );
     try {
-      const response = await fetch(
-        'https://vecospaceapi.nexgenov8.com/api/addlike',
-        {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            postId: post.id,
-            postType: post.PostType,
-            userId: userData?.User?.userId,
-          }),
-        },
-      );
+      const response = await fetch("https://sgtapi.vecospace.com/api/addlike", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: post.id,
+          postType: post.PostType,
+          userId: userData?.User?.userId,
+        }),
+      });
       const data = await response.json();
-      console.log('Add Like Response:', data);
+      console.log("Add Like Response:", data);
       if (!response.ok || data.Status !== 1) {
-        throw new Error(data.Message || 'Failed to like the post');
+        throw new Error(data.Message || "Failed to like the post");
       }
       const finalIsLiked = data.IsLiked;
       const finalLikeCount = finalIsLiked
         ? post.TotalLike + 1
         : Math.max(post.TotalLike - 1, 0);
-      setLikedPosts(prev => ({...prev, [postId]: finalIsLiked}));
-      setPostData(prevData =>
-        prevData.map(item =>
+      setLikedPosts((prev) => ({ ...prev, [postId]: finalIsLiked }));
+      setPostData((prevData) =>
+        prevData.map((item) =>
           item.id === postId
             ? {
                 ...item,
                 TotalLike: finalLikeCount,
               }
-            : item,
-        ),
+            : item
+        )
       );
 
       await AsyncStorage.setItem(
-        'likedPosts',
-        JSON.stringify({...likedPosts, [postId]: finalIsLiked}),
+        "likedPosts",
+        JSON.stringify({ ...likedPosts, [postId]: finalIsLiked })
       );
     } catch (error) {
-      console.error('Like API Error:', error);
-      setLikedPosts(prev => ({...prev, [postId]: isLiked}));
-      setPostData(prevData =>
-        prevData.map(item =>
+      console.error("Like API Error:", error);
+      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+      setPostData((prevData) =>
+        prevData.map((item) =>
           item.id === postId
             ? {
                 ...item,
@@ -386,8 +383,8 @@ const SharedPostScreen = ({route, navigation}) => {
                   ? post.TotalLike
                   : Math.max(post.TotalLike - 1, 0),
               }
-            : item,
-        ),
+            : item
+        )
       );
     }
   };
@@ -408,8 +405,8 @@ const SharedPostScreen = ({route, navigation}) => {
   }) => {
     if (!item || !item.id || !item.PostType) {
       console.error(
-        'Missing postId or postType in item in fetchCommentList:',
-        item,
+        "Missing postId or postType in item in fetchCommentList:",
+        item
       );
       return;
     }
@@ -424,9 +421,9 @@ const SharedPostScreen = ({route, navigation}) => {
       refreshing ? setIsRefreshing(true) : setIsLoadingMore(true);
 
       const response = await fetch(`${baseUrl}${listcomment}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: playload,
       });
@@ -435,14 +432,14 @@ const SharedPostScreen = ({route, navigation}) => {
       const newData = data?.DataList || [];
 
       if (response.ok) {
-        setCommentList(prev =>
-          pageNumber === 1 ? newData : [...prev, ...newData],
+        setCommentList((prev) =>
+          pageNumber === 1 ? newData : [...prev, ...newData]
         );
         setPage(pageNumber);
         setHasMoreData(newData.length > 0);
       }
     } catch (error) {
-      console.error('Fetch Error fetchCommentList:', error);
+      console.error("Fetch Error fetchCommentList:", error);
     } finally {
       setIsRefreshing(false);
       setIsLoadingMore(false);
@@ -450,8 +447,8 @@ const SharedPostScreen = ({route, navigation}) => {
   };
   const fetchAddComment = async () => {
     let parentId = commitID?.Id || 0;
-    console.log('fetchAddComment', deleteValue);
-    console.log('itemOfPost', itemOfPost);
+    console.log("fetchAddComment", deleteValue);
+    console.log("itemOfPost", itemOfPost);
     const Dta = {
       postId: itemOfPost.id,
       parentId: parentId,
@@ -459,44 +456,44 @@ const SharedPostScreen = ({route, navigation}) => {
       userId: userData?.User?.userId,
       commentText: number,
     };
-    console.log('Dta', Dta);
+    console.log("Dta", Dta);
 
     if (deleteValue.length == 0) {
       try {
         const response = await fetch(`${baseUrl}${AddComment}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(Dta),
         });
 
         const data = await response.json();
-        console.log('ADd Comment Data ----', data);
+        console.log("ADd Comment Data ----", data);
 
         if (response.ok) {
           setCommentAdd(data.Message);
-          onChangeNumber('');
+          onChangeNumber("");
           setRefresh(!refresh);
           handleAddComment(itemOfPost.id, data.commentCount);
         }
       } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error("Fetch Error:", error);
       } finally {
       }
     }
   };
-  const handleDeleteComment = ({item, id}) => {
+  const handleDeleteComment = ({ item, id }) => {
     Alert.alert(
-      'Confirmation',
-      'Are you sure you want to delete this Comment?',
+      "Confirmation",
+      "Are you sure you want to delete this Comment?",
       [
         {
-          text: 'No',
-          style: 'cancel',
+          text: "No",
+          style: "cancel",
         },
         {
-          text: 'Yes',
+          text: "Yes",
           onPress: async () => {
             const payload = JSON.stringify({
               id: item?.Id,
@@ -506,17 +503,17 @@ const SharedPostScreen = ({route, navigation}) => {
 
             try {
               const response = await fetch(`${baseUrl}${DeleteComment}`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
                 body: payload,
               });
               const text = await response.text();
-              console.log('🔍 Raw Response:', text);
+              console.log("🔍 Raw Response:", text);
               if (response.ok) {
                 const data = JSON.parse(text);
-                console.log(data, 'datadatadatadatadatadatadatadata');
+                console.log(data, "datadatadatadatadatadatadatadata");
 
                 setDeletePost(true);
                 // handleDeltComment(item.id, item.TotalComment);
@@ -528,12 +525,12 @@ const SharedPostScreen = ({route, navigation}) => {
                 });
               }
             } catch (error) {
-              console.error('❌ Delete Error:', error);
+              console.error("❌ Delete Error:", error);
             }
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false }
     );
   };
   const handleUpdateComment = async () => {
@@ -541,9 +538,9 @@ const SharedPostScreen = ({route, navigation}) => {
     if (deleteComment) {
       try {
         const response = await fetch(`${baseUrl}${UpdateComment}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             id: deleteValue?.Id,
@@ -561,10 +558,10 @@ const SharedPostScreen = ({route, navigation}) => {
           setRefresh(!refresh);
           setDeleteComment(false);
           setDeleteValue([]);
-          onChangeNumber('');
+          onChangeNumber("");
         }
       } catch (error) {
-        console.error('Delete Error:', error);
+        console.error("Delete Error:", error);
       }
     }
   };
@@ -576,15 +573,15 @@ const SharedPostScreen = ({route, navigation}) => {
       });
       try {
         const response = await fetch(`${baseUrl}${Getpostsbyidortype}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: playload,
         });
 
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
 
         const data = await response.json();
@@ -594,7 +591,7 @@ const SharedPostScreen = ({route, navigation}) => {
           setPost([]);
         }
       } catch (error) {
-        console.error('Error fetching shared post:', error);
+        console.error("Error fetching shared post:", error);
         setPost(null);
       } finally {
         setLoading(false);
@@ -621,65 +618,69 @@ const SharedPostScreen = ({route, navigation}) => {
   //     </View>
   //   );
   // }
-  const renderItem1 = ({item}) => {
+  const renderItem1 = ({ item }) => {
     return (
-      <View style={{flex: 1, flexDirection: 'row', marginVertical: 10}}>
+      <View style={{ flex: 1, flexDirection: "row", marginVertical: 10 }}>
         <Image
           source={
             item?.UserDetail?.ProfilePhoto
-              ? {uri: item?.UserDetail?.ProfilePhoto}
-              : require('../assets/placeholderprofileimage.png')
+              ? { uri: item?.UserDetail?.ProfilePhoto }
+              : require("../assets/placeholderprofileimage.png")
           }
-          style={{width: 50, height: 50, borderRadius: 30}}
+          style={{ width: 50, height: 50, borderRadius: 30 }}
         />
         <View
           style={{
             marginLeft: 10,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
             flex: 1,
-          }}>
-          <View style={{flexShrink: 1, flex: 1}}>
-            <Text style={{fontWeight: '700', fontSize: 15}}>
+          }}
+        >
+          <View style={{ flexShrink: 1, flex: 1 }}>
+            <Text style={{ fontWeight: "700", fontSize: 15 }}>
               {item?.UserDetail?.UserName}
             </Text>
-            <View style={{flexDirection: 'row', marginTop: 4}}>
-              <Text style={{fontSize: 13}}>{item.Comment}</Text>
+            <View style={{ flexDirection: "row", marginTop: 4 }}>
+              <Text style={{ fontSize: 13 }}>{item.Comment}</Text>
             </View>
             <TouchableOpacity
               onPress={() => {
                 setReplyUserName(item?.UserDetail?.UserName);
                 onChangeNumber(`@${item?.UserDetail?.UserName} `);
                 setCommitID(item);
-              }}>
-              <Text style={{paddingLeft: 20, color: Colors.main_primary}}>
+              }}
+            >
+              <Text style={{ paddingLeft: 20, color: Colors.main_primary }}>
                 *Reply
               </Text>
             </TouchableOpacity>
 
             {item.Replies && item.Replies.length > 0 && (
-              <View style={{marginLeft: 2, marginTop: 10}}>
+              <View style={{ marginLeft: 2, marginTop: 10 }}>
                 {item.Replies.map((reply, index) => (
                   <View
                     key={index}
-                    style={{marginBottom: 5, flexDirection: 'row'}}>
+                    style={{ marginBottom: 5, flexDirection: "row" }}
+                  >
                     <Image
                       source={
                         item?.UserDetail?.ProfilePhoto
-                          ? {uri: item?.UserDetail?.ProfilePhoto}
-                          : require('../assets/placeholderprofileimage.png')
+                          ? { uri: item?.UserDetail?.ProfilePhoto }
+                          : require("../assets/placeholderprofileimage.png")
                       }
-                      style={{width: 50, height: 50, borderRadius: 30}}
+                      style={{ width: 50, height: 50, borderRadius: 30 }}
                     />
-                    <View style={{margin: 10}}>
-                      <Text style={{fontWeight: '700', fontSize: 15}}>
+                    <View style={{ margin: 10 }}>
+                      <Text style={{ fontWeight: "700", fontSize: 15 }}>
                         {item?.UserDetail?.UserName}
                       </Text>
                       <Text
                         numberOfLines={2}
                         ellipsizeMode="tail"
-                        style={{fontSize: 13, width: 200}}>
+                        style={{ fontSize: 13, width: 200 }}
+                      >
                         {reply.Comment}
                       </Text>
                       {/* <TouchableOpacity
@@ -695,9 +696,14 @@ const SharedPostScreen = ({route, navigation}) => {
                           setReplyUserName(reply?.UserDetail?.UserName);
                           onChangeNumber(`@${reply?.UserDetail?.UserName} `);
                           setCommitID(item);
-                        }}>
+                        }}
+                      >
                         <Text
-                          style={{paddingLeft: 20, color: Colors.main_primary}}>
+                          style={{
+                            paddingLeft: 20,
+                            color: Colors.main_primary,
+                          }}
+                        >
                           *Reply
                         </Text>
                       </TouchableOpacity>
@@ -708,11 +714,12 @@ const SharedPostScreen = ({route, navigation}) => {
             )}
           </View>
 
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: "row" }}>
             <TouchableOpacity
               onPress={() => {
-                handleDeleteComment({item});
-              }}>
+                handleDeleteComment({ item });
+              }}
+            >
               {/* <DeleteIcon name="delete" size={20} color="#888" />
                */}
 
@@ -728,30 +735,30 @@ const SharedPostScreen = ({route, navigation}) => {
       </View>
     );
   };
-  const renderItem = ({item, index}) => {
+  const renderItem = ({ item, index }) => {
     // console.log(item, 'itemitemitemitemrenderItemcontentindex');
 
-    const getTimeAgo = dateString => {
-      return moment(dateString, 'DD-MMM-YYYY, hh:mm:ssa').fromNow();
+    const getTimeAgo = (dateString) => {
+      return moment(dateString, "DD-MMM-YYYY, hh:mm:ssa").fromNow();
     };
     const isExpanded = expandedPosts[index] || false;
     // const isUserPost = item.UserId === userData?.User?.userId;
-    const formatText = text => {
-      if (!text) return '<p>No content available.</p>';
-      return text.startsWith('<')
+    const formatText = (text) => {
+      if (!text) return "<p>No content available.</p>";
+      return text.startsWith("<")
         ? text
-        : `<p>${text.replace(/\n/g, '<br/>')}</p>`;
+        : `<p>${text.replace(/\n/g, "<br/>")}</p>`;
     };
 
     const truncateText = (text, wordLimit = 30) => {
-      const words = text.split(' ');
+      const words = text.split(" ");
       if (words.length <= wordLimit) return text;
-      return words.slice(0, wordLimit).join(' ') + '...';
+      return words.slice(0, wordLimit).join(" ") + "...";
     };
 
     const fullFormattedText = formatText(item?.PostText);
     const rawShortText = truncateText(
-      item?.PostText || 'No content available.',
+      item?.PostText || "No content available."
     );
     const shortFormattedText = formatText(rawShortText);
     return (
@@ -759,29 +766,33 @@ const SharedPostScreen = ({route, navigation}) => {
         style={{
           marginTop: 20,
           marginHorizontal: 12,
-        }}>
+        }}
+      >
         <TouchableOpacity
-          onPress={() => navigation.navigate('ProfileDetails', {Item: item})}
-          style={{flexDirection: 'row', paddingBottom: 5}}>
+          onPress={() => navigation.navigate("ProfileDetails", { Item: item })}
+          style={{ flexDirection: "row", paddingBottom: 5 }}
+        >
           <Image
             style={globalStyles.PostImg}
             source={
               item.ProfilePhoto
-                ? {uri: item.ProfilePhoto}
-                : require('../assets/placeholderprofileimage.png')
+                ? { uri: item.ProfilePhoto }
+                : require("../assets/placeholderprofileimage.png")
             }
           />
 
           <View>
-            <View style={[globalStyles?.flexRow, {alignItems: 'center'}]}>
-              <Text style={{fontWeight: '700', fontSize: 17, paddingRight: 10}}>
+            <View style={[globalStyles?.flexRow, { alignItems: "center" }]}>
+              <Text
+                style={{ fontWeight: "700", fontSize: 17, paddingRight: 10 }}
+              >
                 {item.UserName}
               </Text>
               <Text>{getTimeAgo(item.DateAdded)}</Text>
             </View>
 
-            <View style={{flexShrink: 1, flexWrap: 'wrap'}}>
-              <Text style={{fontSize: 12, width: '90%'}}>
+            <View style={{ flexShrink: 1, flexWrap: "wrap" }}>
+              <Text style={{ fontSize: 12, width: "90%" }}>
                 {item.JobTitle} at {item.CompanyName}
               </Text>
             </View>
@@ -791,17 +802,19 @@ const SharedPostScreen = ({route, navigation}) => {
         <View
           style={{
             borderTopWidth: 0.5,
-            borderColor: 'gray',
+            borderColor: "gray",
             paddingVertical: 10,
-          }}>
+          }}
+        >
           {item?.PostTitle ? (
             <Text
               style={{
                 fontSize: 16,
-                fontWeight: 'bold',
+                fontWeight: "bold",
                 color: Colors.main_primary,
                 marginBottom: 5,
-              }}>
+              }}
+            >
               {item.PostTitle}
             </Text>
           ) : null}
@@ -815,7 +828,7 @@ const SharedPostScreen = ({route, navigation}) => {
                 color: Colors.black,
                 fontSize: 14,
                 lineHeight: 20,
-                textAlign: 'justify',
+                textAlign: "justify",
                 marginTop: 0,
                 marginBottom: 0,
                 padding: 0,
@@ -826,7 +839,7 @@ const SharedPostScreen = ({route, navigation}) => {
               },
               h4: {
                 color: Colors.main_primary,
-                fontWeight: '700',
+                fontWeight: "700",
                 marginTop: 0,
                 marginBottom: 0,
               },
@@ -834,34 +847,37 @@ const SharedPostScreen = ({route, navigation}) => {
           />
 
           {item.tagpeople?.map((user, index) => (
-            <Text key={index} style={{color: Colors.main_primary}}>
+            <Text key={index} style={{ color: Colors.main_primary }}>
               @{user?.UserName}
             </Text>
           ))}
 
-          {item.PostText.split(' ').length > 40 && (
+          {item.PostText.split(" ").length > 40 && (
             <TouchableOpacity
-              style={{alignItems: 'flex-end'}}
-              onPress={() => toggleExpand(index)}>
-              <Text style={{color: Colors.main_primary}}>
-                {isExpanded ? 'Show Less' : 'Read More'}
+              style={{ alignItems: "flex-end" }}
+              onPress={() => toggleExpand(index)}
+            >
+              <Text style={{ color: Colors.main_primary }}>
+                {isExpanded ? "Show Less" : "Read More"}
               </Text>
             </TouchableOpacity>
           )}
         </View>
         <View
-          style={{marginHorizontal: 20, marginTop: 10, alignItems: 'center'}}>
+          style={{ marginHorizontal: 20, marginTop: 10, alignItems: "center" }}
+        >
           {item?.Images?.length > 0 && (
             <>
               {item.Images.length === 1 && (
                 <TouchableOpacity
                   onPress={() => {
-                    setModalImages([{url: item.Images[0].PostImage}]);
+                    setModalImages([{ url: item.Images[0].PostImage }]);
                     setModalIndex(0);
                     setModalImageVisible(true);
-                  }}>
+                  }}
+                >
                   <Image
-                    source={{uri: item.Images[0].PostImage}}
+                    source={{ uri: item.Images[0].PostImage }}
                     style={{
                       width: containerWidth,
                       height: 250,
@@ -876,24 +892,26 @@ const SharedPostScreen = ({route, navigation}) => {
                 <TouchableOpacity
                   activeOpacity={0.9}
                   onPress={() => {
-                    const formattedImages = item.Images.map(img => ({
+                    const formattedImages = item.Images.map((img) => ({
                       url: img.PostImage,
                     }));
                     setModalImages(formattedImages);
                     setModalIndex(0);
                     setModalImageVisible(true);
-                  }}>
+                  }}
+                >
                   <View
                     style={{
-                      flexDirection: 'row',
+                      flexDirection: "row",
                       width: containerWidth,
                       height: imageHeight,
-                    }}>
+                    }}
+                  >
                     <Image
-                      source={{uri: item.Images[0].PostImage}}
+                      source={{ uri: item.Images[0].PostImage }}
                       style={{
                         width: largeImageWidth,
-                        height: '100%',
+                        height: "100%",
                         borderTopLeftRadius: 10,
                         borderBottomLeftRadius: 10,
                       }}
@@ -904,8 +922,9 @@ const SharedPostScreen = ({route, navigation}) => {
                       style={{
                         width: smallImageWidth,
                         marginLeft: 4,
-                        justifyContent: 'space-between',
-                      }}>
+                        justifyContent: "space-between",
+                      }}
+                    >
                       {item.Images.slice(1, 4).map((image, index) => {
                         const isLast = index === 2 && item.Images.length > 4;
                         return (
@@ -913,17 +932,20 @@ const SharedPostScreen = ({route, navigation}) => {
                             key={index}
                             onPress={() => {
                               setModalImages(
-                                item.Images.map(img => ({url: img.PostImage})),
+                                item.Images.map((img) => ({
+                                  url: img.PostImage,
+                                }))
                               );
                               setModalIndex(index + 1);
                               setModalImageVisible(true);
-                            }}>
-                            <View style={{height: smallImageHeight}}>
+                            }}
+                          >
+                            <View style={{ height: smallImageHeight }}>
                               <Image
-                                source={{uri: image.PostImage}}
+                                source={{ uri: image.PostImage }}
                                 style={{
-                                  width: '100%',
-                                  height: '100%',
+                                  width: "100%",
+                                  height: "100%",
                                   borderRadius: 6,
                                 }}
                                 resizeMode="cover"
@@ -949,20 +971,22 @@ const SharedPostScreen = ({route, navigation}) => {
 
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
             borderBottomWidth: 0.5,
-          }}>
-          <View style={{flexDirection: 'row'}}>
+          }}
+        >
+          <View style={{ flexDirection: "row" }}>
             <TouchableOpacity
-              style={{padding: 10}}
+              style={{ padding: 10 }}
               onPress={() =>
-                navigation.navigate('ListLike', {
+                navigation.navigate("ListLike", {
                   postId: item.id,
                   postType: item.PostType,
                 })
-              }>
+              }
+            >
               <Text>{item.TotalLike} Like</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -970,11 +994,12 @@ const SharedPostScreen = ({route, navigation}) => {
                 setItemOfPost(item);
                 setModalVisible1();
               }}
-              style={{padding: 10}}>
+              style={{ padding: 10 }}
+            >
               <Text>
                 {(commentCounts[item.id] !== undefined
                   ? commentCounts[item.id]
-                  : item.TotalComment) || 0}{' '}
+                  : item.TotalComment) || 0}{" "}
                 Comments
               </Text>
             </TouchableOpacity>
@@ -986,14 +1011,16 @@ const SharedPostScreen = ({route, navigation}) => {
 
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
+            flexDirection: "row",
+            justifyContent: "space-between",
             paddingVertical: 10,
             borderBottomWidth: 2,
-          }}>
+          }}
+        >
           <TouchableOpacity
             style={globalStyles.shareButtonView}
-            onPress={() => toggleLike(item)}>
+            onPress={() => toggleLike(item)}
+          >
             <LikeIcon
               name="like1"
               size={20}
@@ -1002,9 +1029,9 @@ const SharedPostScreen = ({route, navigation}) => {
               color={
                 item?.IsLiked || likedPosts[item?.id]
                   ? Colors.main_primary
-                  : '#888'
+                  : "#888"
               }
-              style={{paddingRight: 5}}
+              style={{ paddingRight: 5 }}
             />
             <Text>Like</Text>
           </TouchableOpacity>
@@ -1017,12 +1044,13 @@ const SharedPostScreen = ({route, navigation}) => {
               setModalVisible1();
               //  openBottomSheet();
               // handleAddComment(item.id, item.TotalComment);
-            }}>
+            }}
+          >
             <CommIcon
               name="commenting-o"
               size={20}
               color="#888"
-              style={{paddingRight: 5}}
+              style={{ paddingRight: 5 }}
             />
             <Text>Comment</Text>
           </TouchableOpacity>
@@ -1032,13 +1060,14 @@ const SharedPostScreen = ({route, navigation}) => {
             onPress={() => {
               setModalVisible(true);
               setPassImageInModal(item);
-            }}>
+            }}
+          >
             <Icon
               name="share"
               size={20}
               color="#888"
               type="FontAwesome"
-              style={{paddingRight: 5}}
+              style={{ paddingRight: 5 }}
             />
 
             <Text>Share</Text>
@@ -1052,24 +1081,25 @@ const SharedPostScreen = ({route, navigation}) => {
       <View style={styles.headerView}>
         <TouchableOpacity
           onPress={
-            () => navigation.navigate('Home')
+            () => navigation.navigate("Home")
             // navigation.goBack()
-          }>
+          }
+        >
           <Iconback
             name="left"
             size={25}
             color={Colors.black}
-            style={{paddingLeft: 10}}
+            style={{ paddingLeft: 10 }}
           />
         </TouchableOpacity>
-        <Text style={styles.title}>{''}</Text>
-        <View style={{flex: 0.1}}></View>
+        <Text style={styles.title}>{""}</Text>
+        <View style={{ flex: 0.1 }}></View>
       </View>
       <FlatList
         data={post}
         renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{paddingBottom: 20}}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
       <Modal
         animationType="slide"
@@ -1077,23 +1107,26 @@ const SharedPostScreen = ({route, navigation}) => {
         visible={modalVisible}
         onRequestClose={() => {
           setModalVisible(false);
-        }}>
+        }}
+      >
         <View style={globalStyles.centeredView}>
           <View
             style={{
               ...globalStyles.modalView,
               flex: 0.6,
               // paddingBottom: 30,
-            }}>
+            }}
+          >
             <TouchableOpacity
-              style={{alignItems: 'flex-end'}}
+              style={{ alignItems: "flex-end" }}
               onPress={() =>
                 //  setModalVisible(!!modalVisible)
                 setModalVisible(false)
-              }>
+              }
+            >
               <Icon name="cross" size={20} color="000" type="Entypo" />
             </TouchableOpacity>
-            <View style={{alignItems: 'center'}}>
+            <View style={{ alignItems: "center" }}>
               <Text style={globalStyles.modalText}>Share Post</Text>
             </View>
             <ScrollView ref={scrollViewRef}>
@@ -1117,57 +1150,58 @@ const SharedPostScreen = ({route, navigation}) => {
                   style={{
                     width: 100,
                     height: 160,
-                    resizeMode: 'contain',
+                    resizeMode: "contain",
                     borderRadius: 10,
                   }}
                 />
-                <View style={{paddingLeft: 10, flex: 1, paddingTop: 20}}>
+                <View style={{ paddingLeft: 10, flex: 1, paddingTop: 20 }}>
                   <RenderHtml
                     contentWidth={screenWidth}
-                    source={{html: passImageInModal?.PostText}}
+                    source={{ html: passImageInModal?.PostText }}
                   />
                   {/* <Text style={{maxWidth: '80%'}}>
                     {passImageInModal?.PostText}
                   </Text> */}
                 </View>
               </View>
-              {selectedValue1 == 'Share To  Extenal Social Media' ? (
+              {selectedValue1 == "Share To  Extenal Social Media" ? (
                 <View
                   style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
+                    flexDirection: "row",
+                    justifyContent: "space-between",
                     marginVertical: 10,
-                  }}>
+                  }}
+                >
                   <TouchableOpacity onPress={() => sharePost(WhatsAppShare)}>
                     <Icon
                       type="FontAwesome"
-                      name={'whatsapp'}
+                      name={"whatsapp"}
                       size={40}
                       color={Colors?.main_primary}
                     />
                   </TouchableOpacity>
                   <Icon
                     type="AntDesign"
-                    name={'facebook-square'}
+                    name={"facebook-square"}
                     size={40}
                     color="blue"
                   />
                   <Icon
                     type="AntDesign"
-                    name={'instagram'}
+                    name={"instagram"}
                     size={40}
-                    color={'#E1306C'}
+                    color={"#E1306C"}
                   />
                   <Icon
                     type="AntDesign"
-                    name={'linkedin-square'}
+                    name={"linkedin-square"}
                     size={40}
                     color="#2284ec"
                   />
                   <TouchableOpacity onPress={() => sharePost(TweetShare)}>
                     <Icon
                       type="AntDesign"
-                      name={'twitter'}
+                      name={"twitter"}
                       size={40}
                       color="#61adff"
                     />
@@ -1177,17 +1211,18 @@ const SharedPostScreen = ({route, navigation}) => {
               <View>
                 <TouchableOpacity
                   style={{
-                    flexDirection: 'row',
+                    flexDirection: "row",
                     borderWidth: 1,
                     borderRadius: 5,
                     marginTop: 10,
                     padding: 10,
-                    alignItems: 'center',
+                    alignItems: "center",
                     paddingHorizontal: 12,
-                    justifyContent: 'space-between',
+                    justifyContent: "space-between",
                   }}
-                  onPress={toggleDropdown2}>
-                  <Text style={styles.text}>{selectedValue1 || 'Public'}</Text>
+                  onPress={toggleDropdown2}
+                >
+                  <Text style={styles.text}>{selectedValue1 || "Public"}</Text>
                   <Icon name="down" size={15} color="#000" type="AntDesign" />
                 </TouchableOpacity>
 
@@ -1197,7 +1232,8 @@ const SharedPostScreen = ({route, navigation}) => {
                       <TouchableOpacity
                         key={index}
                         style={globalStyles.dropdownItemShare}
-                        onPress={() => selectOption2(option)}>
+                        onPress={() => selectOption2(option)}
+                      >
                         <Text style={styles.text}>{option}</Text>
                       </TouchableOpacity>
                     ))}
@@ -1207,14 +1243,16 @@ const SharedPostScreen = ({route, navigation}) => {
             </ScrollView>
             <TouchableOpacity
               style={globalStyles.saveButton}
-              onPress={() => handleSharePost()}>
+              onPress={() => handleSharePost()}
+            >
               <Text style={globalStyles.saveButtonText}>Save</Text>
             </TouchableOpacity>
 
             <Modal
               visible={modalVisibleShare}
               transparent
-              animationType="slide">
+              animationType="slide"
+            >
               <View style={globalStyles.shareModalMain}>
                 <View style={globalStyles.shareModalMain2}>
                   <View style={globalStyles.FD_Row_JC_SB}>
@@ -1223,7 +1261,8 @@ const SharedPostScreen = ({route, navigation}) => {
                       hitSlop={20}
                       onPress={() => {
                         setModalVisibleShare(false), setSelectedUsers([]);
-                      }}>
+                      }}
+                    >
                       <Icon
                         name="cross"
                         size={15}
@@ -1237,34 +1276,36 @@ const SharedPostScreen = ({route, navigation}) => {
                     placeholder="Enter user name"
                     style={globalStyles.shareInput}
                     onChangeText={handleContactSearch}
-                    placeholderTextColor={'black'}
+                    placeholderTextColor={"black"}
                   />
-                  <View style={{flex: 1}}>
+                  <View style={{ flex: 1 }}>
                     {loadingContacts ? (
                       <ActivityIndicator
                         size="large"
                         color={Colors.main_primary}
-                        style={{marginTop: 30}}
+                        style={{ marginTop: 30 }}
                       />
                     ) : filteredContacts.length === 0 ? (
                       <Text
                         style={{
-                          textAlign: 'center',
+                          textAlign: "center",
                           padding: 20,
                           color: Colors.gray,
                           fontSize: 16,
-                        }}>
+                        }}
+                      >
                         No contacts found
                       </Text>
                     ) : (
                       <FlatList
                         data={filteredContacts}
-                        renderItem={({item}) => (
+                        renderItem={({ item }) => (
                           <TouchableOpacity
                             style={{
                               ...globalStyles.contantlistMainView,
                               padding: 5,
-                            }}>
+                            }}
+                          >
                             <TouchableOpacity
                               onPress={() => toggleSelection(item.UserId)}
                               style={{
@@ -1272,24 +1313,26 @@ const SharedPostScreen = ({route, navigation}) => {
                                 height: 20,
                                 borderWidth: 2,
                                 borderColor: selectedUsers.includes(item.UserId)
-                                  ? 'blue'
-                                  : '#aaa',
+                                  ? "blue"
+                                  : "#aaa",
                                 backgroundColor: selectedUsers.includes(
-                                  item.UserId,
+                                  item.UserId
                                 )
-                                  ? 'blue'
-                                  : 'transparent',
-                                justifyContent: 'center',
-                                alignItems: 'center',
+                                  ? "blue"
+                                  : "transparent",
+                                justifyContent: "center",
+                                alignItems: "center",
                                 borderRadius: 5,
                                 marginRight: 10,
-                              }}>
+                              }}
+                            >
                               {selectedUsers.includes(item.UserId) && (
                                 <Text
                                   style={{
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                  }}>
+                                    color: "white",
+                                    fontWeight: "bold",
+                                  }}
+                                >
                                   ✓
                                 </Text>
                               )}
@@ -1299,20 +1342,21 @@ const SharedPostScreen = ({route, navigation}) => {
                                 style={globalStyles.contantlistImage}
                                 source={
                                   item?.ProfilePhoto
-                                    ? {uri: item?.ProfilePhoto}
-                                    : require('../assets/placeholderprofileimage.png')
+                                    ? { uri: item?.ProfilePhoto }
+                                    : require("../assets/placeholderprofileimage.png")
                                 }
                               />
                             </View>
-                            <View style={{padding: 10, flex: 1}}>
-                              <Text style={{fontSize: 16, fontWeight: '600'}}>
+                            <View style={{ padding: 10, flex: 1 }}>
+                              <Text style={{ fontSize: 16, fontWeight: "600" }}>
                                 {item?.UserName}
                               </Text>
                               <Text
                                 style={{
                                   color: Colors.gray,
                                   marginBottom: 5,
-                                }}>
+                                }}
+                              >
                                 {item?.JobTitle} at {item?.CompanyName}
                               </Text>
                             </View>
@@ -1332,10 +1376,11 @@ const SharedPostScreen = ({route, navigation}) => {
                         setModalVisibleShare(false);
                         setModalVisible(false);
                       } catch (err) {
-                        console.error('Sharing error:', err);
+                        console.error("Sharing error:", err);
                       }
                     }}
-                    style={globalStyles.shareModal}>
+                    style={globalStyles.shareModal}
+                  >
                     <Text style={globalStyles.shareText}>Share</Text>
                   </TouchableOpacity>
                 </View>
@@ -1348,7 +1393,8 @@ const SharedPostScreen = ({route, navigation}) => {
       <Modal
         visible={modalImageVisible}
         transparent={true}
-        onRequestClose={() => setModalImageVisible(false)}>
+        onRequestClose={() => setModalImageVisible(false)}
+      >
         <ImageViewer
           imageUrls={modalImages}
           index={modalIndex}
@@ -1360,7 +1406,8 @@ const SharedPostScreen = ({route, navigation}) => {
             <TouchableOpacity
               hitSlop={15}
               style={styles.closeImageButton}
-              onPress={() => setModalImageVisible(false)}>
+              onPress={() => setModalImageVisible(false)}
+            >
               <MaterialIcons name="close" size={14} color="black" />
             </TouchableOpacity>
           )}
@@ -1373,30 +1420,33 @@ const SharedPostScreen = ({route, navigation}) => {
         visible={modalVisible1}
         onRequestClose={() => {
           setModalVisible1(false);
-        }}>
+        }}
+      >
         <KeyboardAvoidingWrapper offset={40}>
           <View style={globalStyles.centeredView}>
-            <View style={{...globalStyles.modalView, flex: 0.8, padding: 20}}>
+            <View style={{ ...globalStyles.modalView, flex: 0.8, padding: 20 }}>
               <TouchableOpacity
                 onPress={() => setModalVisible1(false)}
                 style={{
-                  alignSelf: 'flex-end',
-                }}>
+                  alignSelf: "flex-end",
+                }}
+              >
                 <Icon name="cross" size={25} color="000" type="Entypo" />
               </TouchableOpacity>
-              <View style={{alignItems: 'center', backgroundColor: ''}}>
+              <View style={{ alignItems: "center", backgroundColor: "" }}>
                 <Text style={globalStyles.commentTitle}>Comments</Text>
               </View>
 
               <View
                 style={{
                   flex: 1,
-                }}>
-                <View style={{paddingLeft: 10}}>
+                }}
+              >
+                <View style={{ paddingLeft: 10 }}>
                   <FlatList
                     data={[...commentList].reverse()}
                     renderItem={renderItem1}
-                    keyExtractor={item => item.id?.toString()}
+                    keyExtractor={(item) => item.id?.toString()}
                     showsVerticalScrollIndicator={false}
                     onEndReachedThreshold={0.2}
                     onEndReached={() => {
@@ -1409,13 +1459,13 @@ const SharedPostScreen = ({route, navigation}) => {
                     ListFooterComponent={
                       isLoadingMore ? (
                         <ActivityIndicator
-                          style={{marginVertical: 20}}
+                          style={{ marginVertical: 20 }}
                           size="small"
                           color="#888"
                         />
                       ) : null
                     }
-                    contentContainerStyle={{paddingBottom: 30}}
+                    contentContainerStyle={{ paddingBottom: 30 }}
                   />
                 </View>
               </View>
@@ -1425,14 +1475,14 @@ const SharedPostScreen = ({route, navigation}) => {
                 <Image
                   source={
                     userProfileData?.Data?.profilePhoto
-                      ? {uri: userProfileData?.Data?.profilePhoto}
-                      : require('../assets/placeholderprofileimage.png')
+                      ? { uri: userProfileData?.Data?.profilePhoto }
+                      : require("../assets/placeholderprofileimage.png")
                   }
                   style={globalStyles.ImgComment}
                 />
 
                 <TextInput
-                  style={[globalStyles.textInputComment, {flex: 1}]}
+                  style={[globalStyles.textInputComment, { flex: 1 }]}
                   // style={globalStyles.textInputComment}
                   onChangeText={onChangeNumber}
                   value={number}
@@ -1451,7 +1501,7 @@ const SharedPostScreen = ({route, navigation}) => {
                   onPress={async () => {
                     if (isCommentEmpty || isCommentSending) return; // prevent double tap
                     if (!number.trim()) {
-                      showError('Comment cannot be empty.');
+                      showError("Comment cannot be empty.");
                       return;
                     }
 
@@ -1464,11 +1514,12 @@ const SharedPostScreen = ({route, navigation}) => {
                         await handleUpdateComment();
                       }
                     } catch (error) {
-                      console.error('Send error:', error);
+                      console.error("Send error:", error);
                     } finally {
                       setIsCommentSending(false);
                     }
-                  }}>
+                  }}
+                >
                   <Icon
                     name="paper-plane"
                     size={20}
@@ -1486,42 +1537,42 @@ const SharedPostScreen = ({route, navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  SafeAreaView: {flex: 1},
-  center: {flex: 1, justifyContent: 'center', alignItems: 'center'},
-  container: {padding: 20},
-  title: {fontSize: 24, fontWeight: 'bold', marginBottom: 10},
-  content: {fontSize: 16},
+  SafeAreaView: { flex: 1 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
+  content: { fontSize: 16 },
   fullHeightContent: {
     flex: 1,
-    height: '100%',
+    height: "100%",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   overlayText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   headerView: {
     // flex: 0.09,
     borderBottomWidth: 0.5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     height: 60,
     paddingHorizontal: 4,
     backgroundColor: Colors.white,
   },
   title: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.black,
   },
 });

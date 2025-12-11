@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,12 +11,12 @@ import {
   Modal,
   Vibration,
   Dimensions,
-} from 'react-native';
-import Pusher from 'pusher-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Colors from '../color';
-import moment from 'moment';
-import Icon from '../Icons/Icons';
+} from "react-native";
+import Pusher from "pusher-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Colors from "../color";
+import moment from "moment";
+import Icon from "../Icons/Icons";
 import {
   baseUrl,
   GetMentorChat,
@@ -28,26 +28,26 @@ import {
   deleteMentorChat,
   deleteChat,
   UserTyping,
-} from '../baseURL/api';
-import ImagePicker from 'react-native-image-crop-picker';
-import globalStyles from '../GlobalCSS';
-import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper';
-import ImageViewer from 'react-native-image-zoom-viewer';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {showError, showSuccess} from '../components/Toast';
-import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
-import CommonLoader from '../components/CommonLoader';
-import {useTheme} from '../../theme/ThemeContext';
-const screenWidth = Dimensions.get('window').width;
-const ChatDetails = ({navigation, route}) => {
-  const {Item = {}, Type = '', ShareVal = {}} = route.params || {};
-  const {isDark, colors, toggleTheme} = useTheme();
+} from "../baseURL/api";
+import ImagePicker from "react-native-image-crop-picker";
+import globalStyles from "../GlobalCSS";
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import ImageViewer from "react-native-image-zoom-viewer";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { showError, showSuccess } from "../components/Toast";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import CommonLoader from "../components/CommonLoader";
+import { useTheme } from "../../theme/ThemeContext";
+const screenWidth = Dimensions.get("window").width;
+const ChatDetails = ({ navigation, route }) => {
+  const { Item = {}, Type = "", ShareVal = {} } = route.params || {};
+  const { isDark, colors, toggleTheme } = useTheme();
   const [onlineUsers, setOnlineUsers] = useState({});
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [senderId, setSenderId] = useState(null);
-  const [images, setImages] = useState('');
-  const [imagesName, setImagesName] = useState('');
+  const [images, setImages] = useState("");
+  const [imagesName, setImagesName] = useState("");
   const [base64, setBase64] = useState([]);
   const receiverId = Number(Item?.UserId);
   const [isSending, setIsSending] = useState(false);
@@ -58,16 +58,16 @@ const ChatDetails = ({navigation, route}) => {
   const [modalIndex, setModalIndex] = useState(0);
   const [isOnline, setIsOnline] = useState(false);
   const [isTypingReceiver, setIsTypingReceiver] = useState(false);
-  const handleTyping = async inputText => {
+  const handleTyping = async (inputText) => {
     setText(inputText);
     await sendTypingStatus(inputText.length > 0);
   };
 
-  const sendTypingStatus = async isTyping => {
+  const sendTypingStatus = async (isTyping) => {
     try {
       const response = await fetch(`${baseUrl}${UserTyping}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           senderId,
           receiverId,
@@ -79,10 +79,10 @@ const ChatDetails = ({navigation, route}) => {
 
       const data = await response.json();
     } catch (error) {
-      console.error('❌ Error sending typing status:', error);
+      console.error("❌ Error sending typing status:", error);
     }
   };
-  const handleLongPress = id => {
+  const handleLongPress = (id) => {
     setSelectedMessageId(id);
     setIsModalVisibledelete(true);
   };
@@ -92,19 +92,19 @@ const ChatDetails = ({navigation, route}) => {
     setSelectedMessageId(null);
   };
 
-  const handleDeleteMessage = id => {
+  const handleDeleteMessage = (id) => {
     deleteMessages(id); // Your existing delete logic
     setIsModalVisibledelete(false);
     setSelectedMessageId(null);
   };
 
   useEffect(() => {
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {
-      cluster: 'ap2',
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", {
+      cluster: "ap2",
     });
 
-    const channel = pusher.subscribe('user-typing');
-    channel.bind('typing-message', data => {
+    const channel = pusher.subscribe("user-typing");
+    channel.bind("typing-message", (data) => {
       // console.log('📥 typingtypingtypingtyping:', data);
       const {
         senderId: typingSender,
@@ -123,12 +123,12 @@ const ChatDetails = ({navigation, route}) => {
   }, [senderId, receiverId]);
   useEffect(() => {
     if (senderId) fetchMessages();
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {
-      cluster: 'ap2',
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", {
+      cluster: "ap2",
       encrypted: true,
     });
-    const channel = pusher.subscribe('chat-channel');
-    channel.bind('new-message', data => {
+    const channel = pusher.subscribe("chat-channel");
+    channel.bind("new-message", (data) => {
       if (data?.message) fetchMessages();
       // console.log('📥 IncomingIncomingIncoming:', data);
       // Vibration.vibrate(1000);
@@ -143,13 +143,13 @@ const ChatDetails = ({navigation, route}) => {
   useEffect(() => {
     if (senderId) fetchMessages();
 
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {
-      cluster: 'ap2',
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", {
+      cluster: "ap2",
       encrypted: true,
     });
 
-    const channel = pusher.subscribe('mentor-chat');
-    channel.bind('new-mentor-message', data => {
+    const channel = pusher.subscribe("mentor-chat");
+    channel.bind("new-mentor-message", (data) => {
       // Vibration.vibrate(1000);
       if (data?.message) fetchMessages();
       //console.log('📥 IncomingIncomingIncoming:', data);
@@ -162,11 +162,11 @@ const ChatDetails = ({navigation, route}) => {
     };
   }, [senderId]);
   useEffect(() => {
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {
-      cluster: 'ap2',
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", {
+      cluster: "ap2",
     });
-    const channel = pusher.subscribe('marked-as-read');
-    channel.bind('messages-marked-as-read', data => {
+    const channel = pusher.subscribe("marked-as-read");
+    channel.bind("messages-marked-as-read", (data) => {
       //console.log('📩 Read event received:', data);
       const isSender =
         data.userId === senderId && data.contactId === receiverId;
@@ -182,11 +182,11 @@ const ChatDetails = ({navigation, route}) => {
     };
   }, [senderId, receiverId]);
   useEffect(() => {
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {
-      cluster: 'ap2',
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", {
+      cluster: "ap2",
     });
-    const channel = pusher.subscribe('marked-as-mentor-read');
-    channel.bind('mentor-messages-marked-as-read', data => {
+    const channel = pusher.subscribe("marked-as-mentor-read");
+    channel.bind("mentor-messages-marked-as-read", (data) => {
       //  console.log('📩 Mentor Read event received:', data);
       const isSender =
         data.userId === senderId && data.contactId === receiverId;
@@ -202,12 +202,12 @@ const ChatDetails = ({navigation, route}) => {
     };
   }, [senderId, receiverId]);
   useEffect(() => {
-    const pusher = new Pusher('6840a502dc1ebc6a81f5', {cluster: 'ap2'});
-    const channel = pusher.subscribe('user-status');
+    const pusher = new Pusher("6840a502dc1ebc6a81f5", { cluster: "ap2" });
+    const channel = pusher.subscribe("user-status");
 
-    channel.bind('user-status-changed', data => {
-      console.log('Status update:', data);
-      setOnlineUsers(prev => ({...prev, [data.userId]: data.isOnline}));
+    channel.bind("user-status-changed", (data) => {
+      console.log("Status update:", data);
+      setOnlineUsers((prev) => ({ ...prev, [data.userId]: data.isOnline }));
     });
 
     return () => {
@@ -217,7 +217,7 @@ const ChatDetails = ({navigation, route}) => {
   }, []);
 
   const openImageModal = (imageUrl, index = 0) => {
-    setModalImages([{url: imageUrl}]);
+    setModalImages([{ url: imageUrl }]);
     setModalIndex(index);
     setModalVisible(true);
   };
@@ -230,7 +230,7 @@ const ChatDetails = ({navigation, route}) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const userDta = await AsyncStorage.getItem('userData');
+      const userDta = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userDta);
       setSenderId(Number(parsedData?.User?.userId));
       // setSenderId(parsedData?.User?.userId);
@@ -238,20 +238,20 @@ const ChatDetails = ({navigation, route}) => {
     fetchUser();
   }, []);
 
-  const deleteMessages = async id => {
+  const deleteMessages = async (id) => {
     try {
       const response = await fetch(
-        `${baseUrl}${Type == 'Mentor' ? deleteMentorChat : deleteChat}`,
+        `${baseUrl}${Type == "Mentor" ? deleteMentorChat : deleteChat}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-App-ID': '550e8400-e29b-41d4-a716-446655440000',
-            'X-App-Secret': 's3cr3t!123456789',
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-App-ID": "550e8400-e29b-41d4-a716-446655440000",
+            "X-App-Secret": "s3cr3t!123456789",
           },
-          body: JSON.stringify({id}),
-        },
+          body: JSON.stringify({ id }),
+        }
       );
 
       const data = await response.json();
@@ -261,10 +261,10 @@ const ChatDetails = ({navigation, route}) => {
         await fetchMessages();
         //showSuccess(data.message);
       } else {
-        showError('Failed to delete message.');
+        showError("Failed to delete message.");
       }
     } catch (error) {
-      console.error('Delete message error:', error);
+      console.error("Delete message error:", error);
     }
   };
 
@@ -272,40 +272,40 @@ const ChatDetails = ({navigation, route}) => {
     try {
       const response = await fetch(
         `${baseUrl}${
-          Type == 'Mentor' ? GetMentorChat : GetMessage
-        }/${senderId}/${receiverId}`,
+          Type == "Mentor" ? GetMentorChat : GetMessage
+        }/${senderId}/${receiverId}`
       );
       const data = await response.json();
       setMessages(data?.messages);
       markAsRead();
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
     }
   };
-  const updateMessagesAsRead = readData => {
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.id === readData.id ? {...msg, readDate: readData.readDate} : msg,
-      ),
+  const updateMessagesAsRead = (readData) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg
+      )
     );
   };
 
-  const updateMessagesAsReadmentor = readData => {
-    console.log('Updating message read status with:', readData);
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.id === readData.id ? {...msg, readDate: readData.readDate} : msg,
-      ),
+  const updateMessagesAsReadmentor = (readData) => {
+    console.log("Updating message read status with:", readData);
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg
+      )
     );
   };
 
   const markAsRead = async () => {
     try {
       const response = await fetch(
-        `${baseUrl}${Type == 'Mentor' ? MarkAsReadMentor : MarkAsRead}`,
+        `${baseUrl}${Type == "Mentor" ? MarkAsReadMentor : MarkAsRead}`,
         {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
 
           body: JSON.stringify({
             // senderId: senderId,
@@ -313,19 +313,19 @@ const ChatDetails = ({navigation, route}) => {
             senderId: receiverId,
             receiverId: senderId,
           }),
-        },
+        }
       );
       const data = await response.json();
       console.log();
-      console.log('data ----', data, senderId, receiverId);
+      console.log("data ----", data, senderId, receiverId);
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error("Error marking messages as read:", error);
     }
   };
 
   const groupedMessages = messages.reduce((acc, message) => {
-    const messageDate = moment(message.dateAdded, 'YYYY-MM-DD HH:mm:ss').format(
-      'DD MMM YYYY',
+    const messageDate = moment(message.dateAdded, "YYYY-MM-DD HH:mm:ss").format(
+      "DD MMM YYYY"
     );
     if (!acc[messageDate]) {
       acc[messageDate] = [];
@@ -335,14 +335,14 @@ const ChatDetails = ({navigation, route}) => {
   }, {});
 
   const sortedMessages = Object.entries(groupedMessages)
-    .map(([date, msgs]) => ({date, messages: msgs}))
+    .map(([date, msgs]) => ({ date, messages: msgs }))
     .sort(
       (a, b) =>
-        moment(a.date, 'DD MMM YYYY').unix() -
-        moment(b.date, 'DD MMM YYYY').unix(),
+        moment(a.date, "DD MMM YYYY").unix() -
+        moment(b.date, "DD MMM YYYY").unix()
     );
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     return (
       <View>
         <View style={styles.dateSection}>
@@ -351,8 +351,9 @@ const ChatDetails = ({navigation, route}) => {
               ...styles.dateText,
               backgroundColor: colors.textinputBackgroundcolor,
               color: colors.placeholderTextColor,
-            }}>
-            {moment().format('DD MMM YYYY') === item.date ? 'Today' : item.date}
+            }}
+          >
+            {moment().format("DD MMM YYYY") === item.date ? "Today" : item.date}
           </Text>
         </View>
 
@@ -369,7 +370,8 @@ const ChatDetails = ({navigation, route}) => {
               {(msg.chatText || msg.chatFileName) && (
                 <TouchableOpacity
                   onLongPress={() => handleLongPress(msg.id)}
-                  delayLongPress={500}>
+                  delayLongPress={500}
+                >
                   <View
                     style={[
                       styles.messageBubble,
@@ -382,13 +384,15 @@ const ChatDetails = ({navigation, route}) => {
                                 : colors.AppmainColor,
                           }
                         : styles.sent,
-                    ]}>
+                    ]}
+                  >
                     {msg.chatText && (
                       <Text
                         style={{
                           ...styles.messageText,
-                          color: isSentByUser ? 'white' : 'black',
-                        }}>
+                          color: isSentByUser ? "white" : "black",
+                        }}
+                      >
                         {msg.chatText}
                       </Text>
                     )}
@@ -396,9 +400,10 @@ const ChatDetails = ({navigation, route}) => {
                       <TouchableOpacity
                         onLongPress={() => handleLongPress(msg.id)}
                         delayLongPress={500}
-                        onPress={() => openImageModal(msg.chatFileName)}>
+                        onPress={() => openImageModal(msg.chatFileName)}
+                      >
                         <Image
-                          source={{uri: msg.chatFileName}}
+                          source={{ uri: msg.chatFileName }}
                           style={[
                             styles.firstImage,
                             // {width: 220, height: 300},
@@ -420,11 +425,12 @@ const ChatDetails = ({navigation, route}) => {
                 style={[
                   styles.messageMeta,
                   isSentByUser ? styles.receivedMeta : styles.sentMeta,
-                ]}>
+                ]}
+              >
                 <Text style={styles.timeText}>
                   {msg.chatText || msg.chatFileName
-                    ? moment(msg.dateAdded, 'YYYY-MM-DD h:mm:ss A').format(
-                        'hh:mm A',
+                    ? moment(msg.dateAdded, "YYYY-MM-DD h:mm:ss A").format(
+                        "hh:mm A"
                       )
                     : null}
                 </Text>
@@ -456,17 +462,17 @@ const ChatDetails = ({navigation, route}) => {
   const selectImages = () => {
     ImagePicker.openPicker({
       multiple: true,
-      mediaType: 'photo',
+      mediaType: "photo",
       compressImageQuality: 0.8,
       includeBase64: false,
     })
-      .then(selectedImages => {
+      .then((selectedImages) => {
         const imagePaths = [];
         const imageNames = [];
 
-        selectedImages.forEach(image => {
+        selectedImages.forEach((image) => {
           const imagePath = image.path;
-          const imageName = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+          const imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
 
           imagePaths.push(imagePath);
           imageNames.push(imageName);
@@ -475,8 +481,8 @@ const ChatDetails = ({navigation, route}) => {
         setImages(imagePaths);
         setImagesName(imageNames);
       })
-      .catch(error => {
-        console.error('Image selection cancelled:', error);
+      .catch((error) => {
+        console.error("Image selection cancelled:", error);
       });
   };
   const sendMessage = async () => {
@@ -492,52 +498,52 @@ const ChatDetails = ({navigation, route}) => {
     try {
       const formData = new FormData();
 
-      formData.append('senderId', senderId.toString());
-      formData.append('receiverId', receiverId.toString());
+      formData.append("senderId", senderId.toString());
+      formData.append("receiverId", receiverId.toString());
 
       if (hasText) {
-        formData.append('chatText', text.trim());
+        formData.append("chatText", text.trim());
       }
 
       if (hasImages) {
         // Add all images
         images.forEach((uri, index) => {
           const cleanUri =
-            Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+            Platform.OS === "ios" ? uri.replace("file://", "") : uri;
 
-          formData.append('attachmentName', imagesName[index]);
-          formData.append('attachment', {
+          formData.append("attachmentName", imagesName[index]);
+          formData.append("attachment", {
             uri: cleanUri,
             name: imagesName[index],
-            type: 'image/jpeg',
+            type: "image/jpeg",
           });
         });
       } else {
-        formData.append('attachmentName', '');
+        formData.append("attachmentName", "");
       }
       const response = await fetch(
-        `${baseUrl}${Type === 'Mentor' ? MentorChatSend : SendMessage}`,
+        `${baseUrl}${Type === "Mentor" ? MentorChatSend : SendMessage}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
           },
           body: formData,
-        },
+        }
       );
 
       const responseText = await response.text();
 
       if (response.ok) {
-        setText('');
+        setText("");
         setImages([]);
         setImagesName([]);
         fetchMessages();
       } else {
-        console.error('Server error:', response.status, responseText);
+        console.error("Server error:", response.status, responseText);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     } finally {
       setIsSending(false);
     }
@@ -545,20 +551,23 @@ const ChatDetails = ({navigation, route}) => {
 
   return (
     <SafeAreaView
-      style={{...styles.container, backgroundColor: colors.background}}>
+      style={{ ...styles.container, backgroundColor: colors.background }}
+    >
       <KeyboardAvoidingWrapper offset={40}>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <View
             style={{
               marginTop: 10,
               paddingVertical: 4,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
             <TouchableOpacity
               hitSlop={20}
               onPress={() => navigation.goBack()}
-              style={{paddingRight: 10}}>
+              style={{ paddingRight: 10 }}
+            >
               <Icon
                 name="left"
                 type="AntDesign"
@@ -569,11 +578,12 @@ const ChatDetails = ({navigation, route}) => {
 
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('ProfileDetails', {
+                navigation.navigate("ProfileDetails", {
                   Item,
                 })
               }
-              style={{flexDirection: 'row'}}>
+              style={{ flexDirection: "row" }}
+            >
               <View>
                 <Image
                   style={{
@@ -585,8 +595,8 @@ const ChatDetails = ({navigation, route}) => {
                   }}
                   source={
                     Item?.ProfilePhoto
-                      ? {uri: Item?.ProfilePhoto}
-                      : require('../../assets/placeholderprofileimage.png')
+                      ? { uri: Item?.ProfilePhoto }
+                      : require("../../assets/placeholderprofileimage.png")
                   }
                 />
               </View>
@@ -594,14 +604,16 @@ const ChatDetails = ({navigation, route}) => {
                 <Text
                   style={{
                     fontSize: 18,
-                    fontWeight: 'bold',
+                    fontWeight: "bold",
                     color: colors.textColor,
-                  }}>
-                  {Item?.UserName || 'User Name'}
+                  }}
+                >
+                  {Item?.UserName || "User Name"}
                 </Text>
                 {Item?.JobTitle ? (
                   <Text
-                    style={{fontSize: 14, color: colors.placeholderTextColor}}>
+                    style={{ fontSize: 14, color: colors.placeholderTextColor }}
+                  >
                     {Item?.JobTitle}
                   </Text>
                 ) : null}
@@ -611,17 +623,17 @@ const ChatDetails = ({navigation, route}) => {
           <View
             style={{
               backgroundColor: colors.AppmainColor,
-              width: '100%',
+              width: "100%",
               height: 1,
             }}
           />
           <FlatList
             data={[...sortedMessages].reverse()}
-            keyExtractor={item => item.date}
+            keyExtractor={(item) => item.date}
             renderItem={renderItem}
             inverted
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
           />
           {isTypingReceiver ? (
             <Text
@@ -629,7 +641,8 @@ const ChatDetails = ({navigation, route}) => {
                 marginBottom: 8,
                 marginHorizontal: 10,
                 color: colors.AppmainColor,
-              }}>
+              }}
+            >
               Typing...
               {/* <CommonLoader size={20} color={Colors.main_primary} /> */}
             </Text>
@@ -638,8 +651,12 @@ const ChatDetails = ({navigation, route}) => {
             style={{
               ...globalStyles.inputContainerChat,
               borderColor: colors.textinputbordercolor,
-            }}>
-            <TouchableOpacity onPress={selectImages} style={{paddingRight: 8}}>
+            }}
+          >
+            <TouchableOpacity
+              onPress={selectImages}
+              style={{ paddingRight: 8 }}
+            >
               <Icon
                 name="paperclip"
                 size={20}
@@ -666,7 +683,8 @@ const ChatDetails = ({navigation, route}) => {
           <Modal
             visible={modalVisible}
             transparent={true}
-            onRequestClose={() => setModalVisible(false)}>
+            onRequestClose={() => setModalVisible(false)}
+          >
             <ImageViewer
               imageUrls={modalImages}
               index={modalIndex}
@@ -679,7 +697,8 @@ const ChatDetails = ({navigation, route}) => {
                 <TouchableOpacity
                   hitSlop={10}
                   style={styles.closeButton}
-                  onPress={() => setModalVisible(false)}>
+                  onPress={() => setModalVisible(false)}
+                >
                   <MaterialIcons name="close" size={14} color="black" />
                 </TouchableOpacity>
               )}
@@ -704,30 +723,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   sent: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     backgroundColor: Colors.secondGreen,
     borderTopRightRadius: 5,
   },
   received: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#bfc3c4',
+    alignSelf: "flex-start",
+    backgroundColor: "#bfc3c4",
     borderTopLeftRadius: 5,
   },
   messageText: {
     fontSize: 15,
-    color: '#fff',
+    color: "#fff",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 10,
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     borderTopWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
   },
   input: {
     flex: 1,
@@ -742,61 +761,61 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 45,
     height: 45,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendText: {
     fontSize: 22,
-    color: '#fff',
+    color: "#fff",
   },
   messageBubble: {
     paddingHorizontal: 15,
     paddingVertical: 10,
     marginVertical: 6,
     borderRadius: 20,
-    maxWidth: '75%',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    maxWidth: "75%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
   },
   sent: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#bfc3c4',
+    alignSelf: "flex-start",
+    backgroundColor: "#bfc3c4",
     borderTopLeftRadius: 5,
   },
   received: {
-    alignSelf: 'flex-end', // Change to right
+    alignSelf: "flex-end", // Change to right
     backgroundColor: Colors?.secondGreen,
     borderTopRightRadius: 5,
   },
   messageMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 12,
     marginTop: 2,
     //backgroundColor: 'red',
   },
   sentMeta: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   receivedMeta: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   timeText: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
   },
   readStatus: {
     fontSize: 12,
     marginLeft: 5,
-    color: '#007AFF',
+    color: "#007AFF",
   },
   dateSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   dateText: {
@@ -815,12 +834,12 @@ const styles = StyleSheet.create({
   },
 
   buttonClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: "#2196F3",
   },
   textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
   image: {
@@ -831,25 +850,25 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: '#999',
+    color: "#999",
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     padding: 15,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   // row: {
   //   // flexDirection: 'row',
   //   // alignItems: 'flex-end', // Align items at the top
   // },
   firstImage: {
-    width: '50%',
+    width: "50%",
     height: 205,
     marginRight: 10, // Spacing between big and small images
     borderRadius: 8,
@@ -863,34 +882,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   imageContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 5,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
 
   sentImageContainer: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
+    alignSelf: "flex-end",
+    backgroundColor: "#DCF8C6",
     borderRadius: 10,
     padding: 5,
   },
 
   receivedImageContainer: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
+    alignSelf: "flex-start",
+    backgroundColor: "#F0F0F0",
     borderRadius: 10,
     padding: 5,
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     right: 20,
     zIndex: 10,
     padding: 4,
-    backgroundColor: 'grey',
+    backgroundColor: "grey",
     borderRadius: 14,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,

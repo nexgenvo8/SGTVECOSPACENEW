@@ -276,7 +276,7 @@ const Groups = ({ navigation, route }) => {
       });
 
       // const data = await response.json();
-      // console.log(data, 'responseresponseresponseresponse');
+      // console.log(data, "responseresponseresponseresponse");
       const text = await response.text(); // Read the raw response
       console.log("Raw response text:", text);
       let data;
