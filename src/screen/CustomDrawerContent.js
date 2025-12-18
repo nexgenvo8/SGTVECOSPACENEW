@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Linking,
@@ -6,14 +6,14 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
-} from 'react-native';
+} from "react-native";
 import {
   DrawerContentScrollView,
   DrawerItemList,
-} from '@react-navigation/drawer';
-import globalStyles from '../screen/GlobalCSS';
-import {useDrawerStatus} from '@react-navigation/drawer';
-import {useTheme} from '../theme/ThemeContext';
+} from "@react-navigation/drawer";
+import globalStyles from "../screen/GlobalCSS";
+import { useDrawerStatus } from "@react-navigation/drawer";
+import { useTheme } from "../theme/ThemeContext";
 
 export default function CustomDrawerContent({
   fetchUserProfile,
@@ -23,37 +23,42 @@ export default function CustomDrawerContent({
   ...props
 }) {
   const drawerStatus = useDrawerStatus();
-  const {isDark, colors, toggleTheme} = useTheme();
+  const { isDark, colors, toggleTheme } = useTheme();
   useEffect(() => {
-    if (drawerStatus === 'open') {
+    if (drawerStatus === "open") {
       fetchUserProfile();
     }
   }, [drawerStatus]);
 
   const profileUrl = userProfileData?.Data?.profilePhoto;
   const cleanUrl = profileUrl
-    ? profileUrl.includes('?')
+    ? profileUrl.includes("?")
       ? `${profileUrl}&t=${Date.now()}`
       : `${profileUrl}?t=${Date.now()}`
     : null;
 
   return (
-    <View style={{flex: 1, backgroundColor: colors.background}}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <DrawerContentScrollView
         {...props}
-        contentContainerStyle={{paddingBottom: 20}}
-        keyboardShouldPersistTaps="handled">
+        contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.profileContainer}>
           <Image
             source={
               profileUrl
-                ? {uri: cleanUrl}
-                : require('../assets/placeholderprofileimage.png')
+                ? { uri: cleanUrl }
+                : require("../assets/placeholderprofileimage.png")
             }
             style={styles.profileImage}
           />
           <Text
-            style={[styles.userName, {marginTop: 20, color: colors.textColor}]}>
+            style={[
+              styles.userName,
+              { marginTop: 20, color: colors.textColor },
+            ]}
+          >
             {userProfileData?.Data?.firstName} {userProfileData?.Data?.lastName}
           </Text>
         </View>
@@ -61,35 +66,52 @@ export default function CustomDrawerContent({
         <View style={globalStyles.AI}>
           <View style={globalStyles.ActionView}>
             <TouchableOpacity
-              onPress={() => props.navigation.navigate('Contacts')}
-              style={globalStyles.AI}>
-              <Text style={{...globalStyles.FW_B, color: colors.textColor}}>
+              onPress={() =>
+                props.navigation.navigate("Contacts", {
+                  ContactsScreen: "ContactsScreen",
+                })
+              }
+              style={globalStyles.AI}
+            >
+              <Text style={{ ...globalStyles.FW_B, color: colors.textColor }}>
                 Contacts
               </Text>
               <Text
-                style={{...globalStyles.ValueText, color: colors.AppmainColor}}>
+                style={{
+                  ...globalStyles.ValueText,
+                  color: colors.AppmainColor,
+                }}
+              >
                 {Array.isArray(contacts)
                   ? contacts.length
-                  : typeof contacts === 'number'
+                  : typeof contacts === "number"
                   ? contacts
                   : 0}
               </Text>
             </TouchableOpacity>
             <View style={globalStyles.AI}>
-              <Text style={{...globalStyles.FW_B, color: colors.textColor}}>
+              <Text style={{ ...globalStyles.FW_B, color: colors.textColor }}>
                 Views
               </Text>
               <Text
-                style={{...globalStyles.ValueText, color: colors.AppmainColor}}>
+                style={{
+                  ...globalStyles.ValueText,
+                  color: colors.AppmainColor,
+                }}
+              >
                 {userProfileData?.Data?.views}
               </Text>
             </View>
             <View style={globalStyles.AI}>
-              <Text style={{...globalStyles.FW_B, color: colors.textColor}}>
+              <Text style={{ ...globalStyles.FW_B, color: colors.textColor }}>
                 Actions
               </Text>
               <Text
-                style={{...globalStyles.ValueText, color: colors.AppmainColor}}>
+                style={{
+                  ...globalStyles.ValueText,
+                  color: colors.AppmainColor,
+                }}
+              >
                 {highlight}
               </Text>
             </View>
@@ -98,16 +120,17 @@ export default function CustomDrawerContent({
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <TouchableOpacity
-        onPress={() => Linking.openURL('https://www.corrintech.com/')}
-        style={styles.poweredByContainer}>
-        <Text style={{...styles.poweredByText, color: colors.textColor}}>
+        onPress={() => Linking.openURL("https://www.corrintech.com/")}
+        style={styles.poweredByContainer}
+      >
+        <Text style={{ ...styles.poweredByText, color: colors.textColor }}>
           Powered by
         </Text>
         <Image
           source={
             isDark
-              ? require('../assets/corrintech_dark.png')
-              : require('../assets/corrintech.png')
+              ? require("../assets/corrintech_dark.png")
+              : require("../assets/corrintech.png")
           }
           style={styles.poweredByLogo}
           resizeMode="contain"
@@ -119,7 +142,7 @@ export default function CustomDrawerContent({
 
 const styles = StyleSheet.create({
   profileContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   profileImage: {
@@ -129,11 +152,11 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   poweredByContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
     marginLeft: 20,
   },

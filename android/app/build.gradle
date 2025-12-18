@@ -83,7 +83,7 @@ android {
         applicationId "com.sgtvecospace"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 002
+        versionCode 003
         versionName "1.0.0"
     }
     signingConfigs {

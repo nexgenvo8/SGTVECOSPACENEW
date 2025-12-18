@@ -966,12 +966,19 @@ export default function ({ route, tabBarVisible }) {
                 {getTimeAgo(item.DateAdded)}
               </Text>
             </View>
-            <View style={{ flexShrink: 1, flexWrap: "wrap" }}>
-              <Text
-                style={{ fontSize: 12, width: "90%", color: colors.textColor }}
-              >
-                {item.JobTitle} at {item.CompanyName}
-              </Text>
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    width: "100%",
+                    color: colors.textColor,
+                    lineHeight: 16,
+                  }}
+                >
+                  {item.JobTitle} at {item.CompanyName}
+                </Text>
+              </View>
             </View>
           </View>
           {isUserPost && (
@@ -1829,7 +1836,7 @@ export default function ({ route, tabBarVisible }) {
                         }
                         style={globalStyles.ImgUserProfile}
                       />
-                      <View>
+                      <View style={{ flex: 1 }}>
                         <Text
                           style={{
                             ...globalStyles?.FS_16_FW_B,
@@ -1839,17 +1846,24 @@ export default function ({ route, tabBarVisible }) {
                           {userProfileData?.Data?.firstName}{" "}
                           {userProfileData?.Data?.lastName}
                         </Text>
-
-                        <Text
+                        <View
                           style={{
-                            fontSize: 12,
-                            color: colors.placeholderTextColor,
-                            width: "76%",
+                            flexDirection: "row",
+                            flex: 1,
                           }}
                         >
-                          {userProfileData?.Data?.courseName} -{" "}
-                          {userProfileData?.Data?.companyName}
-                        </Text>
+                          <View style={{ flex: 1 }}>
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                color: colors.placeholderTextColor,
+                              }}
+                            >
+                              {userProfileData?.Data?.courseName} -{" "}
+                              {userProfileData?.Data?.companyName}
+                            </Text>
+                          </View>
+                        </View>
                       </View>
                     </TouchableOpacity>
 
