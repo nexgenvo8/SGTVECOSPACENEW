@@ -33,6 +33,7 @@ import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { showError } from "./components/Toast";
 import { useTheme } from "../theme/ThemeContext";
+import { universityFullName } from "../constants";
 
 const ArticleAdd = ({ navigation, route }) => {
   const isFocused = useIsFocused();
@@ -339,9 +340,9 @@ const ArticleAdd = ({ navigation, route }) => {
                   color: colors.textColor,
                 }}
               >
-                I confirm that I am authorized to Post this article on Jamia
-                Millia Islamia VECOSPACE and if any image is used, I have the
-                rights to use the image.
+                I confirm that I am authorized to Post this article on{" "}
+                {universityFullName} and if any image is used, I have the rights
+                to use the image.
               </Text>
             </View>
 

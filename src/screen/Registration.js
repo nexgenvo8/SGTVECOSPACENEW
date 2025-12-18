@@ -349,6 +349,7 @@ const Registration = () => {
       firstName,
       lastName,
       email,
+      mobile: phone,
       password: "r00t@12345",
       day: selectedDay,
       month: months.indexOf(selectedMonth) + 1,
@@ -930,7 +931,7 @@ const Registration = () => {
                   borderColor: colors.textinputbordercolor,
                   width: "100%",
                 }}
-                placeholder="New Delhi Institute of Management"
+                placeholder="Shree Guru Gobind Singh Tricentenary VECOSPACE"
                 placeholderTextColor={colors.placeholderTextColor}
               />
             )}
@@ -1297,7 +1298,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   jamiaTextInput: {
-    height: 40,
+    height: "7%",
     width: "60%",
     // paddingVertical: 10,
     borderWidth: 1,

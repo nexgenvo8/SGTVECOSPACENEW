@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,21 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
-} from 'react-native';
-import {baseUrl, ConfirmEmailSendOTP} from '../baseURL/api';
-import globalStyles from '../GlobalCSS';
-import Header from '../Header/Header';
-import Colors from '../color';
-import {showError} from '../components/Toast';
-import {useTheme} from '../../theme/ThemeContext';
+} from "react-native";
+import { baseUrl, ConfirmEmailSendOTP } from "../baseURL/api";
+import globalStyles from "../GlobalCSS";
+import Header from "../Header/Header";
+import Colors from "../color";
+import { showError } from "../components/Toast";
+import { useTheme } from "../../theme/ThemeContext";
 
-const ForgetPassword = ({navigation}) => {
-  const {isDark, colors, toggleTheme} = useTheme();
+const ForgetPassword = ({ navigation }) => {
+  const { isDark, colors, toggleTheme } = useTheme();
   // const styles = globalStyles(colors);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const otpInputs = useRef([]);
@@ -32,7 +32,7 @@ const ForgetPassword = ({navigation}) => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     timerRef.current = setInterval(() => {
-      setTimer(prev => {
+      setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
           setCanResend(true);
@@ -50,26 +50,26 @@ const ForgetPassword = ({navigation}) => {
       }
     };
   }, []);
-  const validateEmail = email => {
+  const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   const handleSend = async () => {
     if (!email) {
-      showError('Please enter your email');
+      showError("Please enter your email");
       return;
     }
     if (!validateEmail(email)) {
-      showError('Please enter a valid email address');
+      showError("Please enter a valid email address");
       return;
     }
 
     try {
       const response = await fetch(`${baseUrl}${ConfirmEmailSendOTP}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email}),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -77,34 +77,34 @@ const ForgetPassword = ({navigation}) => {
       if (response.ok) {
         setOtp(data?.OTP);
         setOtpSent(true);
-        setOtpDigits(['', '', '', '', '', '']);
+        setOtpDigits(["", "", "", "", "", ""]);
         startTimer();
       } else {
-        showError(data?.message || 'Failed to send OTP');
+        showError(data?.message || "Failed to send OTP");
       }
     } catch (error) {
-      console.error('Error sending OTP:', error);
-      showError('Something went wrong.');
+      console.error("Error sending OTP:", error);
+      showError("Something went wrong.");
     }
   };
 
   const handleSave = () => {
-    const ConvertString = otpDigits?.join('');
+    const ConvertString = otpDigits?.join("");
     // Check for valid 6-digit OTP input
     if (!ConvertString || ConvertString.length !== 6) {
-      showError('Enter a valid 6-digit OTP');
+      showError("Enter a valid 6-digit OTP");
       return;
     }
 
     // Compare OTPs
     if (ConvertString == otp) {
-      showError('OTP verified!');
-      navigation.navigate('ChangePassword', {
-        Item: 'Forget',
+      showError("OTP verified!");
+      navigation.navigate("ChangePassword", {
+        Item: "Forget",
         Email: email,
       });
     } else {
-      showError('OTP is not valid');
+      showError("OTP is not valid");
     }
   };
 
@@ -119,10 +119,10 @@ const ForgetPassword = ({navigation}) => {
     }
   };
 
-  const handleKeyPress = ({nativeEvent}, index) => {
-    if (nativeEvent.key === 'Backspace' && !otpDigits[index] && index > 0) {
+  const handleKeyPress = ({ nativeEvent }, index) => {
+    if (nativeEvent.key === "Backspace" && !otpDigits[index] && index > 0) {
       const newOtpDigits = [...otpDigits];
-      newOtpDigits[index - 1] = '';
+      newOtpDigits[index - 1] = "";
       setOtpDigits(newOtpDigits);
       otpInputs.current[index - 1].focus();
     }
@@ -133,7 +133,8 @@ const ForgetPassword = ({navigation}) => {
       style={{
         ...globalStyles?.SafeAreaView,
         backgroundColor: colors.background,
-      }}>
+      }}
+    >
       <Header title="Forget Password" navigation={navigation} />
       <View
         style={{
@@ -141,8 +142,9 @@ const ForgetPassword = ({navigation}) => {
           paddingHorizontal: 10,
           backgroundColor: colors.background,
           marginTop: 20,
-        }}>
-        <View style={{justifyContent: 'center', margin: 10}}>
+        }}
+      >
+        <View style={{ justifyContent: "center", margin: 10 }}>
           <TextInput
             style={{
               ...styles.input,
@@ -159,11 +161,13 @@ const ForgetPassword = ({navigation}) => {
 
           {(!otpSent || canResend) && (
             <TouchableOpacity
-              style={{...styles.button, backgroundColor: colors.AppmainColor}}
-              onPress={handleSend}>
+              style={{ ...styles.button, backgroundColor: colors.AppmainColor }}
+              onPress={handleSend}
+            >
               <Text
-                style={{...styles.buttonText, color: colors.ButtonTextColor}}>
-                {otpSent ? 'Resend OTP' : 'Send'}
+                style={{ ...styles.buttonText, color: colors.ButtonTextColor }}
+              >
+                {otpSent ? "Resend OTP" : "Send"}
               </Text>
             </TouchableOpacity>
           )}
@@ -171,35 +175,50 @@ const ForgetPassword = ({navigation}) => {
 
         {otpSent && (
           <>
-            <Text style={styles.title}>Enter OTP</Text>
+            <Text style={{ ...styles.title, color: colors.textColor }}>
+              Enter OTP
+            </Text>
             <View style={styles.otpContainer}>
               {[...Array(6)].map((_, index) => (
                 <TextInput
                   key={index}
-                  style={styles.otpInput}
+                  style={{
+                    ...styles.otpInput,
+                    color: colors.textColor,
+                    borderColor: colors.textinputbordercolor,
+                    //backgroundColor: colors.textinputBackgroundcolor,
+                  }}
                   keyboardType="number-pad"
                   maxLength={1}
                   value={otpDigits[index]}
-                  onChangeText={text => handleOtpChange(text, index)}
-                  onKeyPress={e => handleKeyPress(e, index)}
-                  ref={ref => (otpInputs.current[index] = ref)}
+                  onChangeText={(text) => handleOtpChange(text, index)}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  ref={(ref) => (otpInputs.current[index] = ref)}
                   autoFocus={index === 0}
                 />
               ))}
             </View>
 
             {!canResend && (
-              <Text style={{textAlign: 'center', color: Colors.primary}}>
+              <Text style={{ textAlign: "center", color: colors.AppmainColor }}>
                 Resend OTP in {Math.floor(timer / 60)}:
-                {(timer % 60).toString().padStart(2, '0')}
+                {(timer % 60).toString().padStart(2, "0")}
               </Text>
             )}
             {!canResend && (
               <TouchableOpacity
-                style={{...styles.button, backgroundColor: colors.AppmainColor}}
-                onPress={handleSave}>
+                style={{
+                  ...styles.button,
+                  backgroundColor: colors.AppmainColor,
+                }}
+                onPress={handleSave}
+              >
                 <Text
-                  style={{...styles.buttonText, color: colors.ButtonTextColor}}>
+                  style={{
+                    ...styles.buttonText,
+                    color: colors.ButtonTextColor,
+                  }}
+                >
                   Save
                 </Text>
               </TouchableOpacity>
@@ -221,31 +240,30 @@ const styles = StyleSheet.create({
   button: {
     padding: 12,
     borderRadius: 4,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   buttonText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   title: {
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: "center",
     marginVertical: 10,
-    color: '#333',
+    color: "#333",
   },
   otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginVertical: 10,
     paddingHorizontal: 20,
   },
   otpInput: {
     borderBottomWidth: 2,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     width: 40,
     fontSize: 18,
-    textAlign: 'center',
-    color: '#000',
+    textAlign: "center",
   },
 });
 
