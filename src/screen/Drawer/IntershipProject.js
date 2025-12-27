@@ -13,6 +13,7 @@ import {
   Image,
   Modal,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import globalStyles from "../GlobalCSS";
 import Header from "../Header/Header";
@@ -118,6 +119,11 @@ const IntershipProject = ({ navigation, route }) => {
   const [checked, setChecked] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const scrollRef = useRef(null);
+  const [showIndustryModal, setShowIndustryModal] = useState(false);
+  const [perPage] = useState(20);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const isActive = (section) => selectedSection === section;
   const monthRef = useRef(null);
   const yearRef = useRef(null);
@@ -352,30 +358,80 @@ const IntershipProject = ({ navigation, route }) => {
       console.error("Fetch Error:", error);
     }
   };
-  const getIndustryList = async ({ Val = "" } = {}) => {
+  useEffect(() => {
+    if (showIndustryModal) {
+      setPage(1);
+      setHasMore(true);
+      getIndustryList(1);
+    }
+  }, [showIndustryModal]);
+
+  const getIndustryList = async (pageNumber = 1) => {
+    if (loading || (!hasMore && pageNumber !== 1)) return;
+
+    if (pageNumber === 1) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const response = await fetch(`${baseUrl}${listoption}`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          optionType: Val,
+          optionType: "industry",
+          //  optionType: Val,
+          per_page: perPage,
+          page: pageNumber,
         }),
       });
 
       const data = await response.json();
-      console.log(" value data --------->>>>>> > ", data?.DataList);
 
       if (response.ok) {
-        setIndustryData(data?.DataList);
+        const newData = data?.DataList || [];
+
+        setIndustryData((prev) =>
+          pageNumber === 1 ? newData : [...prev, ...newData]
+        );
+
+        setHasMore(newData.length === perPage);
+        setPage(pageNumber + 1);
       } else {
-        showError(data.message || "Failed to Industry List");
+        console.error("API Error:", data.message);
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Industry List Error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
+  // const getIndustryList = async ({ Val = "" } = {}) => {
+  //   try {
+  //     const response = await fetch(`${baseUrl}${listoption}`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         optionType: Val,
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+  //     console.log(" value data --------->>>>>> > ", data?.DataList);
+
+  //     if (response.ok) {
+  //       setIndustryData(data?.DataList);
+  //     } else {
+  //       showError(data.message || "Failed to Industry List");
+  //     }
+  //   } catch (error) {
+  //     console.error("Fetch Error:", error);
+  //   }
+  // };
   const handleCheckboxToggle = () => {
     const isValid =
       !!number?.trim() &&
@@ -884,6 +940,7 @@ const IntershipProject = ({ navigation, route }) => {
     "Others",
   ];
   const selectOption5 = (option) => {
+    setIndustryValue(option?.Name);
     setSelectedValue5(option);
     setIsOpen5(false);
   };
@@ -1031,38 +1088,6 @@ const IntershipProject = ({ navigation, route }) => {
       console.error("Fetch Error:", error);
     }
   };
-
-  // const [editViewTrue, setEditViewTrue] = useState(false);
-  // const [skill, setSkill] = useState('');
-  // const [skillsList, setSkillsList] = useState([]);
-  // console.log(skillsList, 'skillsListskillsListskillsListskillsListskillsList');
-
-  // const addSkill = () => {
-  //   setSkill();
-  //   if (skill.trim() && !skillsList.includes(skill)) {
-  //     setSkillsList([...skillsList, skill.trim()]);
-  //     setSkill(''); // Clear input field
-  //   }
-  // };
-
-  // const removeSkill = skillToRemove => {
-  //   setSkillsList(skillsList.filter(item => item !== skillToRemove));
-  // };
-
-  // useEffect(() => {
-  //   if (editViewTrue && mySeekerData?.length > 0) {
-  //     setSelectedValue5(mySeekerData[0]?.Serviceoffered);
-  //     const skillsArray = mySeekerData[0]?.Skills
-  //       ? mySeekerData[0].Skills.split(',')
-  //       : [];
-
-  //     setSkillsList(skillsArray);
-
-  //     setProTitleInSeeker(mySeekerData[0]?.ProfessionalTitle || '');
-  //     setOverViewSeeker(mySeekerData[0]?.BriefProfessonal || '');
-  //     setSelectedValue6(mySeekerData[0]?.WorkExperience || 'Select');
-  //   }
-  // }, [mySeekerData, editViewTrue]);
   const [editViewTrue, setEditViewTrue] = useState(false);
   const [skill, setSkill] = useState("");
   const [skillsList, setSkillsList] = useState([]);
@@ -1088,9 +1113,12 @@ const IntershipProject = ({ navigation, route }) => {
       setErrorSkill(true);
       return;
     }
+
+    // Prevent rapid taps using ref
     if (isAddingRef.current) return;
     isAddingRef.current = true;
 
+    // Deduplicate with latest list
     setSkillsList((prevSkills) => {
       const alreadyExists = prevSkills.some(
         (s) => s.toLowerCase() === trimmedSkill.toLowerCase()
@@ -1225,6 +1253,2377 @@ const IntershipProject = ({ navigation, route }) => {
   if (initialLoading) {
     return <CommonLoader visible={true} />;
   }
+  const renderTopTabs = () => (
+    <View style={globalStyles.HeadeViewIcon}>
+      <View
+        style={{
+          ...globalStyles.HeadeViewIcon2,
+          borderColor: colors.textinputbordercolor,
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            globalStyles.HeadeViewTouch,
+            {
+              height: 75,
+              backgroundColor: isActive("Home")
+                ? colors.AppmainColor
+                : isDark
+                ? colors.textinputBackgroundcolor
+                : "#bdbdbd",
+            },
+          ]}
+          onPress={() => {
+            setSelectedSection("Home");
+            fetchArticles();
+            setSeekerValue();
+            setEditMyInterShip();
+            setMySeekerData();
+            setEditViewTrue(false);
+          }}
+        >
+          <Icon
+            name="home"
+            size={18}
+            color={colors.ButtonTextColor}
+            type="FontAwesome"
+          />
+          <Text
+            style={{
+              color: colors.ButtonTextColor,
+              marginTop: 5,
+              fontSize: 10,
+            }}
+          >
+            Apply
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          ...globalStyles.HeadeViewIcon2,
+          borderColor: colors.textinputbordercolor,
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            globalStyles.HeadeViewTouch,
+            {
+              height: 75,
+              backgroundColor: isActive("AddInternship")
+                ? colors.AppmainColor
+                : isDark
+                ? colors.textinputBackgroundcolor
+                : "#bdbdbd",
+            },
+          ]}
+          onPress={() => {
+            setSelectedSection("AddInternship"), setSeekerValue();
+            setEditMyInterShip();
+            setMySeekerData();
+            setEditViewTrue(false);
+          }}
+        >
+          <Icon
+            name="plus"
+            size={18}
+            color={colors.ButtonTextColor}
+            type="FontAwesome"
+          />
+          <Text
+            style={{
+              color: colors.ButtonTextColor,
+              marginTop: 5,
+              fontSize: 10,
+            }}
+          >
+            Post Internship
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          ...globalStyles.HeadeViewIcon2,
+          borderColor: colors.textinputbordercolor,
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            globalStyles.HeadeViewTouch,
+            {
+              height: 75,
+              backgroundColor: isActive("Search")
+                ? colors.AppmainColor
+                : isDark
+                ? colors.textinputBackgroundcolor
+                : "#bdbdbd",
+            },
+          ]}
+          onPress={() => {
+            setSelectedSection("Search"), setSeekerValue();
+            setEditMyInterShip();
+            setMySeekerData();
+            setEditViewTrue(false);
+          }}
+        >
+          <Icon
+            name="search"
+            size={18}
+            color={colors.ButtonTextColor}
+            type="FontAwesome"
+          />
+          <Text
+            style={{
+              color: colors.ButtonTextColor,
+              marginTop: 5,
+              fontSize: 10,
+            }}
+          >
+            Find Internship
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          ...globalStyles.HeadeViewIcon2,
+          borderColor: colors.textinputbordercolor,
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            globalStyles.HeadeViewTouch,
+            {
+              height: 75,
+              backgroundColor: isActive("Database")
+                ? colors.AppmainColor
+                : isDark
+                ? colors.textinputBackgroundcolor
+                : "#bdbdbd",
+            },
+          ]}
+          onPress={() => {
+            setSelectedSection("Database"), setSeekerValue();
+            setEditMyInterShip();
+            setMySeekerData();
+            setEditViewTrue(false);
+          }}
+        >
+          <Icon
+            name="database"
+            size={18}
+            color={colors.ButtonTextColor}
+            type="AntDesign"
+          />
+          <Text
+            style={{
+              color: colors.ButtonTextColor,
+              marginTop: 5,
+              fontSize: 10,
+            }}
+          >
+            Manage Internship
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          ...globalStyles.HeadeViewIcon2,
+          borderRightWidth: 0,
+          borderColor: colors.textinputbordercolor,
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            globalStyles.HeadeViewTouch,
+            {
+              height: 75,
+              backgroundColor: isActive("Profile")
+                ? colors.AppmainColor
+                : isDark
+                ? colors.textinputBackgroundcolor
+                : "#bdbdbd",
+            },
+          ]}
+          onPress={() => {
+            setSelectedSection("Profile"), setSeekerValue();
+            setEditMyInterShip();
+            setMySeekerData();
+            setEditViewTrue(false);
+          }}
+        >
+          <Icon
+            name="person"
+            size={18}
+            color={colors.ButtonTextColor}
+            type="Ionicons"
+          />
+          <Text
+            style={{
+              color: colors.ButtonTextColor,
+              marginTop: 5,
+              fontSize: 10,
+            }}
+          >
+            Internship Seeker
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderContent = () => {
+    switch (selectedSection) {
+      case "Home":
+        return (
+          <>
+            <View
+              style={{
+                ...globalStyles.ViewINter,
+                alignItems: "center",
+                marginBottom: 10,
+                backgroundColor: colors.textinputBackgroundcolor,
+              }}
+            >
+              <Text
+                style={{
+                  ...globalStyles.headlineText,
+                  color: colors.textColor,
+                }}
+              >
+                All Internships
+              </Text>
+            </View>
+
+            <FlatList
+              data={projectList}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderItem}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: colors.textColor,
+                  }}
+                >
+                  No projects available.
+                </Text>
+              }
+            />
+          </>
+        );
+      case "AddInternship":
+        return (
+          <>
+            <View style={{ flex: 1 }}>
+              <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+              >
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingBottom: 20,
+                  }}
+                >
+                  <View style={globalStyles.ViewINter}>
+                    <Text
+                      style={{
+                        ...globalStyles.headlineText,
+                        color: colors.textColor,
+                      }}
+                    >
+                      POST A INTERNSHIPS
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      ...globalStyles.JobfiledSection,
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        color: colors.textColor,
+                        // color: errorTitle ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      Internship title<Text style={styles.redstar}>*</Text>
+                    </Text>
+
+                    <TextInput
+                      style={{
+                        ...styles.textInput,
+                        borderColor: errorTitle
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        color: colors.textColor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                      onChangeText={(value) => {
+                        onChangeNumber(value);
+                        setErrorTitle(value.trim().length === 0);
+                      }}
+                      value={number}
+                      placeholder="Write your internship title"
+                      keyboardType="default"
+                      multiline
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <View
+                    style={{
+                      ...globalStyles.JobfiledSection,
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        color: colors.textColor,
+                        // color: errorIndustry ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      Industry category<Text style={styles.redstar}>*</Text>
+                    </Text>
+
+                    {/* <TouchableOpacity
+                      onPress={() => setFlatlist(!flatlist)}
+                      style={{
+                        ...styles.textInput,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        borderColor: errorIndustry
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                    >
+                      <Text style={{ color: colors.textColor }}>
+                        {industryValue ? industryValue : "Industry"}
+                      </Text>
+                      <Icon
+                        name="down"
+                        size={15}
+                        color={colors.backIconColor}
+                        type="AntDesign"
+                      />
+                    </TouchableOpacity>
+
+                    {flatlist ? (
+                      <FlatList
+                        data={industryData}
+                        renderItem={renderItemInter}
+                        keyExtractor={(item, index) => `${item.id}-${index}`}
+                      />
+                    ) : null} */}
+                    <TouchableOpacity
+                      onPress={() => setShowIndustryModal(true)}
+                      style={{
+                        ...styles.textInput,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        borderColor: errorIndustry
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                    >
+                      <Text style={{ color: colors.textColor }}>
+                        {industryValue ? industryValue : "Industry"}
+                      </Text>
+
+                      <Icon
+                        name="down"
+                        size={15}
+                        color={colors.backIconColor}
+                        type="AntDesign"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text
+                    style={{
+                      marginTop: 20,
+                      paddingHorizontal: 10,
+                      color: colors.textColor,
+                      // color: errorCountry ? Colors.error : 'black',
+                    }}
+                  >
+                    Country<Text style={styles.redstar}>*</Text>
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible1();
+                    }}
+                    style={{
+                      marginHorizontal: 10,
+                      ...globalStyles.seclectIndiaView,
+
+                      borderColor: errorCountry
+                        ? Colors.error
+                        : colors.textinputbordercolor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        paddingBottom: 0,
+                        color: colors.textColor,
+                        // color: errorCountry ? Colors.error : 'black',
+                      }}
+                    >
+                      {selectedCountry ? selectedCountry : "Country"}
+                    </Text>
+                    <Icon
+                      // onPress={() => navigation.goBack()}
+                      type="AntDesign"
+                      name="down"
+                      size={15}
+                      color={colors.backIconColor}
+                      style={{ paddingLeft: 10 }}
+                    />
+                  </TouchableOpacity>
+
+                  <View
+                    style={{
+                      ...globalStyles.JobfiledSection,
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        color: colors.textColor,
+                        // color: errorCity ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      City<Text style={styles.redstar}>*</Text>
+                    </Text>
+
+                    <TextInput
+                      style={{
+                        ...styles.textInput,
+                        borderColor: errorCity
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        color: colors.textColor,
+                      }}
+                      onChangeText={(value) => {
+                        setCity(value);
+                        SetErrorCity(value.trim().length === 0);
+                      }}
+                      value={city}
+                      placeholder="Write your City"
+                      keyboardType="default"
+                      multiline
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <View style={styles.dobView}>
+                    <Text
+                      style={{ ...styles.dobText, color: colors.textColor }}
+                    >
+                      Internship Start date
+                      <Text style={styles.redstar}>*</Text>
+                    </Text>
+                    <View style={styles.seconDOMView}>
+                      <TextInput
+                        style={{
+                          ...styles.textInputDOM,
+                          borderColor: errorDay
+                            ? Colors.error
+                            : colors.textinputbordercolor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          color: colors.textColor,
+                        }}
+                        // onChangeText={value => {
+                        //   setDay(value);
+                        //   setErrorDay(value.trim().length === 0);
+                        // }}
+                        onChangeText={(value) => {
+                          const numericValue = value.replace(/[^0-9]/g, "");
+                          setDay(numericValue);
+                          setErrorDay(numericValue.trim().length === 0);
+                          if (numericValue.length === 2)
+                            monthRef.current?.focus();
+                        }}
+                        value={day}
+                        placeholder="DD"
+                        multiline={false}
+                        placeholderTextColor={colors.placeholderTextColor}
+                        maxLength={2}
+                        keyboardType="numeric"
+                      />
+
+                      <TextInput
+                        ref={monthRef}
+                        style={{
+                          ...styles.textInputDOM,
+                          borderColor: errorMonth
+                            ? Colors.error
+                            : colors.textinputbordercolor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          color: colors.textColor,
+                        }}
+                        onChangeText={(value) => {
+                          const numericValue = value.replace(/[^0-9]/g, "");
+                          setMonth(numericValue);
+                          setErrorMonth(numericValue.trim().length === 0);
+                          if (numericValue.length === 2)
+                            yearRef.current?.focus();
+                        }}
+                        value={month}
+                        placeholder="MM"
+                        keyboardType="numeric"
+                        multiline={false}
+                        placeholderTextColor={colors.placeholderTextColor}
+                        maxLength={2}
+                      />
+                      <TextInput
+                        ref={yearRef}
+                        style={{
+                          ...styles.textInputDOM,
+                          borderColor: errorYear
+                            ? Colors.error
+                            : colors.textinputbordercolor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          color: colors.textColor,
+                          marginRight: 0,
+                        }}
+                        onChangeText={(value) => {
+                          const numericValue = value.replace(/[^0-9]/g, "");
+                          setYear(numericValue);
+                          setErrorYear(numericValue.trim().length === 0);
+                        }}
+                        // onChangeText={value => {
+                        //   setYear(value);
+                        //   setErrorYear(value.trim().length === 0);
+                        // }}
+                        value={year}
+                        placeholder="YYYY"
+                        keyboardType="numeric"
+                        multiline={false}
+                        placeholderTextColor={colors.placeholderTextColor}
+                        maxLength={4}
+                      />
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      ...globalStyles.JobfiledSection,
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        color: colors.textColor,
+                        // color: errorPerred ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      Preferred location of the Internship Seeker
+                      {/* <Text style={styles.redstar}>*</Text> */}
+                    </Text>
+
+                    <TextInput
+                      style={{
+                        ...styles.textInput,
+                        borderColor: colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        color: colors.textColor,
+                        // borderColor: errorPerred ? Colors.error : Colors.gray,
+                      }}
+                      onChangeText={(value) => {
+                        setPreferredLoc(value);
+                        //setErrorPerred(value.trim().length === 0);
+                      }}
+                      value={preferredLoc}
+                      placeholder="Write your Preferred location"
+                      keyboardType="default"
+                      multiline
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <View
+                    style={{
+                      ...globalStyles.JobfiledSection,
+                      paddingHorizontal: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        color: colors.textColor,
+                        // color: errorWork ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      Work location
+                      {/* <Text style={styles.redstar}>*</Text> */}
+                    </Text>
+
+                    <TextInput
+                      style={{
+                        ...styles.textInput,
+                        borderColor: colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        color: colors.textColor,
+                        // borderColor: errorWork ? Colors.error : Colors.gray,
+                      }}
+                      onChangeText={(value) => {
+                        setWorkLoc(value);
+                        //setErrorWork(value.trim().length === 0);
+                      }}
+                      value={workLoc}
+                      placeholder="Write your Work location"
+                      keyboardType="default"
+                      multiline
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <Text
+                    style={{
+                      marginTop: 20,
+                      paddingHorizontal: 10,
+                      color: colors.textColor,
+                      // color: errorTotalDays ? Colors.error : Colors.gray,
+                    }}
+                  >
+                    Duration of the Internship
+                    <Text style={styles.redstar}>*</Text>
+                  </Text>
+                  <TouchableOpacity
+                    onPress={toggleDropdown2}
+                    style={{
+                      marginHorizontal: 10,
+                      ...globalStyles.seclectIndiaView,
+                      borderColor: colors.textinputbordercolor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        paddingBottom: 0,
+                        color: colors.textColor,
+                      }}
+                    >
+                      {selectedValue1}
+                    </Text>
+                    <Icon
+                      type="AntDesign"
+                      name="down"
+                      size={15}
+                      color={colors.backIconColor}
+                      style={{ paddingLeft: 10 }}
+                    />
+                  </TouchableOpacity>
+                  {isOpen2 && (
+                    <View
+                      style={{
+                        ...globalStyles.dropdownList,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        borderColor: colors.textinputbordercolor,
+                      }}
+                    >
+                      {options2.map((option, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={{
+                            ...globalStyles.dropdownItem,
+                            borderColor: colors.textinputbordercolor,
+                          }}
+                          onPress={() => selectOption2(option)}
+                        >
+                          <Text
+                            style={{
+                              ...styles.text,
+                              color: colors.textColor,
+                            }}
+                          >
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+
+                  <View style={globalStyles.containerSkill}>
+                    <View
+                      style={{
+                        ...globalStyles.JobfiledSection,
+                        //paddingHorizontal: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          ...styles.JobfiledSectionText,
+                          color: colors.textColor,
+                          // color: errorPrice ? Colors.error : Colors.gray,
+                        }}
+                      >
+                        Stipend for the Duration
+                        {/* <Text style={styles.redstar}>*</Text> */}
+                      </Text>
+
+                      <TextInput
+                        style={{
+                          ...styles.textInput,
+                          borderColor: colors.textinputbordercolor,
+                          color: colors.textColor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          // borderColor: errorPrice ? Colors.error : Colors.gray,
+                        }}
+                        onChangeText={(value) => {
+                          setPrice(value);
+                          // setErrorPrice(value.trim().length === 0);
+                        }}
+                        value={price}
+                        placeholder="Amount"
+                        keyboardType="default"
+                        multiline
+                        placeholderTextColor={colors.placeholderTextColor}
+                      />
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => setDropdownVisible(!isDropdownVisible)}
+                      style={{
+                        //marginHorizontal: 10,
+                        ...globalStyles.seclectIndiaView,
+                        borderColor: colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                    >
+                      <Text style={{ ...styles.text, color: colors.textColor }}>
+                        {selectedCurrency
+                          ? selectedCurrency.label
+                          : "Select Currency"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {isDropdownVisible && (
+                      <View
+                        style={{
+                          marginTop: 5,
+                          borderWidth: 1,
+                          borderColor: colors.textinputbordercolor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          padding: 10,
+                        }}
+                      >
+                        <FlatList
+                          data={currencyOptions}
+                          keyExtractor={(item) => item.value}
+                          renderItem={({ item }) => (
+                            <TouchableOpacity
+                              onPress={() => handleSelect(item)}
+                              style={{
+                                padding: 5,
+                                borderBottomWidth: 1,
+                                borderColor: colors.textinputbordercolor,
+                              }}
+                            >
+                              <Text style={{ color: colors.textColor }}>
+                                {item.label}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        />
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={globalStyles.JobfiledSection}>
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        paddingHorizontal: 10,
+                        color: colors.textColor,
+                        // color: errorDescription ? Colors.error : Colors.gray,
+                      }}
+                    >
+                      Description<Text style={styles.redstar}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={{
+                        ...styles.textInput,
+                        color: colors.textColor,
+                        marginHorizontal: 10,
+                        height: 80,
+                        borderColor: errorDescription
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        textAlignVertical: "top",
+                      }}
+                      onChangeText={(value) => {
+                        setDescription(value);
+                        setErrorDescription(value.trim().length === 0);
+                      }}
+                      value={description}
+                      placeholder="Write your Description"
+                      keyboardType="default"
+                      multiline
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <Text
+                    style={{
+                      marginTop: 20,
+                      paddingHorizontal: 10,
+                      color: colors.textColor,
+                    }}
+                  >
+                    Skills<Text style={styles.redstar}>*</Text>
+                  </Text>
+
+                  <View style={globalStyles.containerSkill}>
+                    <FlatList
+                      data={skillsList}
+                      keyExtractor={(item, index) => index.toString()}
+                      numColumns={3}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={{
+                            ...globalStyles.skillTag,
+                            backgroundColor: colors.AppmainColor,
+                          }}
+                          onPress={() => removeSkill(item)}
+                        >
+                          <Text
+                            style={{
+                              ...globalStyles.skillText,
+                              color: colors.ButtonTextColor,
+                            }}
+                          >
+                            {item} ✕
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    />
+
+                    <View style={globalStyles.inputContainerSkill}>
+                      <TextInput
+                        placeholder="Enter skill..."
+                        placeholderTextColor={colors.placeholderTextColor}
+                        value={skill}
+                        onChangeText={setSkill}
+                        style={{
+                          ...globalStyles.inputSkill,
+                          borderColor: errorSkill
+                            ? Colors.error
+                            : colors.textinputbordercolor,
+                          color: colors.textColor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={addSkill}
+                        style={{
+                          ...globalStyles.addButton,
+                          backgroundColor: colors.AppmainColor,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            ...globalStyles.addText,
+                            color: colors.ButtonTextColor,
+                          }}
+                        >
+                          + Add
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text
+                    style={{
+                      marginTop: 20,
+                      paddingHorizontal: 10,
+                      color: colors.textColor,
+                    }}
+                  >
+                    Nature of Internship duration
+                  </Text>
+                  <TouchableOpacity
+                    onPress={toggleDropdown3}
+                    style={{
+                      marginHorizontal: 10,
+                      ...globalStyles.seclectIndiaView,
+                      borderColor: colors.textinputbordercolor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        ...styles.JobfiledSectionText,
+                        paddingBottom: 0,
+                        color: colors.textColor,
+                      }}
+                    >
+                      {selectedValue2 || "Select"}
+                    </Text>
+                    <Icon
+                      type="AntDesign"
+                      name="down"
+                      size={15}
+                      color={colors.backIconColor}
+                      style={{ paddingLeft: 10 }}
+                    />
+                  </TouchableOpacity>
+                  {isOpen3 && (
+                    <View
+                      style={{
+                        ...globalStyles.dropdownList,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        borderColor: colors.textinputbordercolor,
+                      }}
+                    >
+                      {options3.map((option, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={{
+                            ...globalStyles.dropdownItem,
+                            borderColor: colors.textinputbordercolor,
+                          }}
+                          onPress={() => selectOption3(option)}
+                        >
+                          <Text
+                            style={{
+                              ...styles.text,
+                              color: colors.textColor,
+                            }}
+                          >
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginTop: 20,
+                      marginHorizontal: 10,
+                      borderLeftWidth: 4,
+                      paddingLeft: 10,
+                      borderColor: colors.AppmainColor,
+                    }}
+                  >
+                    <TouchableOpacity onPress={handleCheckboxToggle}>
+                      <MaterialCommunityIcons
+                        name={
+                          checked ? "checkbox-marked" : "checkbox-blank-outline"
+                        }
+                        size={24}
+                        color={colors.AppmainColor}
+                        style={{ marginRight: 10 }}
+                      />
+                    </TouchableOpacity>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        flexShrink: 1,
+                        color: colors.textColor,
+                      }}
+                    >
+                      I confirm that this is a commercial internship. I am aware
+                      that I may receive a written warning for violating the
+                      General
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{
+                      ...globalStyles.saveButton,
+                      backgroundColor: colors.AppmainColor,
+                      margin: 20,
+                      opacity: checked ? 1 : 0.5,
+                    }}
+                    disabled={!checked}
+                    onPress={() => AddInternship()}
+                  >
+                    <Text
+                      style={{
+                        ...globalStyles.saveButtonText,
+                        color: colors.ButtonTextColor,
+                      }}
+                    >
+                      Save
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </KeyboardAvoidingView>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible1}
+                onRequestClose={() => {
+                  setModalVisible1(!modalVisible1);
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View
+                    style={{
+                      ...styles.modalView,
+                      flex: 0.6,
+                      padding: 20,
+                      backgroundColor: colors.modelBackground,
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        setModalVisible1(!!modalVisible1);
+                      }}
+                      style={{ alignSelf: "flex-end" }}
+                    >
+                      <Icon
+                        name="cross"
+                        size={25}
+                        color={colors.backIconColor}
+                        type="Entypo"
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        alignItems: "center",
+                        borderBottomWidth: 0.5,
+                        borderColor: colors.textinputbordercolor,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          padding: 15,
+                          fontWeight: "700",
+                          color: colors.textColor,
+                        }}
+                      >
+                        {"Select Country"}
+                      </Text>
+                    </View>
+
+                    <DemoTest
+                      setSelectedCountry={handleCountrySelection}
+                      Datatype={"wantCountryeData"}
+                    />
+                  </View>
+                </View>
+              </Modal>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible2}
+                onRequestClose={() => {
+                  setModalVisible2(!modalVisible2);
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View
+                    style={{
+                      ...styles.modalView,
+                      flex: 0.6,
+                      padding: 20,
+                      backgroundColor: colors.modelBackground,
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        setModalVisible2(!!modalVisible2);
+                      }}
+                      style={{ alignSelf: "flex-end" }}
+                    >
+                      <Icon
+                        name="cross"
+                        size={15}
+                        color={colors.backIconColor}
+                        type="Entypo"
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        alignItems: "center",
+                        borderColor: colors.textinputbordercolor,
+                        borderBottomWidth: 0.5,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          padding: 15,
+                          fontWeight: "700",
+                          color: colors.textColor,
+                        }}
+                      >
+                        Key Skills
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        flex: 1,
+                        marginBottom: 10,
+                        margin: 20,
+                      }}
+                    >
+                      <TextInput
+                        style={{
+                          ...styles.textInput,
+                          borderColor: colors.textinputbordercolor,
+                          color: colors.textColor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                          flex: 0,
+                          height: 40,
+                          paddingTop: 0,
+                        }}
+                        value={number}
+                        onChangeText={(value) => {
+                          handleKeySkill(value);
+                        }}
+                        onSubmitEditing={() => {
+                          handleSaveKeySkill(number);
+                        }}
+                        returnKeyType="done"
+                      />
+                      {keyValue.length > 0 ? (
+                        <View style={styles.skillValueMainView}>
+                          {keyValue.map((item, index) => (
+                            <View key={index} style={styles.skllSecondView}>
+                              <Text style={globalStyles.skillText}>
+                                {typeof item === "object"
+                                  ? item.skillText
+                                  : item}
+                              </Text>
+                              <TouchableOpacity
+                                style={{ paddingLeft: 2 }}
+                                onPress={() => {
+                                  deleteSkills(item);
+                                }}
+                              >
+                                <Icon
+                                  name="cross"
+                                  size={15}
+                                  color={colors.backIconColor}
+                                  type="Entypo"
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
+
+                    <View style={globalStyles.flexRow}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setModalVisible2(!!modalVisible2);
+                          closeSkillsModal();
+                        }}
+                        // onPress={() => handleSaveKeySkill()}
+                        style={{
+                          ...styles.save,
+                          borderWidth: 0.5,
+                          marginRight: 10,
+                          flex: 1,
+                          borderColor: colors.textinputbordercolor,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            ...styles.saveText,
+                            color: Colors.black,
+                          }}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        // onPress={addSkills}
+                        style={{
+                          ...styles.save,
+                          flex: 1,
+                          backgroundColor: colors.AppmainColor,
+                        }}
+                      >
+                        <Text style={styles.saveText}>Save</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+            </View>
+          </>
+        );
+      case "Search":
+        return (
+          <>
+            <View style={{}}>
+              <View style={{ flexDirection: "row" }}>
+                <View
+                  style={{
+                    ...globalStyles.JobfiledSection,
+                    paddingHorizontal: 10,
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      ...styles.JobfiledSectionText,
+                      color: colors.textColor,
+                    }}
+                  >
+                    What Internship name
+                  </Text>
+
+                  <TextInput
+                    style={{
+                      ...styles.textInput,
+                      borderColor: colors.textinputbordercolor,
+                      color: colors.textColor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                      //   borderColor: errorJob ? Colors.error : Colors.gray,
+                    }}
+                    onChangeText={(value) => {
+                      setTitle(value);
+                      //   setErrorJov(value.trim().length === 0);
+                    }}
+                    value={title}
+                    placeholder=""
+                    keyboardType="default"
+                    multiline
+                    placeholderTextColor={colors.placeholderTextColor}
+                  />
+                </View>
+
+                <View
+                  style={{
+                    ...globalStyles.JobfiledSection,
+                    paddingHorizontal: 10,
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      ...styles.JobfiledSectionText,
+                      color: colors.textColor,
+                      // height: 40,
+                      //   color: errorJob ? Colors.error : Colors.gray,
+                    }}
+                  >
+                    Where City or country
+                  </Text>
+
+                  <TextInput
+                    style={{
+                      ...styles.textInput,
+                      borderColor: colors.textinputbordercolor,
+                      color: colors.textColor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                    }}
+                    onChangeText={(value) => {
+                      setCityTitle(value);
+                    }}
+                    value={cityTitle}
+                    placeholder=""
+                    keyboardType="default"
+                    multiline
+                    placeholderTextColor={colors.placeholderTextColor}
+                  />
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  marginTop: 20,
+                  paddingHorizontal: 10,
+                  color: colors.textColor,
+                }}
+              >
+                Nature of Internship
+              </Text>
+              <TouchableOpacity
+                onPress={toggleDropdown4}
+                style={{
+                  marginHorizontal: 10,
+                  ...globalStyles.seclectIndiaView,
+                  borderColor: colors.textinputbordercolor,
+                  backgroundColor: colors.textinputBackgroundcolor,
+                }}
+              >
+                <Text
+                  style={{
+                    ...styles.JobfiledSectionText,
+                    paddingBottom: 0,
+                    color: colors.textColor,
+                  }}
+                >
+                  {selectedValue4}
+                </Text>
+              </TouchableOpacity>
+              {isOpen4 && (
+                <View
+                  style={{
+                    ...globalStyles.dropdownList,
+                    backgroundColor: colors.textinputBackgroundcolor,
+                    borderColor: colors.textinputbordercolor,
+                  }}
+                >
+                  {options4.map((option, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={{
+                        ...globalStyles.dropdownItem,
+                        borderColor: colors.textinputbordercolor,
+                      }}
+                      onPress={() => selectOption4(option)}
+                    >
+                      <Text style={{ ...styles.text, color: colors.textColor }}>
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={{
+                  ...globalStyles.saveButton,
+                  backgroundColor: colors.AppmainColor,
+                  margin: 20,
+                }}
+                onPress={() => {
+                  fetchArticles(), setCityTitle(""), setTitle("");
+                }}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.saveButtonText,
+                    color: colors.ButtonTextColor,
+                  }}
+                >
+                  Search
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={globalStyles.ViewINter1}>
+              <Text
+                style={{
+                  ...globalStyles.headlineText,
+                  color: colors.textColor,
+                }}
+              >
+                All Internship{" "}
+              </Text>
+            </View>
+
+            <FlatList
+              data={projectList}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderItem}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: colors.textColor,
+                  }}
+                >
+                  No projects available.
+                </Text>
+              }
+            />
+          </>
+        );
+      case "Database":
+        return (
+          <>
+            <View style={{}}>
+              <TouchableOpacity
+                onPress={() => handlePress("myIntern")}
+                style={{
+                  ...globalStyles.Myintern,
+                  backgroundColor: valueMyInter
+                    ? colors.AppmainColor
+                    : colors.textinputBackgroundcolor,
+                  borderColor: colors.textinputbordercolor,
+                }}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.SearchInternText,
+                    color: valueMyInter ? Colors.white : colors.textColor,
+                  }}
+                >
+                  My Internship
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handlePress("bookmarked")}
+                style={{
+                  ...globalStyles.Myintern,
+                  backgroundColor: valueBookmarked
+                    ? colors.AppmainColor
+                    : colors.textinputBackgroundcolor,
+                  borderColor: colors.textinputbordercolor,
+                }}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.SearchInternText,
+                    color: valueBookmarked ? Colors.white : colors.textColor,
+                  }}
+                >
+                  Bookmarked Internship
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handlePress("interested")}
+                style={{
+                  ...globalStyles.Myintern,
+                  backgroundColor: valueInterested
+                    ? colors.AppmainColor
+                    : colors.textinputBackgroundcolor,
+                  borderColor: colors.textinputbordercolor,
+                }}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.SearchInternText,
+                    color: valueInterested ? Colors.white : colors.textColor,
+                  }}
+                >
+                  Internship I am interested in
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+              <TouchableOpacity
+                style={{
+                  ...globalStyles.saveButton,
+                  margin: 20,
+                  backgroundColor: colors.AppmainColor,
+                  paddingVertical: 10,
+                }}
+                onPress={() => setSelectedSection("AddInternship")}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.saveButtonText,
+                    color: colors.ButtonTextColor,
+                  }}
+                >
+                  Post a Internship{" "}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {valueInterested ? (
+              myProjectData?.length == 0 ? (
+                <View
+                  style={{
+                    marginTop: 10,
+                    paddingBottom: 40,
+                  }}
+                >
+                  <View style={{ flex: 1, margin: 35 }}>
+                    <Text
+                      style={{
+                        color: colors.textColor,
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
+                    >
+                      You have not shown your interest in working for any
+                      Project.
+                    </Text>
+                  </View>
+
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text style={{ color: colors.textColor }}>
+                      Explore suitable projects now!
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedSection("Search")}
+                    style={{
+                      backgroundColor: colors.AppmainColor,
+                      alignSelf: "center",
+                      padding: 10,
+                      margin: 20,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: colors.ButtonTextColor,
+                        fontWeight: "600",
+                        fontSize: 14,
+                      }}
+                    >
+                      Find Projects
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            ) : null}
+
+            <View>
+              {valueMyInter ? (
+                <FlatList
+                  data={myProjectData}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={renderItemMyInternship}
+                />
+              ) : null}
+              {valueBookmarked ? (
+                <FlatList
+                  data={myProjectData}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={renderItemMyInternship}
+                />
+              ) : null}
+              {valueInterested ? (
+                <FlatList
+                  data={myProjectData}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={renderItemMyInternship}
+                />
+              ) : null}
+            </View>
+          </>
+        );
+      case "Profile":
+        return (
+          <>
+            <ScrollView
+              ref={scrollRef}
+              style={{}}
+              showsVerticalScrollIndicator={false}
+            >
+              <View>
+                <View style={{ flexDirection: "row" }}>
+                  <View
+                    style={{
+                      backgroundColor: colors.textinputBackgroundcolor,
+                      padding: 10,
+                      flex: 1,
+                    }}
+                  >
+                    <Text style={{ fontSize: 18, color: colors.textColor }}>
+                      Internship Seekers
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (mySeekerData?.length > 0) {
+                        setEditViewTrue(true);
+                        handleMySeekerProfile();
+                        getIndustryList({ Val: "projectindustries" });
+                      } else {
+                        handleMySeekerProfile();
+                        getIndustryList({ Val: "projectindustries" });
+                        if (internSeekerSelf === false) {
+                          setEditViewTrue(true);
+                        }
+                      }
+                    }}
+                    style={{
+                      backgroundColor: colors.AppmainColor,
+                      padding: 10,
+                      flex: 1,
+                      alignSelf: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: colors.ButtonTextColor,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {internSeekerSelf
+                        ? mySeekerData?.length > 0
+                          ? "Edit my Project Seeker profile"
+                          : "My Project Seeker profile"
+                        : "Resigter"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View>
+                  {editViewTrue ? (
+                    <>
+                      <View
+                        style={{
+                          backgroundColor: colors.background,
+                          marginTop: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            padding: 10,
+                            borderTopWidth: 1,
+                            borderBottomWidth: 1,
+                            borderColor: colors.textinputbordercolor,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 18,
+                              color: colors.AppmainColor,
+                              fontWeight: "800",
+                            }}
+                          >
+                            {internSeekerSelf === false
+                              ? `Register as a Project Seeker on ${universityFullName}`
+                              : " Update Project Seeker profile"}
+                          </Text>
+                          <Text
+                            style={{
+                              marginTop: 10,
+                              fontSize: 14,
+                              color: colors.placeholderTextColor,
+                            }}
+                          >
+                            {internSeekerSelf === false
+                              ? "At the outset, it will be great to know your expertise which will help us connect you with relevant projects and help you grow your business."
+                              : null}
+                          </Text>
+                        </View>
+
+                        <Text
+                          style={{
+                            marginTop: 20,
+                            paddingHorizontal: 10,
+                            color: errorsServieSeeker
+                              ? Colors.error
+                              : colors.placeholderTextColor,
+                          }}
+                        >
+                          Your area of service offered
+                        </Text>
+                        <TouchableOpacity
+                          onPress={toggleDropdown5}
+                          style={{
+                            marginHorizontal: 10,
+                            ...globalStyles.seclectIndiaView,
+                            borderColor: errorsServieSeeker
+                              ? Colors.error
+                              : colors.textinputbordercolor,
+                            backgroundColor: colors.textinputBackgroundcolor,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...styles.JobfiledSectionText,
+                              paddingBottom: 0,
+                              color: colors.textColor,
+                            }}
+                          >
+                            {selectedValue5}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {isOpen5 && (
+                          <View
+                            style={{
+                              ...globalStyles.dropdownList,
+                              backgroundColor: colors.textinputBackgroundcolor,
+                              borderColor: colors.textinputbordercolor,
+                            }}
+                          >
+                            {industryData.map((item) => (
+                              <TouchableOpacity
+                                key={item.Id}
+                                style={{
+                                  ...globalStyles.dropdownItem,
+                                  borderColor: colors.textinputbordercolor,
+                                }}
+                                onPress={() => {
+                                  selectOption5(item?.Name),
+                                    setSeekerSericeId(item?.Id);
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    ...styles.text,
+                                    color: colors.textColor,
+                                  }}
+                                >
+                                  {item?.Name}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+
+                        <View style={globalStyles.containerSkill}>
+                          <Text
+                            style={{
+                              marginTop: 20,
+                              color: errorsSkillsSeeker
+                                ? Colors.error
+                                : colors.placeholderTextColor,
+                            }}
+                          >
+                            Skills
+                          </Text>
+                          <FlatList
+                            data={skillsList}
+                            keyExtractor={(item, index) => index.toString()}
+                            numColumns={3}
+                            renderItem={({ item }) => (
+                              <TouchableOpacity
+                                style={{
+                                  ...globalStyles.skillTag,
+                                  backgroundColor: colors.AppmainColor,
+                                }}
+                                onPress={() => removeSkill(item)}
+                              >
+                                <Text
+                                  style={{
+                                    ...globalStyles.skillText,
+                                    color: colors.ButtonTextColor,
+                                  }}
+                                >
+                                  {item} ✕
+                                </Text>
+                              </TouchableOpacity>
+                            )}
+                          />
+
+                          <View style={globalStyles.inputContainerSkill}>
+                            <TextInput
+                              placeholder="Enter skill..."
+                              placeholderTextColor={colors.placeholderTextColor}
+                              value={skill}
+                              onChangeText={(val) => {
+                                setSkill(val), setErrorsSkillsSeeker(false);
+                              }}
+                              style={{
+                                ...globalStyles.inputSkill,
+                                borderColor: errorsSkillsSeeker
+                                  ? Colors.error
+                                  : colors.textinputbordercolor,
+                                color: colors.textColor,
+                                backgroundColor:
+                                  colors.textinputBackgroundcolor,
+                              }}
+                            />
+                            <TouchableOpacity
+                              onPress={addSkill}
+                              style={{
+                                ...globalStyles.addButton,
+                                backgroundColor: colors.AppmainColor,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  ...globalStyles.addText,
+                                  color: colors.ButtonTextColor,
+                                }}
+                              >
+                                + Add
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+                        <Text
+                          style={{
+                            marginTop: 20,
+                            paddingHorizontal: 10,
+                            color: colors.placeholderTextColor,
+                            // color: errorTotalDays ? Colors.error : Colors.gray,
+                          }}
+                        >
+                          Work experience level
+                        </Text>
+                        <TouchableOpacity
+                          onPress={toggleDropdown6}
+                          style={{
+                            marginHorizontal: 10,
+                            ...globalStyles.seclectIndiaView,
+                            borderColor: colors.textinputbordercolor,
+                            backgroundColor: colors.textinputBackgroundcolor,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...styles.JobfiledSectionText,
+                              paddingBottom: 0,
+                              color: colors.textColor,
+                            }}
+                          >
+                            {selectedValue6}
+                          </Text>
+                        </TouchableOpacity>
+                        {isOpen6 && (
+                          <View
+                            style={{
+                              ...globalStyles.dropdownList,
+                              backgroundColor: colors.textinputBackgroundcolor,
+                              borderColor: colors.textinputbordercolor,
+                            }}
+                          >
+                            {options6.map((option, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={{
+                                  ...globalStyles.dropdownItem,
+                                  borderColor: colors.textinputbordercolor,
+                                }}
+                                onPress={() => selectOption6(option)}
+                              >
+                                <Text
+                                  style={{
+                                    ...styles.text,
+                                    color: colors.textColor,
+                                  }}
+                                >
+                                  {option}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+
+                        <View
+                          style={{
+                            ...globalStyles.JobfiledSection,
+                            paddingHorizontal: 10,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...styles.JobfiledSectionText,
+                              color: errorTitle1
+                                ? Colors.error
+                                : colors.placeholderTextColor,
+                            }}
+                          >
+                            Professional title that best describes your work
+                          </Text>
+
+                          <TextInput
+                            style={{
+                              ...styles.textInput,
+                              borderColor: errorTitle1
+                                ? Colors.error
+                                : colors.textinputbordercolor,
+                              color: colors.textColor,
+                              backgroundColor: colors.textinputBackgroundcolor,
+                            }}
+                            onChangeText={(value) => {
+                              setProTitleInSeeker(value);
+                              setErrorTitle1(value.trim().length === 0);
+                            }}
+                            value={proTitleInSeeker}
+                            placeholder="Write your Industry category"
+                            keyboardType="default"
+                            multiline
+                            placeholderTextColor={colors.placeholderTextColor}
+                          />
+                        </View>
+
+                        <View style={globalStyles.JobfiledSection}>
+                          <Text
+                            style={{
+                              ...styles.JobfiledSectionText,
+                              paddingHorizontal: 10,
+                              color: errorDescription1
+                                ? Colors.error
+                                : colors.placeholderTextColor,
+                            }}
+                          >
+                            Brief professional overview (maximum 5000
+                            characters)
+                          </Text>
+                          <TextInput
+                            style={{
+                              ...styles.textInput,
+                              marginHorizontal: 10,
+                              height: 80,
+                              borderColor: errorDescription1
+                                ? Colors.error
+                                : colors.textinputbordercolor,
+                              color: colors.textColor,
+                              backgroundColor: colors.textinputBackgroundcolor,
+                            }}
+                            onChangeText={(value) => {
+                              setOverViewSeeker(value);
+                              setErrorDescription1(value.trim().length === 0);
+                            }}
+                            value={overViewSeeker}
+                            placeholder="Write your Description"
+                            keyboardType="default"
+                            multiline
+                            placeholderTextColor={colors.placeholderTextColor}
+                          />
+                        </View>
+
+                        <Text
+                          style={{
+                            marginTop: 20,
+                            paddingHorizontal: 10,
+                            color: colors.placeholderTextColor,
+                          }}
+                        >
+                          Work experience level
+                        </Text>
+                        <TouchableOpacity
+                          onPress={toggleDropdown7}
+                          style={{
+                            marginHorizontal: 10,
+                            ...globalStyles.seclectIndiaView,
+                            borderColor: colors.textinputbordercolor,
+                            backgroundColor: colors.textinputBackgroundcolor,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...styles.JobfiledSectionText,
+                              paddingBottom: 0,
+                              color: colors.textColor,
+                            }}
+                          >
+                            {selectedValue7}
+                          </Text>
+                        </TouchableOpacity>
+                        {isOpen7 && (
+                          <View
+                            style={{
+                              ...globalStyles.dropdownList,
+                              backgroundColor: colors.textinputBackgroundcolor,
+                              borderColor: colors.textinputbordercolor,
+                            }}
+                          >
+                            {options7.map((option, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={{
+                                  ...globalStyles.dropdownItem,
+                                  borderColor: colors.textinputbordercolor,
+                                }}
+                                onPress={() => selectOption7(option)}
+                              >
+                                <Text
+                                  style={{
+                                    ...styles.text,
+                                    color: colors.textColor,
+                                  }}
+                                >
+                                  {option}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                        <TouchableOpacity
+                          style={{
+                            ...globalStyles.saveButton,
+                            marginHorizontal: 10,
+                            backgroundColor: colors.AppmainColor,
+                          }}
+                          onPress={() => {
+                            handleEditMySeekerProfile();
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...globalStyles.saveButtonText,
+                              color: colors.ButtonTextColor,
+                            }}
+                          >
+                            Save
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  ) : null}
+
+                  {seekerValue ? (
+                    <View
+                      style={{
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        flex: 1,
+                        marginTop: 10,
+                        marginHorizontal: 5,
+                        paddingHorizontal: 10,
+                      }}
+                    >
+                      <View style={{ alignItems: "center" }}>
+                        <Image
+                          source={
+                            seekerValue?.ProfilePhoto
+                              ? {
+                                  uri: seekerValue?.ProfilePhoto,
+                                }
+                              : require("../../assets/placeholderprofileimage.png")
+                          }
+                          style={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: 50,
+                            marginTop: 10,
+                          }}
+                        />
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            ...globalStyles.SeekerText,
+                            color: colors.AppmainColor,
+                          }}
+                        >
+                          {seekerValue?.UserName}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("ChatDetails", {
+                              Item: seekerValue,
+                            })
+                          }
+                          style={{
+                            backgroundColor: colors.AppmainColor,
+                            padding: 5,
+                            borderRadius: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...globalStyles.SearchInternText,
+                              color: colors.ButtonTextColor,
+                            }}
+                          >
+                            Send message
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <View
+                        style={{
+                          marginTop: 10,
+                          borderTopWidth: 1,
+                          borderColor: colors.textinputbordercolor,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Service offered
+                        </Text>
+                        <Text style={{ color: colors.textColor }}>
+                          {seekerValue?.Serviceoffered}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          marginTop: 10,
+                          borderTopWidth: 1,
+                          borderBottomWidth: 1,
+                          paddingVertical: 8,
+                          borderColor: colors.textinputbordercolor,
+                        }}
+                      >
+                        <Text style={{ color: colors.textColor }}>
+                          {seekerValue?.ProfessionalTitle}
+                        </Text>
+                      </View>
+
+                      <View style={{ marginTop: 10 }}>
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Skills
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            flexWrap: "wrap",
+                            marginTop: 5,
+                          }}
+                        >
+                          {seekerValue?.Skills?.split(",").map(
+                            (skill, index) => (
+                              <View
+                                key={index}
+                                style={{
+                                  backgroundColor: colors.background,
+                                  borderRadius: 10,
+                                  paddingHorizontal: 10,
+                                  paddingVertical: 5,
+                                  marginRight: 5,
+                                  marginBottom: 5,
+                                }}
+                              >
+                                <Text style={{ color: colors.textColor }}>
+                                  {skill.trim()}
+                                </Text>
+                              </View>
+                            )
+                          )}
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          marginTop: 10,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Work Experience
+                        </Text>
+                        <Text style={{ fontSize: 18, color: colors.textColor }}>
+                          {seekerValue?.WorkExperience}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          marginVertical: 15,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Brief Professonal overview
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            marginTop: 20,
+                            color: colors.textColor,
+                          }}
+                        >
+                          {seekerValue?.BriefProfessonal}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+
+                  {editViewTrue == true ? null : mySeekerData?.length > 0 ? (
+                    <View
+                      style={{
+                        backgroundColor: colors.textinputBackgroundcolor,
+                        flex: 1,
+                        marginTop: 10,
+                        marginHorizontal: 5,
+                        paddingHorizontal: 10,
+                      }}
+                    >
+                      <View style={{ alignItems: "center" }}>
+                        <Image
+                          source={
+                            mySeekerData[0]?.ProfilePhoto
+                              ? {
+                                  uri: mySeekerData[0]?.ProfilePhoto,
+                                }
+                              : require("../../assets/placeholderprofileimage.png")
+                          }
+                          style={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: 50,
+                            marginTop: 10,
+                          }}
+                        />
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            ...globalStyles.SeekerText,
+                            color: colors.AppmainColor,
+                          }}
+                        >
+                          {mySeekerData[0]?.UserName}
+                        </Text>
+                        <View
+                          style={{
+                            backgroundColor: colors.AppmainColor,
+                            padding: 5,
+                            borderRadius: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              ...globalStyles.SearchInternText,
+                              color: colors.ButtonTextColor,
+                            }}
+                          >
+                            Send message
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          marginTop: 10,
+                          borderTopWidth: 1,
+                          borderColor: colors.textinputbordercolor,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Service offered
+                        </Text>
+                        <Text>{mySeekerData[0]?.Serviceoffered}</Text>
+                      </View>
+
+                      <View
+                        style={{
+                          marginTop: 10,
+                          borderTopWidth: 1,
+                          borderBottomWidth: 1,
+                          paddingVertical: 8,
+                          borderColor: colors.textinputbordercolor,
+                        }}
+                      >
+                        <Text>{mySeekerData[0]?.ProfessionalTitle}</Text>
+                      </View>
+
+                      <View style={{ marginTop: 10 }}>
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Skills
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            flexWrap: "wrap",
+                            marginTop: 5,
+                          }}
+                        >
+                          {mySeekerData[0]?.Skills?.split(",").map(
+                            (skill, index) => (
+                              <View
+                                key={index}
+                                style={{
+                                  backgroundColor: colors.background,
+                                  borderRadius: 10,
+                                  paddingHorizontal: 10,
+                                  paddingVertical: 5,
+                                  marginRight: 5,
+                                  marginBottom: 5,
+                                }}
+                              >
+                                <Text style={{ color: colors.textColor }}>
+                                  {skill.trim()}
+                                </Text>
+                              </View>
+                            )
+                          )}
+                        </View>
+                      </View>
+
+                      <View style={{ marginTop: 10 }}>
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Work Experience
+                        </Text>
+                        <Text style={{ fontSize: 18, color: colors.textColor }}>
+                          {mySeekerData[0]?.WorkExperience}
+                        </Text>
+                      </View>
+
+                      <View style={{ marginVertical: 15 }}>
+                        <Text
+                          style={{
+                            color: colors.placeholderTextColor,
+                            paddingTop: 10,
+                          }}
+                        >
+                          Brief Professional Overview
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            marginTop: 20,
+                            color: colors.textColor,
+                          }}
+                        >
+                          {mySeekerData[0]?.BriefProfessonal}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+                  {editViewTrue == true ? null : (
+                    <FlatList
+                      data={internSeeker}
+                      keyExtractor={(item) => item.UserId?.toString()}
+                      renderItem={renderItemInternSeeker}
+                    />
+                  )}
+                </View>
+              </View>
+            </ScrollView>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -1241,2394 +3640,115 @@ const IntershipProject = ({ navigation, route }) => {
             // backgroundColor: colors.textinputBackgroundcolor,
           }}
         >
-          <ScrollView
-            ref={scrollRef}
-            style={{}}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={globalStyles.HeadeViewIcon}>
-              <View
-                style={{
-                  ...globalStyles.HeadeViewIcon2,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    globalStyles.HeadeViewTouch,
-                    {
-                      height: 75,
-                      backgroundColor: isActive("Home")
-                        ? colors.AppmainColor
-                        : isDark
-                        ? colors.textinputBackgroundcolor
-                        : "#bdbdbd",
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedSection("Home");
-                    fetchArticles();
-                    setSeekerValue();
-                    setEditMyInterShip();
-                    setMySeekerData();
-                    setEditViewTrue(false);
-                  }}
-                >
-                  <Icon
-                    name="home"
-                    size={18}
-                    color={colors.ButtonTextColor}
-                    type="FontAwesome"
-                  />
-                  <Text
-                    style={{
-                      color: colors.ButtonTextColor,
-                      marginTop: 5,
-                      fontSize: 10,
-                    }}
-                  >
-                    Apply
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  ...globalStyles.HeadeViewIcon2,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    globalStyles.HeadeViewTouch,
-                    {
-                      height: 75,
-                      backgroundColor: isActive("AddInternship")
-                        ? colors.AppmainColor
-                        : isDark
-                        ? colors.textinputBackgroundcolor
-                        : "#bdbdbd",
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedSection("AddInternship"), setSeekerValue();
-                    setEditMyInterShip();
-                    setMySeekerData();
-                    setEditViewTrue(false);
-                  }}
-                >
-                  <Icon
-                    name="plus"
-                    size={18}
-                    color={colors.ButtonTextColor}
-                    type="FontAwesome"
-                  />
-                  <Text
-                    style={{
-                      color: colors.ButtonTextColor,
-                      marginTop: 5,
-                      fontSize: 10,
-                    }}
-                  >
-                    Post Internship
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  ...globalStyles.HeadeViewIcon2,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    globalStyles.HeadeViewTouch,
-                    {
-                      height: 75,
-                      backgroundColor: isActive("Search")
-                        ? colors.AppmainColor
-                        : isDark
-                        ? colors.textinputBackgroundcolor
-                        : "#bdbdbd",
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedSection("Search"), setSeekerValue();
-                    setEditMyInterShip();
-                    setMySeekerData();
-                    setEditViewTrue(false);
-                  }}
-                >
-                  <Icon
-                    name="search"
-                    size={18}
-                    color={colors.ButtonTextColor}
-                    type="FontAwesome"
-                  />
-                  <Text
-                    style={{
-                      color: colors.ButtonTextColor,
-                      marginTop: 5,
-                      fontSize: 10,
-                    }}
-                  >
-                    Find Internship
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  ...globalStyles.HeadeViewIcon2,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    globalStyles.HeadeViewTouch,
-                    {
-                      height: 75,
-                      backgroundColor: isActive("Database")
-                        ? colors.AppmainColor
-                        : isDark
-                        ? colors.textinputBackgroundcolor
-                        : "#bdbdbd",
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedSection("Database"), setSeekerValue();
-                    setEditMyInterShip();
-                    setMySeekerData();
-                    setEditViewTrue(false);
-                  }}
-                >
-                  <Icon
-                    name="database"
-                    size={18}
-                    color={colors.ButtonTextColor}
-                    type="AntDesign"
-                  />
-                  <Text
-                    style={{
-                      color: colors.ButtonTextColor,
-                      marginTop: 5,
-                      fontSize: 10,
-                    }}
-                  >
-                    Manage Internship
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  ...globalStyles.HeadeViewIcon2,
-                  borderRightWidth: 0,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    globalStyles.HeadeViewTouch,
-                    {
-                      height: 75,
-                      backgroundColor: isActive("Profile")
-                        ? colors.AppmainColor
-                        : isDark
-                        ? colors.textinputBackgroundcolor
-                        : "#bdbdbd",
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedSection("Profile"), setSeekerValue();
-                    setEditMyInterShip();
-                    setMySeekerData();
-                    setEditViewTrue(false);
-                  }}
-                >
-                  <Icon
-                    name="person"
-                    size={18}
-                    color={colors.ButtonTextColor}
-                    type="Ionicons"
-                  />
-                  <Text
-                    style={{
-                      color: colors.ButtonTextColor,
-                      marginTop: 5,
-                      fontSize: 10,
-                    }}
-                  >
-                    Internship Seeker
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {selectedSection === "Home" && (
-              <>
-                <View
-                  style={{
-                    ...globalStyles.ViewINter,
-                    alignItems: "center",
-                    marginBottom: 10,
-                    backgroundColor: colors.textinputBackgroundcolor,
-                  }}
-                >
-                  <Text
-                    style={{
-                      ...globalStyles.headlineText,
-                      color: colors.textColor,
-                    }}
-                  >
-                    All Internships
-                  </Text>
-                </View>
-
-                <FlatList
-                  data={projectList}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderItem}
-                  ListEmptyComponent={
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        marginTop: 20,
-                        color: colors.textColor,
-                      }}
-                    >
-                      No projects available.
-                    </Text>
-                  }
-                />
-              </>
-            )}
-            {selectedSection === "AddInternship" && (
-              <>
-                <View style={{}}>
-                  <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
-                  >
-                    <ScrollView
-                      showsVerticalScrollIndicator={false}
-                      contentContainerStyle={{
-                        paddingBottom: 20,
-                      }}
-                    >
-                      <View style={globalStyles.ViewINter}>
-                        <Text
-                          style={{
-                            ...globalStyles.headlineText,
-                            color: colors.textColor,
-                          }}
-                        >
-                          POST A INTERNSHIPS
-                        </Text>
-                      </View>
-
-                      <View
-                        style={{
-                          ...globalStyles.JobfiledSection,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            color: colors.textColor,
-                            // color: errorTitle ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          Internship title<Text style={styles.redstar}>*</Text>
-                        </Text>
-
-                        <TextInput
-                          style={{
-                            ...styles.textInput,
-                            borderColor: errorTitle
-                              ? Colors.error
-                              : colors.textinputbordercolor,
-                            color: colors.textColor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                          }}
-                          onChangeText={(value) => {
-                            onChangeNumber(value);
-                            setErrorTitle(value.trim().length === 0);
-                          }}
-                          value={number}
-                          placeholder="Write your internship title"
-                          keyboardType="default"
-                          multiline
-                          placeholderTextColor={colors.placeholderTextColor}
-                        />
-                      </View>
-
-                      <View
-                        style={{
-                          ...globalStyles.JobfiledSection,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            color: colors.textColor,
-                            // color: errorIndustry ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          Industry category<Text style={styles.redstar}>*</Text>
-                        </Text>
-
-                        <TouchableOpacity
-                          onPress={() => setFlatlist(!flatlist)}
-                          style={{
-                            ...styles.textInput,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            borderColor: errorIndustry
-                              ? Colors.error
-                              : colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                          }}
-                        >
-                          <Text style={{ color: colors.textColor }}>
-                            {industryValue ? industryValue : "Industry"}
-                          </Text>
-                          <Icon
-                            name="down"
-                            size={15}
-                            color={colors.backIconColor}
-                            type="AntDesign"
-                          />
-                        </TouchableOpacity>
-
-                        {flatlist ? (
-                          <FlatList
-                            data={industryData}
-                            renderItem={renderItemInter}
-                            keyExtractor={(item, index) =>
-                              `${item.id}-${index}`
-                            }
-                          />
-                        ) : null}
-                      </View>
-
-                      <Text
-                        style={{
-                          marginTop: 20,
-                          paddingHorizontal: 10,
-                          color: colors.textColor,
-                          // color: errorCountry ? Colors.error : 'black',
-                        }}
-                      >
-                        Country<Text style={styles.redstar}>*</Text>
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setModalVisible1();
-                        }}
-                        style={{
-                          marginHorizontal: 10,
-                          ...globalStyles.seclectIndiaView,
-
-                          borderColor: errorCountry
-                            ? Colors.error
-                            : colors.textinputbordercolor,
-                          backgroundColor: colors.textinputBackgroundcolor,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            paddingBottom: 0,
-                            color: colors.textColor,
-                            // color: errorCountry ? Colors.error : 'black',
-                          }}
-                        >
-                          {selectedCountry ? selectedCountry : "Country"}
-                        </Text>
-                        <Icon
-                          // onPress={() => navigation.goBack()}
-                          type="AntDesign"
-                          name="down"
-                          size={15}
-                          color={colors.backIconColor}
-                          style={{ paddingLeft: 10 }}
-                        />
-                      </TouchableOpacity>
-
-                      <View
-                        style={{
-                          ...globalStyles.JobfiledSection,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            color: colors.textColor,
-                            // color: errorCity ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          City<Text style={styles.redstar}>*</Text>
-                        </Text>
-
-                        <TextInput
-                          style={{
-                            ...styles.textInput,
-                            borderColor: errorCity
-                              ? Colors.error
-                              : colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            color: colors.textColor,
-                          }}
-                          onChangeText={(value) => {
-                            setCity(value);
-                            SetErrorCity(value.trim().length === 0);
-                          }}
-                          value={city}
-                          placeholder="Write your City"
-                          keyboardType="default"
-                          multiline
-                          placeholderTextColor={colors.placeholderTextColor}
-                        />
-                      </View>
-
-                      <View style={styles.dobView}>
-                        <Text
-                          style={{ ...styles.dobText, color: colors.textColor }}
-                        >
-                          Internship Start date
-                          <Text style={styles.redstar}>*</Text>
-                        </Text>
-                        <View style={styles.seconDOMView}>
-                          <TextInput
-                            style={{
-                              ...styles.textInputDOM,
-                              borderColor: errorDay
-                                ? Colors.error
-                                : colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              color: colors.textColor,
-                            }}
-                            // onChangeText={value => {
-                            //   setDay(value);
-                            //   setErrorDay(value.trim().length === 0);
-                            // }}
-                            onChangeText={(value) => {
-                              const numericValue = value.replace(/[^0-9]/g, "");
-                              setDay(numericValue);
-                              setErrorDay(numericValue.trim().length === 0);
-                              if (numericValue.length === 2)
-                                monthRef.current?.focus();
-                            }}
-                            value={day}
-                            placeholder="DD"
-                            multiline={false}
-                            placeholderTextColor={colors.placeholderTextColor}
-                            maxLength={2}
-                            keyboardType="numeric"
-                          />
-
-                          <TextInput
-                            ref={monthRef}
-                            style={{
-                              ...styles.textInputDOM,
-                              borderColor: errorMonth
-                                ? Colors.error
-                                : colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              color: colors.textColor,
-                            }}
-                            onChangeText={(value) => {
-                              const numericValue = value.replace(/[^0-9]/g, "");
-                              setMonth(numericValue);
-                              setErrorMonth(numericValue.trim().length === 0);
-                              if (numericValue.length === 2)
-                                yearRef.current?.focus();
-                            }}
-                            value={month}
-                            placeholder="MM"
-                            keyboardType="numeric"
-                            multiline={false}
-                            placeholderTextColor={colors.placeholderTextColor}
-                            maxLength={2}
-                          />
-                          <TextInput
-                            ref={yearRef}
-                            style={{
-                              ...styles.textInputDOM,
-                              borderColor: errorYear
-                                ? Colors.error
-                                : colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              color: colors.textColor,
-                              marginRight: 0,
-                            }}
-                            onChangeText={(value) => {
-                              const numericValue = value.replace(/[^0-9]/g, "");
-                              setYear(numericValue);
-                              setErrorYear(numericValue.trim().length === 0);
-                            }}
-                            // onChangeText={value => {
-                            //   setYear(value);
-                            //   setErrorYear(value.trim().length === 0);
-                            // }}
-                            value={year}
-                            placeholder="YYYY"
-                            keyboardType="numeric"
-                            multiline={false}
-                            placeholderTextColor={colors.placeholderTextColor}
-                            maxLength={4}
-                          />
-                        </View>
-                      </View>
-
-                      <View
-                        style={{
-                          ...globalStyles.JobfiledSection,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            color: colors.textColor,
-                            // color: errorPerred ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          Preferred location of the Internship Seeker
-                          {/* <Text style={styles.redstar}>*</Text> */}
-                        </Text>
-
-                        <TextInput
-                          style={{
-                            ...styles.textInput,
-                            borderColor: colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            color: colors.textColor,
-                            // borderColor: errorPerred ? Colors.error : Colors.gray,
-                          }}
-                          onChangeText={(value) => {
-                            setPreferredLoc(value);
-                            //setErrorPerred(value.trim().length === 0);
-                          }}
-                          value={preferredLoc}
-                          placeholder="Write your Preferred location"
-                          keyboardType="default"
-                          multiline
-                          placeholderTextColor={colors.placeholderTextColor}
-                        />
-                      </View>
-
-                      <View
-                        style={{
-                          ...globalStyles.JobfiledSection,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            color: colors.textColor,
-                            // color: errorWork ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          Work location
-                          {/* <Text style={styles.redstar}>*</Text> */}
-                        </Text>
-
-                        <TextInput
-                          style={{
-                            ...styles.textInput,
-                            borderColor: colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            color: colors.textColor,
-                            // borderColor: errorWork ? Colors.error : Colors.gray,
-                          }}
-                          onChangeText={(value) => {
-                            setWorkLoc(value);
-                            //setErrorWork(value.trim().length === 0);
-                          }}
-                          value={workLoc}
-                          placeholder="Write your Work location"
-                          keyboardType="default"
-                          multiline
-                          placeholderTextColor={colors.placeholderTextColor}
-                        />
-                      </View>
-
-                      <Text
-                        style={{
-                          marginTop: 20,
-                          paddingHorizontal: 10,
-                          color: colors.textColor,
-                          // color: errorTotalDays ? Colors.error : Colors.gray,
-                        }}
-                      >
-                        Duration of the Internship
-                        <Text style={styles.redstar}>*</Text>
-                      </Text>
-                      <TouchableOpacity
-                        onPress={toggleDropdown2}
-                        style={{
-                          marginHorizontal: 10,
-                          ...globalStyles.seclectIndiaView,
-                          borderColor: colors.textinputbordercolor,
-                          backgroundColor: colors.textinputBackgroundcolor,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            paddingBottom: 0,
-                            color: colors.textColor,
-                          }}
-                        >
-                          {selectedValue1}
-                        </Text>
-                        <Icon
-                          type="AntDesign"
-                          name="down"
-                          size={15}
-                          color={colors.backIconColor}
-                          style={{ paddingLeft: 10 }}
-                        />
-                      </TouchableOpacity>
-                      {isOpen2 && (
-                        <View
-                          style={{
-                            ...globalStyles.dropdownList,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          {options2.map((option, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              style={{
-                                ...globalStyles.dropdownItem,
-                                borderColor: colors.textinputbordercolor,
-                              }}
-                              onPress={() => selectOption2(option)}
-                            >
-                              <Text
-                                style={{
-                                  ...styles.text,
-                                  color: colors.textColor,
-                                }}
-                              >
-                                {option}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
-
-                      <View style={globalStyles.containerSkill}>
-                        <View
-                          style={{
-                            ...globalStyles.JobfiledSection,
-                            paddingHorizontal: 10,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              ...styles.JobfiledSectionText,
-                              color: colors.textColor,
-                              // color: errorPrice ? Colors.error : Colors.gray,
-                            }}
-                          >
-                            Stipend for the Duration
-                            {/* <Text style={styles.redstar}>*</Text> */}
-                          </Text>
-
-                          <TextInput
-                            style={{
-                              ...styles.textInput,
-                              borderColor: colors.textinputbordercolor,
-                              color: colors.textColor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              // borderColor: errorPrice ? Colors.error : Colors.gray,
-                            }}
-                            onChangeText={(value) => {
-                              setPrice(value);
-                              // setErrorPrice(value.trim().length === 0);
-                            }}
-                            value={price}
-                            placeholder="Amount"
-                            keyboardType="default"
-                            multiline
-                            placeholderTextColor={colors.placeholderTextColor}
-                          />
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() => setDropdownVisible(!isDropdownVisible)}
-                          style={{
-                            marginHorizontal: 10,
-                            ...globalStyles.seclectIndiaView,
-                            borderColor: colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                          }}
-                        >
-                          <Text
-                            style={{ ...styles.text, color: colors.textColor }}
-                          >
-                            {selectedCurrency
-                              ? selectedCurrency.label
-                              : "Select Currency"}
-                          </Text>
-                        </TouchableOpacity>
-
-                        {isDropdownVisible && (
-                          <View
-                            style={{
-                              marginTop: 5,
-                              borderWidth: 1,
-                              borderColor: colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              padding: 10,
-                            }}
-                          >
-                            <FlatList
-                              data={currencyOptions}
-                              keyExtractor={(item) => item.value}
-                              renderItem={({ item }) => (
-                                <TouchableOpacity
-                                  onPress={() => handleSelect(item)}
-                                  style={{
-                                    padding: 5,
-                                    borderBottomWidth: 1,
-                                    borderColor: colors.textinputbordercolor,
-                                  }}
-                                >
-                                  <Text style={{ color: colors.textColor }}>
-                                    {item.label}
-                                  </Text>
-                                </TouchableOpacity>
-                              )}
-                            />
-                          </View>
-                        )}
-                      </View>
-
-                      <View style={globalStyles.JobfiledSection}>
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            paddingHorizontal: 10,
-                            color: colors.textColor,
-                            // color: errorDescription ? Colors.error : Colors.gray,
-                          }}
-                        >
-                          Description<Text style={styles.redstar}>*</Text>
-                        </Text>
-                        <TextInput
-                          style={{
-                            ...styles.textInput,
-                            color: colors.textColor,
-                            marginHorizontal: 10,
-                            height: 80,
-                            borderColor: errorDescription
-                              ? Colors.error
-                              : colors.textinputbordercolor,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            textAlignVertical: "top",
-                          }}
-                          onChangeText={(value) => {
-                            setDescription(value);
-                            setErrorDescription(value.trim().length === 0);
-                          }}
-                          value={description}
-                          placeholder="Write your Description"
-                          keyboardType="default"
-                          multiline
-                          placeholderTextColor={colors.placeholderTextColor}
-                        />
-                      </View>
-
-                      <Text
-                        style={{
-                          marginTop: 20,
-                          paddingHorizontal: 10,
-                          color: colors.textColor,
-                        }}
-                      >
-                        Skills<Text style={styles.redstar}>*</Text>
-                      </Text>
-
-                      {/* <View style={globalStyles.containerSkill}>
-                    <FlatList
-                      data={skillsArray}
-                      keyExtractor={(item, index) => index.toString()}
-                      numColumns={3}
-                      renderItem={({item}) => (
-                        <TouchableOpacity
-                          style={globalStyles.skillTag}
-                          onPress={() => handleRemoveSkill(item)}>
-                          <Text style={globalStyles.skillText}>{item} ✕</Text>
-                        </TouchableOpacity>
-                      )}
-                    />
-                    <View style={globalStyles.inputContainerSkill}>
-                      <TextInput
-                        placeholder="Enter skill..."
-                        value={newSkill}
-                        onChangeText={setNewSkill}
-                        style={{
-                          ...globalStyles.inputSkill,
-                          borderColor: errorSkill ? Colors.error : Colors.gray,
-                        }}
-                      />
-                      <TouchableOpacity
-                        onPress={handleAddSkill}
-                        style={globalStyles.addButton}>
-                        <Text style={globalStyles.addText}>+ Add</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View> */}
-                      <View style={globalStyles.containerSkill}>
-                        <FlatList
-                          data={skillsList}
-                          keyExtractor={(item, index) => index.toString()}
-                          numColumns={3}
-                          renderItem={({ item }) => (
-                            <TouchableOpacity
-                              style={{
-                                ...globalStyles.skillTag,
-                                backgroundColor: colors.AppmainColor,
-                              }}
-                              onPress={() => removeSkill(item)}
-                            >
-                              <Text
-                                style={{
-                                  ...globalStyles.skillText,
-                                  color: colors.ButtonTextColor,
-                                }}
-                              >
-                                {item} ✕
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        />
-
-                        <View style={globalStyles.inputContainerSkill}>
-                          <TextInput
-                            placeholder="Enter skill..."
-                            placeholderTextColor={colors.placeholderTextColor}
-                            value={skill}
-                            onChangeText={setSkill}
-                            style={{
-                              ...globalStyles.inputSkill,
-                              borderColor: errorSkill
-                                ? Colors.error
-                                : colors.textinputbordercolor,
-                              color: colors.textColor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                            }}
-                          />
-                          <TouchableOpacity
-                            onPress={addSkill}
-                            style={{
-                              ...globalStyles.addButton,
-                              backgroundColor: colors.AppmainColor,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...globalStyles.addText,
-                                color: colors.ButtonTextColor,
-                              }}
-                            >
-                              + Add
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <Text
-                        style={{
-                          marginTop: 20,
-                          paddingHorizontal: 10,
-                          color: colors.textColor,
-                        }}
-                      >
-                        Nature of Internship duration
-                      </Text>
-                      <TouchableOpacity
-                        onPress={toggleDropdown3}
-                        style={{
-                          marginHorizontal: 10,
-                          ...globalStyles.seclectIndiaView,
-                          borderColor: colors.textinputbordercolor,
-                          backgroundColor: colors.textinputBackgroundcolor,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            ...styles.JobfiledSectionText,
-                            paddingBottom: 0,
-                            color: colors.textColor,
-                          }}
-                        >
-                          {selectedValue2 || "Select"}
-                        </Text>
-                        <Icon
-                          type="AntDesign"
-                          name="down"
-                          size={15}
-                          color={colors.backIconColor}
-                          style={{ paddingLeft: 10 }}
-                        />
-                      </TouchableOpacity>
-                      {isOpen3 && (
-                        <View
-                          style={{
-                            ...globalStyles.dropdownList,
-                            backgroundColor: colors.textinputBackgroundcolor,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          {options3.map((option, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              style={{
-                                ...globalStyles.dropdownItem,
-                                borderColor: colors.textinputbordercolor,
-                              }}
-                              onPress={() => selectOption3(option)}
-                            >
-                              <Text
-                                style={{
-                                  ...styles.text,
-                                  color: colors.textColor,
-                                }}
-                              >
-                                {option}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginTop: 20,
-                          marginHorizontal: 10,
-                          borderLeftWidth: 4,
-                          paddingLeft: 10,
-                          borderColor: colors.AppmainColor,
-                        }}
-                      >
-                        <TouchableOpacity onPress={handleCheckboxToggle}>
-                          <MaterialCommunityIcons
-                            name={
-                              checked
-                                ? "checkbox-marked"
-                                : "checkbox-blank-outline"
-                            }
-                            size={24}
-                            color={colors.AppmainColor}
-                            style={{ marginRight: 10 }}
-                          />
-                        </TouchableOpacity>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            flexShrink: 1,
-                            color: colors.textColor,
-                          }}
-                        >
-                          I confirm that this is a commercial internship. I am
-                          aware that I may receive a written warning for
-                          violating the General
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        style={{
-                          ...globalStyles.saveButton,
-                          backgroundColor: colors.AppmainColor,
-                          margin: 20,
-                          opacity: checked ? 1 : 0.5,
-                        }}
-                        disabled={!checked}
-                        onPress={() => AddInternship()}
-                      >
-                        <Text
-                          style={{
-                            ...globalStyles.saveButtonText,
-                            color: colors.ButtonTextColor,
-                          }}
-                        >
-                          Save
-                        </Text>
-                      </TouchableOpacity>
-                    </ScrollView>
-                  </KeyboardAvoidingView>
-                  <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible1}
-                    onRequestClose={() => {
-                      setModalVisible1(!modalVisible1);
-                    }}
-                  >
-                    <View style={styles.centeredView}>
-                      <View
-                        style={{
-                          ...styles.modalView,
-                          flex: 0.6,
-                          padding: 20,
-                          backgroundColor: colors.modelBackground,
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => {
-                            setModalVisible1(!!modalVisible1);
-                          }}
-                          style={{ alignSelf: "flex-end" }}
-                        >
-                          <Icon
-                            name="cross"
-                            size={25}
-                            color={colors.backIconColor}
-                            type="Entypo"
-                          />
-                        </TouchableOpacity>
-                        <View
-                          style={{
-                            alignItems: "center",
-                            borderBottomWidth: 0.5,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 18,
-                              padding: 15,
-                              fontWeight: "700",
-                              color: colors.textColor,
-                            }}
-                          >
-                            {"Select Country"}
-                          </Text>
-                        </View>
-
-                        <DemoTest
-                          setSelectedCountry={handleCountrySelection}
-                          Datatype={"wantCountryeData"}
-                        />
-                      </View>
-                    </View>
-                  </Modal>
-                  <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible2}
-                    onRequestClose={() => {
-                      setModalVisible2(!modalVisible2);
-                    }}
-                  >
-                    <View style={styles.centeredView}>
-                      <View
-                        style={{
-                          ...styles.modalView,
-                          flex: 0.6,
-                          padding: 20,
-                          backgroundColor: colors.modelBackground,
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => {
-                            setModalVisible2(!!modalVisible2);
-                          }}
-                          style={{ alignSelf: "flex-end" }}
-                        >
-                          <Icon
-                            name="cross"
-                            size={15}
-                            color={colors.backIconColor}
-                            type="Entypo"
-                          />
-                        </TouchableOpacity>
-                        <View
-                          style={{
-                            alignItems: "center",
-                            borderColor: colors.textinputbordercolor,
-                            borderBottomWidth: 0.5,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 18,
-                              padding: 15,
-                              fontWeight: "700",
-                              color: colors.textColor,
-                            }}
-                          >
-                            Key Skills
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flex: 1,
-                            marginBottom: 10,
-                            margin: 20,
-                          }}
-                        >
-                          <TextInput
-                            style={{
-                              ...styles.textInput,
-                              borderColor: colors.textinputbordercolor,
-                              color: colors.textColor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                              flex: 0,
-                              height: 40,
-                              paddingTop: 0,
-                            }}
-                            value={number}
-                            onChangeText={(value) => {
-                              handleKeySkill(value);
-                            }}
-                            onSubmitEditing={() => {
-                              handleSaveKeySkill(number);
-                            }}
-                            returnKeyType="done"
-                          />
-                          {keyValue.length > 0 ? (
-                            <View style={styles.skillValueMainView}>
-                              {keyValue.map((item, index) => (
-                                <View key={index} style={styles.skllSecondView}>
-                                  <Text style={globalStyles.skillText}>
-                                    {typeof item === "object"
-                                      ? item.skillText
-                                      : item}
-                                  </Text>
-                                  <TouchableOpacity
-                                    style={{ paddingLeft: 2 }}
-                                    onPress={() => {
-                                      deleteSkills(item);
-                                    }}
-                                  >
-                                    <Icon
-                                      name="cross"
-                                      size={15}
-                                      color={colors.backIconColor}
-                                      type="Entypo"
-                                    />
-                                  </TouchableOpacity>
-                                </View>
-                              ))}
-                            </View>
-                          ) : null}
-                        </View>
-
-                        <View style={globalStyles.flexRow}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setModalVisible2(!!modalVisible2);
-                              closeSkillsModal();
-                            }}
-                            // onPress={() => handleSaveKeySkill()}
-                            style={{
-                              ...styles.save,
-                              borderWidth: 0.5,
-                              marginRight: 10,
-                              flex: 1,
-                              borderColor: colors.textinputbordercolor,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...styles.saveText,
-                                color: Colors.black,
-                              }}
-                            >
-                              Cancel
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            // onPress={addSkills}
-                            style={{
-                              ...styles.save,
-                              flex: 1,
-                              backgroundColor: colors.AppmainColor,
-                            }}
-                          >
-                            <Text style={styles.saveText}>Save</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-                  </Modal>
-                </View>
-              </>
-            )}
-            {selectedSection === "Search" && (
-              <>
-                <View style={{}}>
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={{
-                        ...globalStyles.JobfiledSection,
-                        paddingHorizontal: 10,
-                        flex: 1,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          ...styles.JobfiledSectionText,
-                          color: colors.textColor,
-                        }}
-                      >
-                        What Internship name
-                      </Text>
-
-                      <TextInput
-                        style={{
-                          ...styles.textInput,
-                          borderColor: colors.textinputbordercolor,
-                          color: colors.textColor,
-                          backgroundColor: colors.textinputBackgroundcolor,
-                          //   borderColor: errorJob ? Colors.error : Colors.gray,
-                        }}
-                        onChangeText={(value) => {
-                          setTitle(value);
-                          //   setErrorJov(value.trim().length === 0);
-                        }}
-                        value={title}
-                        placeholder=""
-                        keyboardType="default"
-                        multiline
-                        placeholderTextColor={colors.placeholderTextColor}
-                      />
-                    </View>
-
-                    <View
-                      style={{
-                        ...globalStyles.JobfiledSection,
-                        paddingHorizontal: 10,
-                        flex: 1,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          ...styles.JobfiledSectionText,
-                          color: colors.textColor,
-                          // height: 40,
-                          //   color: errorJob ? Colors.error : Colors.gray,
-                        }}
-                      >
-                        Where City or country
-                      </Text>
-
-                      <TextInput
-                        style={{
-                          ...styles.textInput,
-                          borderColor: colors.textinputbordercolor,
-                          color: colors.textColor,
-                          backgroundColor: colors.textinputBackgroundcolor,
-                        }}
-                        onChangeText={(value) => {
-                          setCityTitle(value);
-                        }}
-                        value={cityTitle}
-                        placeholder=""
-                        keyboardType="default"
-                        multiline
-                        placeholderTextColor={colors.placeholderTextColor}
-                      />
-                    </View>
-                  </View>
-
-                  <Text
-                    style={{
-                      marginTop: 20,
-                      paddingHorizontal: 10,
-                      color: colors.textColor,
-                    }}
-                  >
-                    Nature of Internship
-                  </Text>
-                  <TouchableOpacity
-                    onPress={toggleDropdown4}
-                    style={{
-                      marginHorizontal: 10,
-                      ...globalStyles.seclectIndiaView,
-                      borderColor: colors.textinputbordercolor,
-                      backgroundColor: colors.textinputBackgroundcolor,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...styles.JobfiledSectionText,
-                        paddingBottom: 0,
-                        color: colors.textColor,
-                      }}
-                    >
-                      {selectedValue4}
-                    </Text>
-                  </TouchableOpacity>
-                  {isOpen4 && (
-                    <View
-                      style={{
-                        ...globalStyles.dropdownList,
-                        backgroundColor: colors.textinputBackgroundcolor,
-                        borderColor: colors.textinputbordercolor,
-                      }}
-                    >
-                      {options4.map((option, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={{
-                            ...globalStyles.dropdownItem,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                          onPress={() => selectOption4(option)}
-                        >
-                          <Text
-                            style={{ ...styles.text, color: colors.textColor }}
-                          >
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-
-                  <TouchableOpacity
-                    style={{
-                      ...globalStyles.saveButton,
-                      backgroundColor: colors.AppmainColor,
-                      margin: 20,
-                    }}
-                    onPress={() => {
-                      fetchArticles(), setCityTitle(""), setTitle("");
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...globalStyles.saveButtonText,
-                        color: colors.ButtonTextColor,
-                      }}
-                    >
-                      Search
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={globalStyles.ViewINter1}>
-                  <Text
-                    style={{
-                      ...globalStyles.headlineText,
-                      color: colors.textColor,
-                    }}
-                  >
-                    All Internship{" "}
-                  </Text>
-                </View>
-
-                <FlatList
-                  data={projectList}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderItem}
-                  ListEmptyComponent={
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        marginTop: 20,
-                        color: colors.textColor,
-                      }}
-                    >
-                      No projects available.
-                    </Text>
-                  }
-                />
-              </>
-            )}
-            {selectedSection === "Database" && (
-              <>
-                <View style={{}}>
-                  <TouchableOpacity
-                    onPress={() => handlePress("myIntern")}
-                    style={{
-                      ...globalStyles.Myintern,
-                      backgroundColor: valueMyInter
-                        ? colors.AppmainColor
-                        : colors.textinputBackgroundcolor,
-                      borderColor: colors.textinputbordercolor,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...globalStyles.SearchInternText,
-                        color: valueMyInter ? Colors.white : colors.textColor,
-                      }}
-                    >
-                      My Internship
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => handlePress("bookmarked")}
-                    style={{
-                      ...globalStyles.Myintern,
-                      backgroundColor: valueBookmarked
-                        ? colors.AppmainColor
-                        : colors.textinputBackgroundcolor,
-                      borderColor: colors.textinputbordercolor,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...globalStyles.SearchInternText,
-                        color: valueBookmarked
-                          ? Colors.white
-                          : colors.textColor,
-                      }}
-                    >
-                      Bookmarked Internship
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => handlePress("interested")}
-                    style={{
-                      ...globalStyles.Myintern,
-                      backgroundColor: valueInterested
-                        ? colors.AppmainColor
-                        : colors.textinputBackgroundcolor,
-                      borderColor: colors.textinputbordercolor,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...globalStyles.SearchInternText,
-                        color: valueInterested
-                          ? Colors.white
-                          : colors.textColor,
-                      }}
-                    >
-                      Internship I am interested in
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={{ marginTop: 10 }}>
-                  <TouchableOpacity
-                    style={{
-                      ...globalStyles.saveButton,
-                      margin: 20,
-                      backgroundColor: colors.AppmainColor,
-                      paddingVertical: 10,
-                    }}
-                    onPress={() => setSelectedSection("AddInternship")}
-                  >
-                    <Text
-                      style={{
-                        ...globalStyles.saveButtonText,
-                        color: colors.ButtonTextColor,
-                      }}
-                    >
-                      Post a Internship{" "}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                {valueInterested ? (
-                  myProjectData?.length == 0 ? (
-                    <View
-                      style={{
-                        marginTop: 10,
-                        paddingBottom: 40,
-                      }}
-                    >
-                      <View style={{ flex: 1, margin: 35 }}>
-                        <Text
-                          style={{
-                            color: colors.textColor,
-                            fontWeight: "800",
-                            fontSize: 14,
-                          }}
-                        >
-                          You have not shown your interest in working for any
-                          Project.
-                        </Text>
-                      </View>
-
-                      <View style={{ flex: 1, alignItems: "center" }}>
-                        <Text style={{ color: colors.textColor }}>
-                          Explore suitable projects now!
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        onPress={() => setSelectedSection("Search")}
-                        style={{
-                          backgroundColor: colors.AppmainColor,
-                          alignSelf: "center",
-                          padding: 10,
-                          margin: 20,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: colors.ButtonTextColor,
-                            fontWeight: "600",
-                            fontSize: 14,
-                          }}
-                        >
-                          Find Projects
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : null
-                ) : null}
-
-                <View>
-                  {valueMyInter ? (
-                    <FlatList
-                      data={myProjectData}
-                      keyExtractor={(item) => item.id.toString()}
-                      renderItem={renderItemMyInternship}
-                    />
-                  ) : null}
-                  {valueBookmarked ? (
-                    <FlatList
-                      data={myProjectData}
-                      keyExtractor={(item) => item.id.toString()}
-                      renderItem={renderItemMyInternship}
-                    />
-                  ) : null}
-                  {valueInterested ? (
-                    <FlatList
-                      data={myProjectData}
-                      keyExtractor={(item) => item.id.toString()}
-                      renderItem={renderItemMyInternship}
-                    />
-                  ) : null}
-                </View>
-              </>
-            )}
-            {selectedSection === "Profile" && (
-              <>
-                <View>
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={{
-                        backgroundColor: colors.textinputBackgroundcolor,
-                        padding: 10,
-                        flex: 1,
-                      }}
-                    >
-                      <Text style={{ fontSize: 18, color: colors.textColor }}>
-                        Internship Seekers
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (mySeekerData?.length > 0) {
-                          setEditViewTrue(true);
-                          handleMySeekerProfile();
-                          getIndustryList({ Val: "projectindustries" });
-                        } else {
-                          handleMySeekerProfile();
-                          getIndustryList({ Val: "projectindustries" });
-                          if (internSeekerSelf === false) {
-                            setEditViewTrue(true);
-                          }
-                        }
-                      }}
-                      style={{
-                        backgroundColor: colors.AppmainColor,
-                        padding: 10,
-                        flex: 1,
-                        alignSelf: "center",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: colors.ButtonTextColor,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {internSeekerSelf
-                          ? mySeekerData?.length > 0
-                            ? "Edit my Project Seeker profile"
-                            : "My Project Seeker profile"
-                          : "Resigter"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <View>
-                    {editViewTrue ? (
-                      <>
-                        <View
-                          style={{
-                            backgroundColor: colors.background,
-                            marginTop: 10,
-                          }}
-                        >
-                          <View
-                            style={{
-                              padding: 10,
-                              borderTopWidth: 1,
-                              borderBottomWidth: 1,
-                              borderColor: colors.textinputbordercolor,
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 18,
-                                color: colors.AppmainColor,
-                                fontWeight: "800",
-                              }}
-                            >
-                              {internSeekerSelf === false
-                                ? `Register as a Project Seeker on ${universityFullName}`
-                                : " Update Project Seeker profile"}
-                            </Text>
-                            <Text
-                              style={{
-                                marginTop: 10,
-                                fontSize: 14,
-                                color: colors.placeholderTextColor,
-                              }}
-                            >
-                              {internSeekerSelf === false
-                                ? "At the outset, it will be great to know your expertise which will help us connect you with relevant projects and help you grow your business."
-                                : null}
-                            </Text>
-                          </View>
-
-                          <Text
-                            style={{
-                              marginTop: 20,
-                              paddingHorizontal: 10,
-                              color: errorsServieSeeker
-                                ? Colors.error
-                                : colors.placeholderTextColor,
-                            }}
-                          >
-                            Your area of service offered
-                          </Text>
-                          <TouchableOpacity
-                            onPress={toggleDropdown5}
-                            style={{
-                              marginHorizontal: 10,
-                              ...globalStyles.seclectIndiaView,
-                              borderColor: errorsServieSeeker
-                                ? Colors.error
-                                : colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...styles.JobfiledSectionText,
-                                paddingBottom: 0,
-                                color: colors.textColor,
-                              }}
-                            >
-                              {selectedValue5}
-                            </Text>
-                          </TouchableOpacity>
-
-                          {isOpen5 && (
-                            <View
-                              style={{
-                                ...globalStyles.dropdownList,
-                                backgroundColor:
-                                  colors.textinputBackgroundcolor,
-                                borderColor: colors.textinputbordercolor,
-                              }}
-                            >
-                              {industryData.map((item) => (
-                                <TouchableOpacity
-                                  key={item.Id}
-                                  style={{
-                                    ...globalStyles.dropdownItem,
-                                    borderColor: colors.textinputbordercolor,
-                                  }}
-                                  onPress={() => {
-                                    selectOption5(item?.Name),
-                                      setSeekerSericeId(item?.Id);
-                                  }}
-                                >
-                                  <Text
-                                    style={{
-                                      ...styles.text,
-                                      color: colors.textColor,
-                                    }}
-                                  >
-                                    {item?.Name}
-                                  </Text>
-                                </TouchableOpacity>
-                              ))}
-                            </View>
-                          )}
-
-                          <View style={globalStyles.containerSkill}>
-                            <Text
-                              style={{
-                                marginTop: 20,
-                                color: errorsSkillsSeeker
-                                  ? Colors.error
-                                  : colors.placeholderTextColor,
-                              }}
-                            >
-                              Skills
-                            </Text>
-                            <FlatList
-                              data={skillsList}
-                              keyExtractor={(item, index) => index.toString()}
-                              numColumns={3}
-                              renderItem={({ item }) => (
-                                <TouchableOpacity
-                                  style={{
-                                    ...globalStyles.skillTag,
-                                    backgroundColor: colors.AppmainColor,
-                                  }}
-                                  onPress={() => removeSkill(item)}
-                                >
-                                  <Text
-                                    style={{
-                                      ...globalStyles.skillText,
-                                      color: colors.ButtonTextColor,
-                                    }}
-                                  >
-                                    {item} ✕
-                                  </Text>
-                                </TouchableOpacity>
-                              )}
-                            />
-
-                            <View style={globalStyles.inputContainerSkill}>
-                              <TextInput
-                                placeholder="Enter skill..."
-                                placeholderTextColor={
-                                  colors.placeholderTextColor
-                                }
-                                value={skill}
-                                onChangeText={(val) => {
-                                  setSkill(val), setErrorsSkillsSeeker(false);
-                                }}
-                                style={{
-                                  ...globalStyles.inputSkill,
-                                  borderColor: errorsSkillsSeeker
-                                    ? Colors.error
-                                    : colors.textinputbordercolor,
-                                  color: colors.textColor,
-                                  backgroundColor:
-                                    colors.textinputBackgroundcolor,
-                                }}
-                              />
-                              <TouchableOpacity
-                                onPress={addSkill}
-                                style={{
-                                  ...globalStyles.addButton,
-                                  backgroundColor: colors.AppmainColor,
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    ...globalStyles.addText,
-                                    color: colors.ButtonTextColor,
-                                  }}
-                                >
-                                  + Add
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-
-                          <Text
-                            style={{
-                              marginTop: 20,
-                              paddingHorizontal: 10,
-                              color: colors.placeholderTextColor,
-                              // color: errorTotalDays ? Colors.error : Colors.gray,
-                            }}
-                          >
-                            Work experience level
-                          </Text>
-                          <TouchableOpacity
-                            onPress={toggleDropdown6}
-                            style={{
-                              marginHorizontal: 10,
-                              ...globalStyles.seclectIndiaView,
-                              borderColor: colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...styles.JobfiledSectionText,
-                                paddingBottom: 0,
-                                color: colors.textColor,
-                              }}
-                            >
-                              {selectedValue6}
-                            </Text>
-                          </TouchableOpacity>
-                          {isOpen6 && (
-                            <View
-                              style={{
-                                ...globalStyles.dropdownList,
-                                backgroundColor:
-                                  colors.textinputBackgroundcolor,
-                                borderColor: colors.textinputbordercolor,
-                              }}
-                            >
-                              {options6.map((option, index) => (
-                                <TouchableOpacity
-                                  key={index}
-                                  style={{
-                                    ...globalStyles.dropdownItem,
-                                    borderColor: colors.textinputbordercolor,
-                                  }}
-                                  onPress={() => selectOption6(option)}
-                                >
-                                  <Text
-                                    style={{
-                                      ...styles.text,
-                                      color: colors.textColor,
-                                    }}
-                                  >
-                                    {option}
-                                  </Text>
-                                </TouchableOpacity>
-                              ))}
-                            </View>
-                          )}
-
-                          <View
-                            style={{
-                              ...globalStyles.JobfiledSection,
-                              paddingHorizontal: 10,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...styles.JobfiledSectionText,
-                                color: errorTitle1
-                                  ? Colors.error
-                                  : colors.placeholderTextColor,
-                              }}
-                            >
-                              Professional title that best describes your work
-                            </Text>
-
-                            <TextInput
-                              style={{
-                                ...styles.textInput,
-                                borderColor: errorTitle1
-                                  ? Colors.error
-                                  : colors.textinputbordercolor,
-                                color: colors.textColor,
-                                backgroundColor:
-                                  colors.textinputBackgroundcolor,
-                              }}
-                              onChangeText={(value) => {
-                                setProTitleInSeeker(value);
-                                setErrorTitle1(value.trim().length === 0);
-                              }}
-                              value={proTitleInSeeker}
-                              placeholder="Write your Industry category"
-                              keyboardType="default"
-                              multiline
-                              placeholderTextColor={colors.placeholderTextColor}
-                            />
-                          </View>
-
-                          <View style={globalStyles.JobfiledSection}>
-                            <Text
-                              style={{
-                                ...styles.JobfiledSectionText,
-                                paddingHorizontal: 10,
-                                color: errorDescription1
-                                  ? Colors.error
-                                  : colors.placeholderTextColor,
-                              }}
-                            >
-                              Brief professional overview (maximum 5000
-                              characters)
-                            </Text>
-                            <TextInput
-                              style={{
-                                ...styles.textInput,
-                                marginHorizontal: 10,
-                                height: 80,
-                                borderColor: errorDescription1
-                                  ? Colors.error
-                                  : colors.textinputbordercolor,
-                                color: colors.textColor,
-                                backgroundColor:
-                                  colors.textinputBackgroundcolor,
-                              }}
-                              onChangeText={(value) => {
-                                setOverViewSeeker(value);
-                                setErrorDescription1(value.trim().length === 0);
-                              }}
-                              value={overViewSeeker}
-                              placeholder="Write your Description"
-                              keyboardType="default"
-                              multiline
-                              placeholderTextColor={colors.placeholderTextColor}
-                            />
-                          </View>
-
-                          <Text
-                            style={{
-                              marginTop: 20,
-                              paddingHorizontal: 10,
-                              color: colors.placeholderTextColor,
-                            }}
-                          >
-                            Work experience level
-                          </Text>
-                          <TouchableOpacity
-                            onPress={toggleDropdown7}
-                            style={{
-                              marginHorizontal: 10,
-                              ...globalStyles.seclectIndiaView,
-                              borderColor: colors.textinputbordercolor,
-                              backgroundColor: colors.textinputBackgroundcolor,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...styles.JobfiledSectionText,
-                                paddingBottom: 0,
-                                color: colors.textColor,
-                              }}
-                            >
-                              {selectedValue7}
-                            </Text>
-                          </TouchableOpacity>
-                          {isOpen7 && (
-                            <View
-                              style={{
-                                ...globalStyles.dropdownList,
-                                backgroundColor:
-                                  colors.textinputBackgroundcolor,
-                                borderColor: colors.textinputbordercolor,
-                              }}
-                            >
-                              {options7.map((option, index) => (
-                                <TouchableOpacity
-                                  key={index}
-                                  style={{
-                                    ...globalStyles.dropdownItem,
-                                    borderColor: colors.textinputbordercolor,
-                                  }}
-                                  onPress={() => selectOption7(option)}
-                                >
-                                  <Text
-                                    style={{
-                                      ...styles.text,
-                                      color: colors.textColor,
-                                    }}
-                                  >
-                                    {option}
-                                  </Text>
-                                </TouchableOpacity>
-                              ))}
-                            </View>
-                          )}
-                          <TouchableOpacity
-                            style={{
-                              ...globalStyles.saveButton,
-                              marginHorizontal: 10,
-                              backgroundColor: colors.AppmainColor,
-                            }}
-                            onPress={() => {
-                              handleEditMySeekerProfile();
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...globalStyles.saveButtonText,
-                                color: colors.ButtonTextColor,
-                              }}
-                            >
-                              Save
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </>
-                    ) : null}
-
-                    {seekerValue ? (
-                      <View
-                        style={{
-                          backgroundColor: colors.textinputBackgroundcolor,
-                          flex: 1,
-                          marginTop: 10,
-                          marginHorizontal: 5,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <View style={{ alignItems: "center" }}>
-                          <Image
-                            source={
-                              seekerValue?.ProfilePhoto
-                                ? {
-                                    uri: seekerValue?.ProfilePhoto,
-                                  }
-                                : require("../../assets/placeholderprofileimage.png")
-                            }
-                            style={{
-                              width: 100,
-                              height: 100,
-                              borderRadius: 50,
-                              marginTop: 10,
-                            }}
-                          />
-                        </View>
-
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              ...globalStyles.SeekerText,
-                              color: colors.AppmainColor,
-                            }}
-                          >
-                            {seekerValue?.UserName}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() =>
-                              navigation.navigate("ChatDetails", {
-                                Item: seekerValue,
-                              })
-                            }
-                            style={{
-                              backgroundColor: colors.AppmainColor,
-                              padding: 5,
-                              borderRadius: 5,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...globalStyles.SearchInternText,
-                                color: colors.ButtonTextColor,
-                              }}
-                            >
-                              Send message
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <View
-                          style={{
-                            marginTop: 10,
-                            borderTopWidth: 1,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Service offered
-                          </Text>
-                          <Text style={{ color: colors.textColor }}>
-                            {seekerValue?.Serviceoffered}
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            marginTop: 10,
-                            borderTopWidth: 1,
-                            borderBottomWidth: 1,
-                            paddingVertical: 8,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          <Text style={{ color: colors.textColor }}>
-                            {seekerValue?.ProfessionalTitle}
-                          </Text>
-                        </View>
-
-                        <View style={{ marginTop: 10 }}>
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Skills
-                          </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              flexWrap: "wrap",
-                              marginTop: 5,
-                            }}
-                          >
-                            {seekerValue?.Skills?.split(",").map(
-                              (skill, index) => (
-                                <View
-                                  key={index}
-                                  style={{
-                                    backgroundColor: colors.background,
-                                    borderRadius: 10,
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5,
-                                    marginRight: 5,
-                                    marginBottom: 5,
-                                  }}
-                                >
-                                  <Text style={{ color: colors.textColor }}>
-                                    {skill.trim()}
-                                  </Text>
-                                </View>
-                              )
-                            )}
-                          </View>
-                        </View>
-
-                        <View
-                          style={{
-                            marginTop: 10,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Work Experience
-                          </Text>
-                          <Text
-                            style={{ fontSize: 18, color: colors.textColor }}
-                          >
-                            {seekerValue?.WorkExperience}
-                          </Text>
-                        </View>
-
-                        <View
-                          style={{
-                            marginVertical: 15,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Brief Professonal overview
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              marginTop: 20,
-                              color: colors.textColor,
-                            }}
-                          >
-                            {seekerValue?.BriefProfessonal}
-                          </Text>
-                        </View>
-                      </View>
-                    ) : null}
-
-                    {editViewTrue == true ? null : mySeekerData?.length > 0 ? (
-                      <View
-                        style={{
-                          backgroundColor: colors.textinputBackgroundcolor,
-                          flex: 1,
-                          marginTop: 10,
-                          marginHorizontal: 5,
-                          paddingHorizontal: 10,
-                        }}
-                      >
-                        <View style={{ alignItems: "center" }}>
-                          <Image
-                            source={
-                              mySeekerData[0]?.ProfilePhoto
-                                ? {
-                                    uri: mySeekerData[0]?.ProfilePhoto,
-                                  }
-                                : require("../../assets/placeholderprofileimage.png")
-                            }
-                            style={{
-                              width: 100,
-                              height: 100,
-                              borderRadius: 50,
-                              marginTop: 10,
-                            }}
-                          />
-                        </View>
-
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              ...globalStyles.SeekerText,
-                              color: colors.AppmainColor,
-                            }}
-                          >
-                            {mySeekerData[0]?.UserName}
-                          </Text>
-                          <View
-                            style={{
-                              backgroundColor: colors.AppmainColor,
-                              padding: 5,
-                              borderRadius: 5,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                ...globalStyles.SearchInternText,
-                                color: colors.ButtonTextColor,
-                              }}
-                            >
-                              Send message
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View
-                          style={{
-                            marginTop: 10,
-                            borderTopWidth: 1,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Service offered
-                          </Text>
-                          <Text>{mySeekerData[0]?.Serviceoffered}</Text>
-                        </View>
-
-                        <View
-                          style={{
-                            marginTop: 10,
-                            borderTopWidth: 1,
-                            borderBottomWidth: 1,
-                            paddingVertical: 8,
-                            borderColor: colors.textinputbordercolor,
-                          }}
-                        >
-                          <Text>{mySeekerData[0]?.ProfessionalTitle}</Text>
-                        </View>
-
-                        <View style={{ marginTop: 10 }}>
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Skills
-                          </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              flexWrap: "wrap",
-                              marginTop: 5,
-                            }}
-                          >
-                            {mySeekerData[0]?.Skills?.split(",").map(
-                              (skill, index) => (
-                                <View
-                                  key={index}
-                                  style={{
-                                    backgroundColor: colors.background,
-                                    borderRadius: 10,
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5,
-                                    marginRight: 5,
-                                    marginBottom: 5,
-                                  }}
-                                >
-                                  <Text style={{ color: colors.textColor }}>
-                                    {skill.trim()}
-                                  </Text>
-                                </View>
-                              )
-                            )}
-                          </View>
-                        </View>
-
-                        <View style={{ marginTop: 10 }}>
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Work Experience
-                          </Text>
-                          <Text
-                            style={{ fontSize: 18, color: colors.textColor }}
-                          >
-                            {mySeekerData[0]?.WorkExperience}
-                          </Text>
-                        </View>
-
-                        <View style={{ marginVertical: 15 }}>
-                          <Text
-                            style={{
-                              color: colors.placeholderTextColor,
-                              paddingTop: 10,
-                            }}
-                          >
-                            Brief Professional Overview
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              marginTop: 20,
-                              color: colors.textColor,
-                            }}
-                          >
-                            {mySeekerData[0]?.BriefProfessonal}
-                          </Text>
-                        </View>
-                      </View>
-                    ) : null}
-                    {editViewTrue == true ? null : (
-                      <FlatList
-                        data={internSeeker}
-                        keyExtractor={(item) => item.UserId?.toString()}
-                        renderItem={renderItemInternSeeker}
-                      />
-                    )}
-                  </View>
-                </View>
-              </>
-            )}
-          </ScrollView>
+          {renderTopTabs()}
+          <View style={{ flex: 1 }}>{renderContent()}</View>
         </View>
       </KeyboardAvoidingWrapper>
+      <Modal
+        visible={showIndustryModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIndustryModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            paddingHorizontal: 20,
+          }}
+        >
+          <View
+            style={{
+              height: "70%",
+              backgroundColor: colors.textinputBackgroundcolor,
+              borderRadius: 8,
+              position: "relative",
+              overflow: "visible",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setShowIndustryModal(false)}
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1000,
+                elevation: 10,
+                padding: 8,
+              }}
+            >
+              <Icon
+                type="Entypo"
+                name="cross"
+                size={26}
+                color={colors.backIconColor}
+              />
+            </TouchableOpacity>
+            <FlatList
+              data={industryData}
+              keyExtractor={(item) => item.Id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={globalStyles.dropdownItem}
+                  onPress={() => {
+                    setIndustryValue(item?.Name);
+                    setIndustryValueID(item?.Id);
+                    setShowIndustryModal(false);
+                  }}
+                >
+                  <Text style={{ color: colors.textColor }}>{item.Name}</Text>
+                </TouchableOpacity>
+              )}
+              onEndReached={() => getIndustryList(page)}
+              onEndReachedThreshold={0.1}
+              contentContainerStyle={{ flexGrow: 1 }}
+              ListFooterComponent={
+                loading && page > 1 ? (
+                  <ActivityIndicator size="small" style={{ margin: 10 }} />
+                ) : !hasMore && industryData.length > 0 ? (
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      padding: 10,
+                      color: colors.textColor,
+                    }}
+                  >
+                    No more data
+                  </Text>
+                ) : null
+              }
+              ListEmptyComponent={
+                !loading ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        padding: 10,
+                        color: colors.textColor,
+                      }}
+                    >
+                      No data available
+                    </Text>
+                  </View>
+                ) : null
+              }
+              refreshing={refreshing}
+              onRefresh={() => {
+                setPage(1);
+                setHasMore(true);
+                getIndustryList(1);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

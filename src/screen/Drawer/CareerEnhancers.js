@@ -47,7 +47,12 @@ const CareerEnhancers = ({ navigation, route }) => {
   const [page, setPage] = useState(1);
   const [userData, setUserData] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
-
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setHasMoreData(true);
+    setPage(1);
+  };
   const UserValue = async () => {
     const userDta = await AsyncStorage.getItem("userData");
     const parsedData = JSON.parse(userDta);
@@ -59,15 +64,18 @@ const CareerEnhancers = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
+    knowlwdgeHubList(page);
+  }, [page]);
+  useEffect(() => {
+    setRefreshing(true);
+    setHasMoreData(true);
     setPage(1);
-    setKnowlwdgeList([]);
-    knowlwdgeHubList(1);
-  }, [isFocused, selected]);
+  }, [selected, isFocused]);
 
   const knowlwdgeHubList = async (pageNum) => {
-    if (loading || !hasMoreData) return;
+    if (loading || (!hasMoreData && pageNum !== 1)) return;
+
     setLoading(true);
-    setInitialLoading(true);
     try {
       const response = await fetch(`${baseUrl}${ListCareereBusiness}`, {
         method: "POST",
@@ -75,22 +83,25 @@ const CareerEnhancers = ({ navigation, route }) => {
         body: JSON.stringify({
           userId: selected === "my" ? userData?.User?.userId : "",
           CompanyTypeId: "",
-          per_page: 20,
-          page: 1,
+          per_page: 10,
+          page: pageNum,
         }),
       });
 
       const data = await response.json();
-      if (data?.Data?.length > 0) {
-        setKnowlwdgeList((prev) => [...prev, ...data.Data]);
-        setPage(pageNum);
+
+      if (pageNum === 1) {
+        setKnowlwdgeList(data?.Data || []);
       } else {
-        setHasMoreData(false);
+        setKnowlwdgeList((prev) => [...prev, ...(data?.Data || [])]);
       }
+
+      setHasMoreData(data?.Data?.length === 10);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
       setInitialLoading(false);
     }
   };
@@ -166,200 +177,232 @@ const CareerEnhancers = ({ navigation, route }) => {
     >
       <Header title="Career Enhancers" navigation={navigation} />
       <View style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          onScroll={handleLoadMore}
-          scrollEventThrottle={400}
-        >
-          <ImageBackground
-            source={careerEnhancersImage}
-            resizeMode="contain"
-            style={{
-              width: "auto",
-              height: 155,
-            }}
-          ></ImageBackground>
-
-          {/* Clickable Sections */}
-          <View style={globalStyles.flexRow}>
-            <TouchableOpacity
-              style={[
-                globalStyles.optionBox,
-                { backgroundColor: colors.textinputBackgroundcolor },
-                selected === "all" && { backgroundColor: colors.AppmainColor },
-              ]}
-              onPress={() => setSelected("all")}
-            >
-              <Text
+        <FlatList
+          data={knowlwdgeList}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+          onEndReached={() => {
+            if (!loading && hasMoreData) {
+              setPage((prev) => prev + 1);
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          ListHeaderComponent={
+            <>
+              <ImageBackground
+                source={careerEnhancersImage}
+                resizeMode="contain"
                 style={{
-                  ...globalStyles.optionText,
-                  color:
-                    selected === "all"
-                      ? colors.ButtonTextColor
-                      : colors.textColor,
+                  width: "auto",
+                  height: 155,
+                }}
+              ></ImageBackground>
+
+              {/* Clickable Sections */}
+              <View style={globalStyles.flexRow}>
+                <TouchableOpacity
+                  style={[
+                    globalStyles.optionBox,
+                    { backgroundColor: colors.textinputBackgroundcolor },
+                    selected === "all" && {
+                      backgroundColor: colors.AppmainColor,
+                    },
+                  ]}
+                  onPress={() => setSelected("all")}
+                >
+                  <Text
+                    style={{
+                      ...globalStyles.optionText,
+                      color:
+                        selected === "all"
+                          ? colors.ButtonTextColor
+                          : colors.textColor,
+                    }}
+                  >
+                    All Business Pages
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    globalStyles.optionBox,
+                    { backgroundColor: colors.textinputBackgroundcolor },
+                    selected === "my" && {
+                      backgroundColor: colors.AppmainColor,
+                    },
+                  ]}
+                  onPress={() => setSelected("my")}
+                >
+                  <Text
+                    style={{
+                      ...globalStyles.optionText,
+                      color:
+                        selected === "my"
+                          ? colors.ButtonTextColor
+                          : colors.textColor,
+                    }}
+                  >
+                    My Business Page
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  ...globalStyles.saveButton,
+                  margin: 10,
+                  paddingVertical: 10,
+                  backgroundColor: colors.AppmainColor,
+                }}
+                onPress={() => navigation.navigate("AddCareer")}
+              >
+                <Text
+                  style={{
+                    ...globalStyles.saveButtonText,
+                    color: colors.ButtonTextColor,
+                  }}
+                >
+                  Create Business Page
+                </Text>
+              </TouchableOpacity>
+
+              <View
+                style={{
+                  ...styles?.VecoTitle,
+                  borderColor: colors.textinputbordercolor,
+                  backgroundColor: colors.textinputBackgroundcolor,
                 }}
               >
-                All Business Pages
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    ...globalStyles.headlineText,
+                    color: colors.AppmainColor,
+                    flexShrink: 1,
+                  }}
+                >
+                  Establish your business presence on {universityFullName},
+                  today.
+                </Text>
+              </View>
 
-            <TouchableOpacity
-              style={[
-                globalStyles.optionBox,
-                { backgroundColor: colors.textinputBackgroundcolor },
-                selected === "my" && { backgroundColor: colors.AppmainColor },
-              ]}
-              onPress={() => setSelected("my")}
-            >
-              <Text
+              <View
                 style={{
-                  ...globalStyles.optionText,
-                  color:
-                    selected === "my"
-                      ? colors.ButtonTextColor
-                      : colors.textColor,
+                  ...globalStyles.ViewINter1,
+                  borderWidth: 1,
+                  borderColor: colors.textinputbordercolor,
                 }}
               >
-                My Business Page
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    flexShrink: 1,
+                    color: colors.textColor,
+                  }}
+                >
+                  The benefits for creating a Business Page on{" "}
+                  {universityFullName}
+                </Text>
+              </View>
 
-          <TouchableOpacity
-            style={{
-              ...globalStyles.saveButton,
-              margin: 10,
-              paddingVertical: 10,
-              backgroundColor: colors.AppmainColor,
-            }}
-            onPress={() => navigation.navigate("AddCareer")}
-          >
-            <Text
-              style={{
-                ...globalStyles.saveButtonText,
-                color: colors.ButtonTextColor,
-              }}
-            >
-              Create Business Page
-            </Text>
-          </TouchableOpacity>
+              {/* Bullet Points */}
+              <View style={styles.bulletRow}>
+                <Icon
+                  name="check"
+                  size={20}
+                  color={colors.AppmainColor}
+                  style={{ margin: 10 }}
+                />
+                <Text style={{ ...styles.bulletText, color: colors.textColor }}>
+                  {universityName} will provide interactive sessions with Career
+                  Enhancing experts.
+                </Text>
+              </View>
 
-          <View
-            style={{
-              ...styles?.VecoTitle,
-              borderColor: colors.textinputbordercolor,
-              backgroundColor: colors.textinputBackgroundcolor,
-            }}
-          >
-            <Text
-              style={{
-                ...globalStyles.headlineText,
-                color: colors.AppmainColor,
-                flexShrink: 1,
-              }}
-            >
-              Establish your business presence on {universityFullName}, today.
-            </Text>
-          </View>
+              <View style={styles.bulletRow}>
+                <Icon
+                  name="check"
+                  size={20}
+                  color={colors.AppmainColor}
+                  style={{ margin: 10 }}
+                />
+                <View>
+                  <Text
+                    style={{ ...styles.bulletTitle, color: colors.textColor }}
+                  >
+                    Skills Enhancement Courses will help:
+                  </Text>
+                  <Text
+                    style={{ ...styles.bulletText, color: colors.textColor }}
+                  >
+                    Change or grow your position and need to refresh your
+                    skills.
+                  </Text>
+                </View>
+              </View>
 
-          <View
-            style={{
-              ...globalStyles.ViewINter1,
-              borderWidth: 1,
-              borderColor: colors.textinputbordercolor,
-            }}
-          >
-            <Text
-              style={{ fontSize: 17, flexShrink: 1, color: colors.textColor }}
-            >
-              The benefits for creating a Business Page on {universityFullName}
-            </Text>
-          </View>
+              <View style={styles.bulletRow}>
+                <Icon
+                  name="check"
+                  size={20}
+                  color={colors.AppmainColor}
+                  style={{ margin: 10 }}
+                />
+                <View>
+                  <Text
+                    style={{ ...styles.bulletTitle, color: colors.textColor }}
+                  >
+                    Professional Development Courses will help:
+                  </Text>
+                  <Text
+                    style={{ ...styles.bulletText, color: colors.textColor }}
+                  >
+                    Plan for and get the career you want.
+                  </Text>
+                </View>
+              </View>
 
-          {/* Bullet Points */}
-          <View style={styles.bulletRow}>
-            <Icon
-              name="check"
-              size={20}
-              color={colors.AppmainColor}
-              style={{ margin: 10 }}
-            />
-            <Text style={{ ...styles.bulletText, color: colors.textColor }}>
-              {universityName} will provide interactive sessions with Career
-              Enhancing experts.
-            </Text>
-          </View>
-
-          <View style={styles.bulletRow}>
-            <Icon
-              name="check"
-              size={20}
-              color={colors.AppmainColor}
-              style={{ margin: 10 }}
-            />
-            <View>
-              <Text style={{ ...styles.bulletTitle, color: colors.textColor }}>
-                Skills Enhancement Courses will help:
-              </Text>
-              <Text style={{ ...styles.bulletText, color: colors.textColor }}>
-                Change or grow your position and need to refresh your skills.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.bulletRow}>
-            <Icon
-              name="check"
-              size={20}
-              color={colors.AppmainColor}
-              style={{ margin: 10 }}
-            />
-            <View>
-              <Text style={{ ...styles.bulletTitle, color: colors.textColor }}>
-                Professional Development Courses will help:
-              </Text>
-              <Text style={{ ...styles.bulletText, color: colors.textColor }}>
-                Plan for and get the career you want.
-              </Text>
-            </View>
-          </View>
-
-          <View
-            style={{
-              ...styles.bulletRow,
-              justifyContent: "space-between",
-            }}
-          >
-            <View style={{ padding: 10 }}>
-              <Text
+              <View
                 style={{
-                  fontSize: 19,
-                  fontWeight: "700",
-                  color: colors.textColor,
+                  ...styles.bulletRow,
+                  justifyContent: "space-between",
                 }}
               >
-                {selected == "my"
-                  ? "My Industry pages"
-                  : "Featured Industry pages"}
-              </Text>
-            </View>
-          </View>
-          {knowlwdgeList?.map((item, index) => renderItem({ item, index }))}
-          {loading && (
-            <ActivityIndicator size="large" color={colors.AppmainColor} />
-          )}
-          {!hasMoreData && (
-            <Text
-              style={{
-                textAlign: "center",
-                marginVertical: 10,
-                color: colors.placeholderTextColor,
-              }}
-            >
-              No more posts to show
-            </Text>
-          )}
-        </ScrollView>
+                <View style={{ padding: 10 }}>
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "700",
+                      color: colors.textColor,
+                    }}
+                  >
+                    {selected == "my"
+                      ? "My Industry pages"
+                      : "Featured Industry pages"}
+                  </Text>
+                </View>
+              </View>
+            </>
+          }
+          ListFooterComponent={
+            loading ? (
+              <ActivityIndicator size="large" color={colors.AppmainColor} />
+            ) : (
+              !hasMoreData && (
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginVertical: 10,
+                    color: colors.placeholderTextColor,
+                  }}
+                >
+                  No more posts to show
+                </Text>
+              )
+            )
+          }
+        />
       </View>
     </SafeAreaView>
   );

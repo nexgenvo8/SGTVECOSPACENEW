@@ -86,7 +86,10 @@ const AddCompany = ({ navigation, route }) => {
   const [selectedState, setSelectedState] = useState(null);
   const [stateLoading, setStateLoading] = useState(false);
   const [image, setImage] = useState(null);
-
+  const [showIndustryModal, setShowIndustryModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [logoImage, setLogoImage] = useState(null);
   const [bannerImage, setBannerImage] = useState(null);
   const [base64Logo, setBase64Logo] = useState(null);
@@ -97,6 +100,7 @@ const AddCompany = ({ navigation, route }) => {
   const [filteredCountries, setFilteredCountries] = useState([]);
   console.log("selectedCountryselectedCountry", filteredCountries);
   const [filteredStates, setFilteredStates] = useState([]);
+  const [perPage] = useState(20);
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email.trim());
@@ -194,29 +198,53 @@ const AddCompany = ({ navigation, route }) => {
     image,
   ]);
 
-  const getIndustryList = async (Val) => {
-    console.log(" value --- > ", Val);
+  useEffect(() => {
+    if (showIndustryModal) {
+      setPage(1);
+      setHasMore(true);
+      getIndustryList(1);
+    }
+  }, [showIndustryModal]);
+
+  const getIndustryList = async (pageNumber = 1) => {
+    if (loading || (!hasMore && pageNumber !== 1)) return;
+
+    if (pageNumber === 1) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const response = await fetch(`${baseUrl}${listoption}`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          optionType: Val,
+          optionType: "industry",
+          per_page: perPage,
+          page: pageNumber,
         }),
       });
 
       const data = await response.json();
-      console.log(" value data --------->>>>>> > ", data?.DataList);
 
       if (response.ok) {
-        setIndustryData(data?.DataList);
+        const newData = data?.DataList || [];
+
+        setIndustryData((prev) =>
+          pageNumber === 1 ? newData : [...prev, ...newData]
+        );
+
+        setHasMore(newData.length === perPage);
+        setPage(pageNumber + 1);
       } else {
-        showError(data.message);
+        console.error("API Error:", data.message);
       }
     } catch (error) {
-      console.error("getIndustryListss Error:", error);
+      console.error("Industry List Error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
   const selectOption5 = (option) => {
@@ -549,7 +577,7 @@ const AddCompany = ({ navigation, route }) => {
                   Industry<Text style={styles.red}>*</Text>
                 </Text>
                 <TouchableOpacity
-                  onPress={toggleDropdown5}
+                  onPress={() => setShowIndustryModal(true)}
                   style={{
                     ...globalStyles.seclectIndiaView,
                     borderColor: errorCategory
@@ -568,32 +596,6 @@ const AddCompany = ({ navigation, route }) => {
                     {selectedValue5 || "Select"}
                   </Text>
                 </TouchableOpacity>
-                {isOpen5 && (
-                  <View
-                    style={{
-                      ...globalStyles.dropdownList,
-                      backgroundColor: colors.textinputBackgroundcolor,
-                      borderColor: colors.textinputbordercolor,
-                    }}
-                  >
-                    {industryData.map((item) => (
-                      <TouchableOpacity
-                        key={item.Id}
-                        style={{
-                          ...globalStyles.dropdownItem,
-                          borderColor: colors.textinputbordercolor,
-                        }}
-                        onPress={() => {
-                          selectOption5(item);
-                        }}
-                      >
-                        <Text style={{ fontSize: 14, color: colors.textColor }}>
-                          {item?.Name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
               </View>
 
               <View
@@ -1395,6 +1397,110 @@ const AddCompany = ({ navigation, route }) => {
           </View>
         </View>
       </KeyboardAvoidingWrapper>
+      <Modal
+        visible={showIndustryModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIndustryModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            paddingHorizontal: 20,
+          }}
+        >
+          <View
+            style={{
+              height: "70%",
+              backgroundColor: colors.textinputBackgroundcolor,
+              borderRadius: 8,
+              position: "relative",
+              overflow: "visible",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setShowIndustryModal(false)}
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1000,
+                elevation: 10,
+                padding: 8,
+              }}
+            >
+              <Icon
+                type="Entypo"
+                name="cross"
+                size={26}
+                color={colors.backIconColor}
+              />
+            </TouchableOpacity>
+            <FlatList
+              data={industryData}
+              keyExtractor={(item) => item.Id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={globalStyles.dropdownItem}
+                  onPress={() => {
+                    selectOption5(item);
+                    setShowIndustryModal(false);
+                  }}
+                >
+                  <Text style={{ color: colors.textColor }}>{item.Name}</Text>
+                </TouchableOpacity>
+              )}
+              onEndReached={() => getIndustryList(page)}
+              onEndReachedThreshold={0.5}
+              contentContainerStyle={{ flexGrow: 1 }}
+              ListFooterComponent={
+                loading && page > 1 ? (
+                  <ActivityIndicator size="small" style={{ margin: 10 }} />
+                ) : !hasMore && industryData.length > 0 ? (
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      padding: 10,
+                      color: colors.textColor,
+                    }}
+                  >
+                    No more data
+                  </Text>
+                ) : null
+              }
+              ListEmptyComponent={
+                !loading ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        padding: 10,
+                        color: colors.textColor,
+                      }}
+                    >
+                      No data available
+                    </Text>
+                  </View>
+                ) : null
+              }
+              refreshing={refreshing}
+              onRefresh={() => {
+                setPage(1);
+                setHasMore(true);
+                getIndustryList(1);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

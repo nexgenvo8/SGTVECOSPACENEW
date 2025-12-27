@@ -12,6 +12,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Button,
 } from "react-native";
 import globalStyles from "../GlobalCSS";
 import Header from "../Header/Header";
@@ -27,6 +28,7 @@ import {
   Profile_Detail,
   RemoveConnection,
   Addprofileview,
+  reportcontact,
 } from "../baseURL/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -45,11 +47,13 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { showError, showSuccess } from "../components/Toast";
 import { useTheme } from "../../theme/ThemeContext";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { universityFullName } from "../../constants";
 
 const ProfileDetails = ({ navigation, route }) => {
   const { Item = {}, groupId = {} } = route.params || {};
   const [ItemValue, setItemValue] = useState(Item?.IsUserBlocked);
+  const [isBlockModalVisible, setIsBlockModalVisible] = useState(false);
   const { isDark, colors, toggleTheme } = useTheme();
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [userData, setUserData] = useState(null);
@@ -70,6 +74,26 @@ const ProfileDetails = ({ navigation, route }) => {
   const [modalImageVisible, setModalImageVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [modalIndex, setModalIndex] = useState(0);
+  const { width, height } = Dimensions.get("window");
+  const [isreportModalVisible, setreportModalVisible] = useState(false);
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
+
+  const reportQuestions = [
+    "Spam messages",
+    "Abusive behavior",
+    "Harassment",
+    "Fake profile",
+    "Other",
+  ];
+
+  const toggleQuestion = (question) => {
+    if (selectedQuestions.includes(question)) {
+      setSelectedQuestions(selectedQuestions.filter((q) => q !== question));
+    } else {
+      setSelectedQuestions([...selectedQuestions, question]);
+    }
+  };
+
   const screenWidth = Dimensions.get("window").width;
   const UserValue = async () => {
     const userDta = await AsyncStorage.getItem("userData");
@@ -115,16 +139,30 @@ const ProfileDetails = ({ navigation, route }) => {
         showSuccess(JSON.stringify(data.Message));
       } else {
         console.error("API Error:", data);
+        showError(data.Message);
       }
     } catch (error) {
-      console.error("Fetch Error:", error.message);
+      console.error("Fetch Error:", error.Message);
     }
   };
+  const confirmBlock = () => {
+    setIsBlockModalVisible(true);
+  };
 
+  const onBlockCancel = () => {
+    setIsBlockModalVisible(false);
+  };
+
+  const onBlockConfirm = () => {
+    blockUser();
+    setIsBlockModalVisible(false);
+  };
   const blockUser = async () => {
     try {
-      const url = `${baseUrl}${ItemValue ? unblockcontact : blockcontact}`;
-      console.log("Final URL:", url);
+      const isUnblocking = ItemValue;
+      const url = `${baseUrl}${isUnblocking ? unblockcontact : blockcontact}`;
+
+      // console.log("Final URL:", url);
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -135,20 +173,53 @@ const ProfileDetails = ({ navigation, route }) => {
           blockTo: Item?.UserId || Item?.UserDetail?.UserId,
         }),
       });
+
       console.log("Response Status:", response.status);
       const data = await response.json();
       console.log("API Response Data:", data);
 
       if (response.ok) {
-        showSuccess(JSON.stringify(data.Message));
+        showSuccess(data?.Message);
         setItemValue(!ItemValue);
       } else {
         console.error("API Error:", data);
+        showError(data?.Message || "Something went wrong");
       }
     } catch (error) {
       console.error("Fetch Error:", error.message);
+      showError("Network error");
     }
   };
+  const submitReport = async () => {
+    if (selectedQuestions.length === 0) {
+      showError("Please select at least one reason");
+      return;
+    }
+
+    const data = {
+      reportBy: userData?.User?.userId,
+      reportTo: Item?.UserId || Item?.UserDetail?.UserId,
+      report_question: selectedQuestions,
+    };
+    try {
+      const response = await fetch(`${baseUrl}${reportcontact}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        showSuccess("Report submitted successfully!");
+        setreportModalVisible(false);
+        setSelectedQuestions([]);
+      } else {
+        showError("Error submitting report.");
+      }
+    } catch (error) {
+      console.log("Network error:", error.message);
+    }
+  };
+
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
   };
@@ -593,26 +664,29 @@ const ProfileDetails = ({ navigation, route }) => {
             >
               <Text style={styles.sendMessageText}>Send Message</Text>
             </TouchableOpacity>
-            {interestsValue.length > 0 ? (
-              <TouchableOpacity
-                style={styles.dotsButton}
-                onPress={toggleDropdown}
-              >
-                <Icon1
-                  name="dots-three-horizontal"
-                  size={20}
-                  color={colors.textColor}
-                />
-              </TouchableOpacity>
-            ) : null}
+            {/* {interestsValue.length > 0 ? ( */}
+            <TouchableOpacity
+              style={styles.dotsButton}
+              onPress={toggleDropdown}
+            >
+              <Icon1
+                name="dots-three-horizontal"
+                size={20}
+                color={colors.textColor}
+              />
+            </TouchableOpacity>
+            {/* ) : null} */}
           </View>
 
-          {/* Dropdown View */}
           {isDropdownVisible && (
             <View
               style={[
                 styles.dropdownContainer,
-                { position: "absolute", right: 10, top: 230 },
+                {
+                  position: "absolute",
+                  right: 10,
+                  top: 230,
+                },
               ]}
             >
               <View
@@ -644,14 +718,30 @@ const ProfileDetails = ({ navigation, route }) => {
                     borderColor: colors.textinputbordercolor,
                   }}
                   onPress={() => {
-                    blockUser();
+                    setIsDropdownVisible(false);
+                    setreportModalVisible(true);
+                  }}
+                >
+                  <Text
+                    style={{ ...styles.dropdownText, color: colors.textColor }}
+                  >
+                    Report
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    ...styles.dropdownItem,
+                    borderColor: colors.textinputbordercolor,
+                  }}
+                  onPress={() => {
+                    confirmBlock();
                     setIsDropdownVisible(false);
                   }}
                 >
                   <Text
                     style={{ ...styles.dropdownText, color: colors.textColor }}
                   >
-                    {ItemValue ? "UnBlock" : "Report or Block"}
+                    {ItemValue ? "UnBlock" : "Block"}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -670,16 +760,6 @@ const ProfileDetails = ({ navigation, route }) => {
                     Remove Connection
                   </Text>
                 </TouchableOpacity>
-                {/* <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                   // alert('Option 3 selected');
-                    setIsDropdownVisible(false);
-                  }}>
-                  <Text style={styles.dropdownText}>
-                  Request a Recommendation
-                  </Text>
-                </TouchableOpacity> */}
               </View>
             </View>
           )}
@@ -1053,7 +1133,6 @@ const ProfileDetails = ({ navigation, route }) => {
                           borderColor: colors.textinputbordercolor,
                         }}
                       >
-                        {/* Custom Checkbox */}
                         <TouchableOpacity
                           onPress={() => toggleSelection(item.UserId)}
                           style={{
@@ -1147,6 +1226,14 @@ const ProfileDetails = ({ navigation, route }) => {
           </Modal>
         </ScrollView>
       </View>
+      <ConfirmDeleteModal
+        isVisible={isBlockModalVisible}
+        onCancel={onBlockCancel}
+        onConfirm={onBlockConfirm}
+        confirmButtonText={ItemValue ? "Unblock" : "Block"}
+        title={ItemValue ? "Confirm Unblock" : "Confirm Block"}
+        message={`Are you sure you want to ${ItemValue ? "Unblock" : "Block"}?`}
+      />
 
       <Modal
         visible={modalImageVisible}
@@ -1170,6 +1257,155 @@ const ProfileDetails = ({ navigation, route }) => {
             </TouchableOpacity>
           )}
         />
+      </Modal>
+      <Modal
+        transparent
+        animationType="slide"
+        visible={isreportModalVisible}
+        onBackdropPress={() => setreportModalVisible(false)}
+        backdropOpacity={0.5}
+        style={{ justifyContent: "center", alignItems: "center", margin: 0 }}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              width: width * 0.9, // 90% of screen width
+              maxHeight: height * 0.6, // max 60% of screen height
+              backgroundColor: colors.modelBackground,
+              borderRadius: 15,
+              padding: 20,
+              alignSelf: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "600",
+                marginBottom: 15,
+                color: colors.textColor,
+              }}
+            >
+              Select reasons for reporting:
+            </Text>
+
+            <ScrollView
+              style={{ flexGrow: 0, maxHeight: height * 0.35 }}
+              showsVerticalScrollIndicator={true}
+            >
+              {reportQuestions.map((question, index) => (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => toggleQuestion(question)}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderWidth: 2,
+                      borderColor: selectedQuestions.includes(question)
+                        ? colors.AppmainColor
+                        : colors.placeholderTextColor,
+                      backgroundColor: selectedQuestions.includes(question)
+                        ? colors.AppmainColor
+                        : "transparent",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      borderRadius: 5,
+                      marginRight: 10,
+                    }}
+                  >
+                    {selectedQuestions.includes(question) && (
+                      <Text
+                        style={{
+                          color: "white",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ✓
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{
+                      marginLeft: 10,
+                      fontSize: 16,
+                      flexShrink: 1,
+                      color: colors.textColor,
+                    }}
+                  >
+                    {question}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginTop: 20,
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  marginRight: 10,
+                  backgroundColor: colors.AppmainColor,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+                onPress={submitReport}
+              >
+                <Text
+                  style={{
+                    color: colors.ButtonTextColor,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Submit
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  marginLeft: 10,
+                  backgroundColor: colors.textinputBackgroundcolor,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+                onPress={() => setreportModalVisible(false)}
+              >
+                <Text
+                  style={{
+                    color: colors.textColor,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );

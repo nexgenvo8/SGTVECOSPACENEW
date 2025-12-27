@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Modal,
 } from "react-native";
 import globalStyles from "../GlobalCSS";
 import Header from "../Header/Header";
@@ -39,6 +40,10 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
   );
   const [isOpen5, setIsOpen5] = useState(false);
   const [industryData, setIndustryData] = useState([]);
+  const [perPage] = useState(20);
+  const [hasMore, setHasMore] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showIndustryModal, setShowIndustryModal] = useState(false);
   const [perfID1, setPerfID1] = useState("");
   const UserValue = async () => {
     const userDta = await AsyncStorage.getItem("userData");
@@ -170,26 +175,53 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
     }
   };
 
-  const getIndustryList = async (Val) => {
-    // console.log(' value --- > ', Val);
+  useEffect(() => {
+    if (showIndustryModal) {
+      setPage(1);
+      setHasMore(true);
+      getIndustryList(1);
+    }
+  }, [showIndustryModal]);
+
+  const getIndustryList = async (pageNumber = 1) => {
+    if (loading || (!hasMore && pageNumber !== 1)) return;
+
+    if (pageNumber === 1) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const response = await fetch(`${baseUrl}${listoption}`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          optionType: Val,
+          optionType: "industry",
+          per_page: perPage,
+          page: pageNumber,
         }),
       });
+
       const data = await response.json();
+
       if (response.ok) {
-        setIndustryData(data?.DataList);
+        const newData = data?.DataList || [];
+
+        setIndustryData((prev) =>
+          pageNumber === 1 ? newData : [...prev, ...newData]
+        );
+
+        setHasMore(newData.length === perPage);
+        setPage(pageNumber + 1);
       } else {
-        showError("Error", data.message || "Failed to Industry List");
+        console.error("API Error:", data.message);
       }
     } catch (error) {
-      console.error("Fetch Error Industry List.:", error);
+      console.error("Industry List Error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
   const selectOption5 = (option) => {
@@ -281,68 +313,55 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
               </View>
 
               <View style={{ marginHorizontal: 10 }}>
-                {selectedValue5 == "Select Category Search" ? null : (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setSelectedValue5("");
-                      setSelectedValue5("Select Category Search");
-                      setSelected("all");
-                      setPerfID1("");
-                    }}
-                    style={{ alignSelf: "flex-end", padding: 10 }}
-                  >
-                    <Icon
-                      type="Entypo"
-                      color={colors.backIconColor}
-                      name="cross"
-                      size={20}
-                    />
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={toggleDropdown5}
+                <View
                   style={{
-                    ...globalStyles.seclectIndiaView,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderWidth: 1,
                     borderColor: colors.textinputbordercolor,
                     backgroundColor: colors.textinputBackgroundcolor,
+                    // borderRadius: 6,
+                    paddingHorizontal: 12,
+                    height: 48,
+                    marginVertical: 10,
                   }}
                 >
-                  <Text
-                    style={{
-                      ...globalStyles.JobfiledSectionText,
-                      color: colors.textColor,
-                      paddingBottom: 0,
-                    }}
+                  {/* Selected Value */}
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => setShowIndustryModal(true)}
+                    activeOpacity={0.7}
                   >
-                    {selectedValue5}
-                  </Text>
-                </TouchableOpacity>
-                {isOpen5 && (
-                  <View
-                    style={{
-                      ...globalStyles.dropdownList,
-                      borderColor: colors.textinputbordercolor,
-                      backgroundColor: colors.textinputBackgroundcolor,
-                    }}
-                  >
-                    {industryData.map((item) => (
-                      <TouchableOpacity
-                        key={item.Id}
-                        style={{
-                          ...globalStyles.dropdownItem,
-                          borderColor: colors.textinputbordercolor,
-                        }}
-                        onPress={() => {
-                          selectOption5(item);
-                        }}
-                      >
-                        <Text style={{ fontSize: 14, color: colors.textColor }}>
-                          {item?.Name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        color: colors.textColor,
+                        fontSize: 14,
+                      }}
+                    >
+                      {selectedValue5}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Cross Button */}
+                  {selectedValue5 !== "Select Category Search" && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedValue5("Select Category Search");
+                        setSelected("all");
+                        setPerfID1("");
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Icon
+                        type="Entypo"
+                        name="cross"
+                        size={18}
+                        color={colors.backIconColor}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
               <View
                 style={{
@@ -471,25 +490,25 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
                 </Text>
               </View>
 
-              {listTalent?.some((item) => item.userId === 1053) && (
-                <TouchableOpacity
+              {/* {listTalent?.some((item) => item.userId === 1053) && ( */}
+              <TouchableOpacity
+                style={{
+                  ...globalStyles.saveButton,
+                  marginHorizontal: 10,
+                  backgroundColor: colors.AppmainColor,
+                }}
+                onPress={() => navigation.navigate("AddTelentProfile")}
+              >
+                <Text
                   style={{
-                    ...globalStyles.saveButton,
-                    marginHorizontal: 10,
-                    backgroundColor: colors.AppmainColor,
+                    ...globalStyles.saveButtonText,
+                    color: colors.ButtonTextColor,
                   }}
-                  onPress={() => navigation.navigate("AddTelentProfile")}
                 >
-                  <Text
-                    style={{
-                      ...globalStyles.saveButtonText,
-                      color: colors.ButtonTextColor,
-                    }}
-                  >
-                    Create Talent Profile
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  Create Talent Profile
+                </Text>
+              </TouchableOpacity>
+              {/* )} */}
               <View
                 style={{
                   ...styles.bulletRow,
@@ -520,6 +539,110 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
           }
         />
       </View>
+      <Modal
+        visible={showIndustryModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIndustryModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            paddingHorizontal: 20,
+          }}
+        >
+          <View
+            style={{
+              height: "70%",
+              backgroundColor: colors.textinputBackgroundcolor,
+              borderRadius: 8,
+              position: "relative",
+              overflow: "visible",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setShowIndustryModal(false)}
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1000,
+                elevation: 10,
+                padding: 8,
+              }}
+            >
+              <Icon
+                type="Entypo"
+                name="cross"
+                size={26}
+                color={colors.backIconColor}
+              />
+            </TouchableOpacity>
+            <FlatList
+              data={industryData}
+              keyExtractor={(item) => item.Id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={globalStyles.dropdownItem}
+                  onPress={() => {
+                    selectOption5(item);
+                    setShowIndustryModal(false);
+                  }}
+                >
+                  <Text style={{ color: colors.textColor }}>{item.Name}</Text>
+                </TouchableOpacity>
+              )}
+              onEndReached={() => getIndustryList(page)}
+              onEndReachedThreshold={0.1}
+              contentContainerStyle={{ flexGrow: 1 }}
+              ListFooterComponent={
+                loading && page > 1 ? (
+                  <ActivityIndicator size="small" style={{ margin: 10 }} />
+                ) : !hasMore && industryData.length > 0 ? (
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      padding: 10,
+                      color: colors.textColor,
+                    }}
+                  >
+                    No more data
+                  </Text>
+                ) : null
+              }
+              ListEmptyComponent={
+                !loading ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        padding: 10,
+                        color: colors.textColor,
+                      }}
+                    >
+                      No data available
+                    </Text>
+                  </View>
+                ) : null
+              }
+              refreshing={refreshing}
+              onRefresh={() => {
+                setPage(1);
+                setHasMore(true);
+                getIndustryList(1);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

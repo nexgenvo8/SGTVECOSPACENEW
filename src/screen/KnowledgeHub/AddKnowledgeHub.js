@@ -18,6 +18,8 @@ import {
   StyleSheet,
   Platform,
   PermissionsAndroid,
+  Modal,
+  FlatList,
 } from "react-native";
 import globalStyles from "../GlobalCSS";
 import Header from "../Header/Header";
@@ -41,8 +43,7 @@ import RNFS from "react-native-fs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { showError } from "../components/Toast";
 import { useTheme } from "../../theme/ThemeContext";
-import { universityFullName } from "../../constants";
-import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import Icon from "../Icons/Icons";
 
 const AddKnowledgeHub = ({ navigation, route }) => {
   const isFocused = useIsFocused();
@@ -75,6 +76,11 @@ const AddKnowledgeHub = ({ navigation, route }) => {
   const [number, onChangeNumber] = useState("");
   const [file, setFile] = useState(null);
   const [base64Data, setBase64Data] = useState("");
+  const [showIndustryModal, setShowIndustryModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [perPage] = useState(20);
 
   useEffect(() => {
     if (selectedValue5 !== "Select" && selectedValue5) {
@@ -367,29 +373,80 @@ const AddKnowledgeHub = ({ navigation, route }) => {
     { id: 1, label: "Public" },
     { id: 2, label: "Private" },
   ];
-  const getIndustryList = async (Val) => {
-    console.log(" value --- > ", Val);
+  // const getIndustryList = async Val => {
+  //   console.log(' value --- > ', Val);
+  //   try {
+  //     const response = await fetch(`${baseUrl}${listoption}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         optionType: Val,
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+  //     // console.log(' value data --------->>>>>> > ', data?.DataList);
+
+  //     if (response.ok) {
+  //       setIndustryData(data?.DataList);
+  //     } else {
+  //       showError(data.message || 'Failed to Industry List');
+  //     }
+  //   } catch (error) {
+  //     console.error('Fetch Error:', error);
+  //   }
+  // };
+  useEffect(() => {
+    if (showIndustryModal) {
+      setPage(1);
+      setHasMore(true);
+      getIndustryList(1);
+    }
+  }, [showIndustryModal]);
+
+  const loadingRef = useRef(false);
+
+  const getIndustryList = async (pageNumber = 1) => {
+    if (loadingRef.current || (pageNumber !== 1 && !hasMore)) return;
+
+    loadingRef.current = true;
+
+    if (pageNumber === 1) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const response = await fetch(`${baseUrl}${listoption}`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          optionType: Val,
+          optionType: "industry",
+          per_page: perPage,
+          page: pageNumber,
         }),
       });
 
       const data = await response.json();
-      // console.log(' value data --------->>>>>> > ', data?.DataList);
-
       if (response.ok) {
-        setIndustryData(data?.DataList);
+        const newData = data?.DataList || [];
+        setIndustryData((prev) =>
+          pageNumber === 1 ? newData : [...prev, ...newData]
+        );
+        setHasMore(newData.length === perPage);
+        setPage(pageNumber + 1);
       } else {
-        showError(data.message || "Failed to Industry List");
+        console.error("API Error:", data.message);
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Industry List Error:", error);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+      setRefreshing(false);
     }
   };
   const selectOption5 = (option) => {
@@ -417,309 +474,423 @@ const AddKnowledgeHub = ({ navigation, route }) => {
     >
       <Header title={"Add Knowledge Hub"} navigation={navigation} />
       <View style={globalStyles.MainView}>
-        <KeyboardAvoidingWrapper offset={60}>
-          <ScrollView>
-            <View style={globalStyles.MT_20}>
+        <ScrollView>
+          <View style={globalStyles.MT_20}>
+            <Text
+              style={{ ...globalStyles.FS_18_FW_600, color: colors.textColor }}
+            >
+              {"Add Knowledge Hub"}
+            </Text>
+          </View>
+
+          {!file ? (
+            <TouchableOpacity
+              style={{
+                ...globalStyles.selectImgArticle,
+                marginVertical: 10,
+                borderColor: errorFile
+                  ? Colors.error
+                  : colors.placeholderTextColor,
+              }}
+              // onPress={selectImage}
+              onPress={pickDocument}
+            >
               <Text
                 style={{
                   ...globalStyles.FS_18_FW_600,
                   color: colors.textColor,
                 }}
               >
-                {"Add Knowledge Hub"}
+                {"+ Add Knowledge Hub File"}
               </Text>
-            </View>
+            </TouchableOpacity>
+          ) : (
+            <>
+              {file && (
+                <View style={styles.fileContainer}>
+                  <Text style={{ ...styles.fileName, color: colors.textColor }}>
+                    📄 {file.name}
+                  </Text>
+                  <Text style={{ color: colors.textColor }}>
+                    Type: {file.type || "Unknown"}
+                  </Text>
+                  <Text style={{ color: colors.textColor }}>
+                    Size: {(file.size / 1024).toFixed(2)} KB
+                  </Text>
 
-            {!file ? (
-              <TouchableOpacity
-                style={{
-                  ...globalStyles.selectImgArticle,
-                  marginVertical: 10,
-                  borderColor: errorFile
-                    ? Colors.error
-                    : colors.placeholderTextColor,
-                }}
-                // onPress={selectImage}
-                onPress={pickDocument}
-              >
-                <Text
-                  style={{
-                    ...globalStyles.FS_18_FW_600,
-                    color: colors.textColor,
-                  }}
-                >
-                  {"+ Add Knowledge Hub File"}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <>
-                {file && (
-                  <View style={styles.fileContainer}>
+                  <TouchableOpacity
+                    onPress={() => openFile(file)}
+                    // onPress={openFile}
+                    style={{ ...styles.openButton, color: colors.AppmainColor }}
+                  >
                     <Text
-                      style={{ ...styles.fileName, color: colors.textColor }}
-                    >
-                      📄 {file.name}
-                    </Text>
-                    <Text style={{ color: colors.textColor }}>
-                      Type: {file.type || "Unknown"}
-                    </Text>
-                    <Text style={{ color: colors.textColor }}>
-                      Size: {(file.size / 1024).toFixed(2)} KB
-                    </Text>
-
-                    <TouchableOpacity
-                      onPress={() => openFile(file)}
-                      // onPress={openFile}
                       style={{
-                        ...styles.openButton,
-                        color: colors.AppmainColor,
+                        ...styles.openButtonText,
+                        color: colors.textColor,
                       }}
                     >
-                      <Text
-                        style={{
-                          ...styles.openButtonText,
-                          color: colors.textColor,
-                        }}
-                      >
-                        📂 See Your File
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </>
-            )}
-
-            <TextInput
-              style={{
-                ...globalStyles.InputTitle,
-                borderWidth: 1,
-                borderColor: errorHeadline
-                  ? Colors.error
-                  : colors.textinputbordercolor,
-                backgroundColor: colors.textinputBackgroundcolor,
-                color: colors.textColor,
-              }}
-              onChangeText={(val) => {
-                setHeadline(val);
-                setErrorHeadline(false);
-              }}
-              value={headline}
-              placeholder={"Write your Title"}
-              placeholderTextColor={colors.placeholderTextColor}
-            />
-
-            <TextInput
-              style={{
-                ...globalStyles.InputTitle,
-                height: 100,
-                marginVertical: 10,
-                borderColor: errorDescription
-                  ? Colors.error
-                  : colors.textinputbordercolor,
-                backgroundColor: colors.textinputBackgroundcolor,
-                color: colors.textColor,
-              }}
-              onChangeText={(val) => {
-                setDescription(val);
-                setErrorDescription(false);
-              }}
-              value={description}
-              placeholder={"Write your description"}
-              multiline
-              placeholderTextColor={colors.placeholderTextColor}
-            />
-
-            <View style={{ marginBottom: 0 }}>
-              <Text>Industry</Text>
-              <TouchableOpacity
-                onPress={toggleDropdown5}
-                style={{
-                  ...globalStyles.seclectIndiaView,
-                  borderColor: errorIndustry
-                    ? Colors.error
-                    : colors.textinputbordercolor,
-                  backgroundColor: colors.textinputBackgroundcolor,
-                }}
-              >
-                <Text
-                  style={{
-                    ...globalStyles.JobfiledSectionText,
-                    paddingBottom: 0,
-                    color: colors.textColor,
-                  }}
-                >
-                  {selectedValue5}
-                </Text>
-              </TouchableOpacity>
-              {isOpen5 && (
-                <View
-                  style={{
-                    ...globalStyles.dropdownList,
-                    backgroundColor: colors.textinputBackgroundcolor,
-                    borderColor: colors.textinputbordercolor,
-                  }}
-                >
-                  {industryData.map((item) => (
-                    <TouchableOpacity
-                      key={item.Id}
-                      style={globalStyles.dropdownItem}
-                      onPress={() => {
-                        selectOption5(item);
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, color: colors.textColor }}>
-                        {item?.Name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                      📂 See Your File
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
-            </View>
+            </>
+          )}
 
-            <View style={{ marginBottom: 0 }}>
+          <TextInput
+            style={{
+              ...globalStyles.InputTitle,
+              borderWidth: 1,
+              borderColor: errorHeadline
+                ? Colors.error
+                : colors.textinputbordercolor,
+              backgroundColor: colors.textinputBackgroundcolor,
+              color: colors.textColor,
+            }}
+            onChangeText={(val) => {
+              setHeadline(val);
+              setErrorHeadline(false);
+            }}
+            value={headline}
+            placeholder={"Write your Title"}
+            placeholderTextColor={colors.placeholderTextColor}
+          />
+
+          <TextInput
+            style={{
+              ...globalStyles.InputTitle,
+              height: 100,
+              marginVertical: 10,
+              borderColor: errorDescription
+                ? Colors.error
+                : colors.textinputbordercolor,
+              backgroundColor: colors.textinputBackgroundcolor,
+              color: colors.textColor,
+            }}
+            onChangeText={(val) => {
+              setDescription(val);
+              setErrorDescription(false);
+            }}
+            value={description}
+            placeholder={"Write your description"}
+            multiline
+            placeholderTextColor={colors.placeholderTextColor}
+          />
+
+          <View style={{ marginBottom: 0 }}>
+            <Text style={{ color: colors.textColor }}>Industry</Text>
+            {/* <TouchableOpacity
+              onPress={toggleDropdown5}
+              style={{
+                ...globalStyles.seclectIndiaView,
+                borderColor: errorIndustry
+                  ? Colors.error
+                  : colors.textinputbordercolor,
+                backgroundColor: colors.textinputBackgroundcolor,
+              }}
+            >
               <Text
                 style={{
-                  marginTop: 20,
+                  ...globalStyles.JobfiledSectionText,
+                  paddingBottom: 0,
                   color: colors.textColor,
                 }}
               >
-                Privacy
+                {selectedValue5}
               </Text>
-              <TouchableOpacity
-                onPress={toggleDropdown2}
+            </TouchableOpacity>
+            {isOpen5 && (
+              <View
                 style={{
-                  ...globalStyles.seclectIndiaView,
-                  borderColor: errorPrivacy
-                    ? Colors.error
-                    : colors.textinputbordercolor,
+                  ...globalStyles.dropdownList,
                   backgroundColor: colors.textinputBackgroundcolor,
+                  borderColor: colors.textinputbordercolor,
                 }}
               >
-                <Text
-                  style={{
-                    ...globalStyles.JobfiledSectionText,
-                    color: colors.textColor,
-                    paddingBottom: 0,
-                  }}
-                >
-                  {selectedValue2?.label
-                    ? selectedValue2?.label
-                    : selectedValue2 || "Select "}
-                </Text>
-              </TouchableOpacity>
-              {isOpen2 && (
-                <View
-                  style={{
-                    ...globalStyles.dropdownList,
-                    backgroundColor: colors.textinputBackgroundcolor,
-                    borderColor: colors.textinputbordercolor,
-                  }}
-                >
-                  {optionsApply1.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={globalStyles.dropdownItem}
-                      onPress={() => selectOption2(item)}
-                    >
-                      <Text style={{ fontSize: 14, color: colors.textColor }}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            <View
+                {industryData.map((item) => (
+                  <TouchableOpacity
+                    key={item.Id}
+                    style={globalStyles.dropdownItem}
+                    onPress={() => {
+                      selectOption5(item);
+                    }}
+                  >
+                    <Text style={{ fontSize: 14, color: colors.textColor }}>
+                      {item?.Name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )} */}
+            <TouchableOpacity
+              onPress={() => setShowIndustryModal(true)}
               style={{
-                ...globalStyles.JobfiledSection,
-                marginBottom: 10,
+                ...globalStyles.seclectIndiaView,
+                borderColor: errorIndustry
+                  ? Colors.error
+                  : colors.textinputbordercolor,
+                backgroundColor: colors.textinputBackgroundcolor,
+              }}
+            >
+              <Text
+                style={{
+                  ...globalStyles.JobfiledSectionText,
+                  paddingBottom: 0,
+                  color: colors.textColor,
+                }}
+              >
+                {selectedValue5 || "Select"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ marginBottom: 0 }}>
+            <Text
+              style={{
+                marginTop: 20,
+                color: colors.textColor,
+              }}
+            >
+              Privacy
+            </Text>
+            <TouchableOpacity
+              onPress={toggleDropdown2}
+              style={{
+                ...globalStyles.seclectIndiaView,
+                borderColor: errorPrivacy
+                  ? Colors.error
+                  : colors.textinputbordercolor,
+                backgroundColor: colors.textinputBackgroundcolor,
               }}
             >
               <Text
                 style={{
                   ...globalStyles.JobfiledSectionText,
                   color: colors.textColor,
+                  paddingBottom: 0,
                 }}
               >
-                Tag
+                {selectedValue2?.label
+                  ? selectedValue2?.label
+                  : selectedValue2 || "Select "}
               </Text>
-
-              <TextInput
+            </TouchableOpacity>
+            {isOpen2 && (
+              <View
                 style={{
-                  ...globalStyles.textInput,
-                  borderColor: errorTag
-                    ? Colors.error
-                    : colors.textinputbordercolor,
+                  ...globalStyles.dropdownList,
                   backgroundColor: colors.textinputBackgroundcolor,
-                  color: colors.textColor,
+                  borderColor: colors.textinputbordercolor,
                 }}
-                onChangeText={(value) => {
-                  onChangeNumber(value);
-                  setErrorTag(value.trim().length === 0);
-                }}
-                value={number}
-                placeholder="Enter comma separated keywords"
-                keyboardType="default"
-                multiline
-                placeholderTextColor={colors.placeholderTextColor}
-              />
-            </View>
+              >
+                {optionsApply1.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={globalStyles.dropdownItem}
+                    onPress={() => selectOption2(item)}
+                  >
+                    <Text style={{ fontSize: 14, color: colors.textColor }}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
 
-            <View style={{ flexDirection: "row" }}>
-              {/* <PlaneIcon
+          <View
+            style={{
+              ...globalStyles.JobfiledSection,
+              marginBottom: 10,
+            }}
+          >
+            <Text
+              style={{
+                ...globalStyles.JobfiledSectionText,
+                color: colors.textColor,
+              }}
+            >
+              Tag
+            </Text>
+
+            <TextInput
+              style={{
+                ...globalStyles.textInput,
+                borderColor: errorTag
+                  ? Colors.error
+                  : colors.textinputbordercolor,
+                backgroundColor: colors.textinputBackgroundcolor,
+                color: colors.textColor,
+              }}
+              onChangeText={(value) => {
+                onChangeNumber(value);
+                setErrorTag(value.trim().length === 0);
+              }}
+              value={number}
+              placeholder="Enter comma separated keywords"
+              keyboardType="default"
+              multiline
+              placeholderTextColor={colors.placeholderTextColor}
+            />
+          </View>
+
+          <View style={{ flexDirection: "row" }}>
+            {/* <PlaneIcon
               name="checksquare"
               size={20}
               color={Colors.main_primary}
               style={{marginRight: 10}}
             /> */}
-              <TouchableOpacity
-                onPress={handleCheckboxToggle}
-                //onPress={() => setChecked(!checked)}
+            <TouchableOpacity
+              onPress={handleCheckboxToggle}
+              //onPress={() => setChecked(!checked)}
+            >
+              <MaterialCommunityIcons
+                name={checked ? "checkbox-marked" : "checkbox-blank-outline"}
+                size={24}
+                color={colors.AppmainColor}
+                style={{ marginRight: 10 }}
+              />
+            </TouchableOpacity>
+            <Text
+              style={{ fontSize: 14, flexShrink: 1, color: colors.textColor }}
+            >
+              I confirm that I am authorized to Post this document on Jamia
+              Millia Islamia VECOSPACE and if any image is used, I have the
+              rights to use the image.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              globalStyles.saveButton,
+              {
+                opacity: checked ? 1 : 0.5,
+                backgroundColor: colors.AppmainColor,
+              },
+            ]}
+            onPress={articleAdd}
+            disabled={!checked || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text
+                style={{
+                  ...globalStyles.saveButtonText,
+                  color: colors.ButtonTextColor,
+                }}
               >
-                <MaterialCommunityIcons
-                  name={checked ? "checkbox-marked" : "checkbox-blank-outline"}
-                  size={24}
-                  color={colors.AppmainColor}
-                  style={{ marginRight: 10 }}
+                Publish
+              </Text>
+            )}
+          </TouchableOpacity>
+          <View style={{ marginVertical: 10 }} />
+        </ScrollView>
+        <Modal
+          visible={showIndustryModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowIndustryModal(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.4)",
+              justifyContent: "center",
+              paddingHorizontal: 20,
+            }}
+          >
+            <View
+              style={{
+                height: "70%",
+                backgroundColor: colors.textinputBackgroundcolor,
+                borderRadius: 8,
+                position: "relative",
+                overflow: "visible",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setShowIndustryModal(false)}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  zIndex: 1000,
+                  elevation: 10,
+                  padding: 8,
+                }}
+              >
+                <Icon
+                  type="Entypo"
+                  name="cross"
+                  size={26}
+                  color={colors.backIconColor}
                 />
               </TouchableOpacity>
-              <Text
-                style={{ fontSize: 14, flexShrink: 1, color: colors.textColor }}
-              >
-                I confirm that I am authorized to Post this document on{" "}
-                {universityFullName} and if any image is used, I have the rights
-                to use the image.
-              </Text>
+              <FlatList
+                data={industryData}
+                keyExtractor={(item) => item.Id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={globalStyles.dropdownItem}
+                    onPress={() => {
+                      selectOption5(item);
+                      setShowIndustryModal(false);
+                    }}
+                  >
+                    <Text style={{ color: colors.textColor }}>{item.Name}</Text>
+                  </TouchableOpacity>
+                )}
+                onEndReached={() => getIndustryList(page)}
+                onEndReachedThreshold={0.5}
+                contentContainerStyle={{ flexGrow: 1 }}
+                ListFooterComponent={
+                  loading && page > 1 ? (
+                    <ActivityIndicator size="small" style={{ margin: 10 }} />
+                  ) : !hasMore && industryData.length > 0 ? (
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        padding: 10,
+                        color: colors.textColor,
+                      }}
+                    >
+                      No more data
+                    </Text>
+                  ) : null
+                }
+                ListEmptyComponent={
+                  !loading ? (
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          textAlign: "center",
+                          padding: 10,
+                          color: colors.textColor,
+                        }}
+                      >
+                        No data available
+                      </Text>
+                    </View>
+                  ) : null
+                }
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setPage(1);
+                  setHasMore(true);
+                  getIndustryList(1);
+                }}
+              />
             </View>
-
-            <TouchableOpacity
-              style={[
-                globalStyles.saveButton,
-                {
-                  opacity: checked ? 1 : 0.5,
-                  backgroundColor: colors.AppmainColor,
-                },
-              ]}
-              onPress={articleAdd}
-              disabled={!checked || loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text
-                  style={{
-                    ...globalStyles.saveButtonText,
-                    color: colors.ButtonTextColor,
-                  }}
-                >
-                  Publish
-                </Text>
-              )}
-            </TouchableOpacity>
-            <View style={{ marginVertical: 40 }} />
-          </ScrollView>
-        </KeyboardAvoidingWrapper>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );

@@ -172,6 +172,9 @@ export default function ({ route, tabBarVisible }) {
     setModalIndex(index);
     setModalImageVisible(true);
   };
+  // const sanitizeString = (str) => {
+  //   return str.replace(/\x00/g, "");
+  // };
   const removeImage = (indexToRemove) => {
     const updated = images.filter((_, index) => index !== indexToRemove);
     setImages(updated);
@@ -354,7 +357,6 @@ export default function ({ route, tabBarVisible }) {
         userId: userData?.User?.userId,
         page: page,
       });
-      // console.log(body, 'bodybodybodybodybody');
 
       const response = await fetch(`${baseUrl}${postlist}`, {
         method: "POST",
@@ -364,14 +366,17 @@ export default function ({ route, tabBarVisible }) {
         body: body,
       });
       const data = await response.json();
+
       if (response.ok) {
         if (data.Data && data.Data.length > 0) {
+          // If there is new data, update the state correctly
           setPostData((prev) =>
             isRefresh || page === 1 ? data.Data : [...prev, ...data.Data]
           );
-          setHasMoreData(true);
+          setHasMoreData(data.Data.length === 20);
           setCurrentPage(page);
         } else {
+          // No data, set hasMoreData to false
           setHasMoreData(false);
         }
       } else {
@@ -387,6 +392,65 @@ export default function ({ route, tabBarVisible }) {
       setRefreshing(false);
     }
   };
+
+  // const fetchPosts = async (
+  //   page = 1,
+  //   isRefresh = false,
+  //   isAfterPost = false
+  // ) => {
+  //   if (loading && !isRefresh && !isAfterPost) return;
+  //   if (!hasMoreData && !isRefresh && !isAfterPost) return;
+
+  //   if (isRefresh) {
+  //     setRefreshing(true);
+  //   } else if (page === 1 && !isAfterPost) {
+  //     setInitialLoading(true);
+  //   } else {
+  //     setLoadingMore(true);
+  //   }
+
+  //   try {
+  //     const body = JSON.stringify({
+  //       id: Item?.optionalId || Item?.id || "",
+  //       status: 1,
+  //       per_page: 20,
+  //       postType: Item?.postType || " ",
+  //       userId: userData?.User?.userId,
+  //       page: page,
+  //     });
+  //     // console.log(body, 'bodybodybodybodybody');
+
+  //     const response = await fetch(`${baseUrl}${postlist}`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: body,
+  //     });
+  //     const data = await response.json();
+  //     if (response.ok) {
+  //       if (data.Data && data.Data.length > 0) {
+  //         setPostData((prev) =>
+  //           isRefresh || page === 1 ? data.Data : [...prev, ...data.Data]
+  //         );
+  //         setHasMoreData(true);
+  //         setCurrentPage(page);
+  //       } else {
+  //         setHasMoreData(false);
+  //       }
+  //     } else {
+  //       showError(data.Message);
+  //     }
+  //   } catch (error) {
+  //     showError("Failed to fetch posts. Please try again later.");
+  //     console.error("Fetch Error:", error);
+  //   } finally {
+  //     setInitialLoading(false);
+  //     setLoading(false);
+  //     setLoadingMore(false);
+  //     setRefreshing(false);
+  //   }
+  // };
   useEffect(() => {
     if (isOpen2 && scrollViewRef.current) {
       setTimeout(() => {
@@ -851,7 +915,7 @@ export default function ({ route, tabBarVisible }) {
               if (response.ok) {
                 setPage(1);
                 setPostData([]);
-                fetchPosts(1);
+                fetchPosts(1, false, true);
               }
             } catch (error) {
               console.error("Delete Error:", error);
@@ -875,6 +939,7 @@ export default function ({ route, tabBarVisible }) {
       return updated;
     });
   };
+
   const renderItem = ({ item, index }) => {
     // console.log(item, 'itemitemitemitemitemitemitemitem');
     const isLiked = likedPosts[item?.id] ?? item?.IsLiked ?? false;
@@ -896,7 +961,6 @@ export default function ({ route, tabBarVisible }) {
       if (diffMonths < 12) return `${diffMonths}mo ago`;
       return `${diffYears}y ago`;
     };
-
     const isExpanded = expandedPosts[index] || false;
     const isUserPost = item.UserId === userData?.User?.userId;
     const formatText = (text) => {
@@ -946,8 +1010,10 @@ export default function ({ route, tabBarVisible }) {
                 : require("../assets/placeholderprofileimage.png")
             }
           />
-          <View>
-            <View style={[globalStyles?.flexRow, { alignItems: "center" }]}>
+          <View style={{ flex: 1 }}>
+            <View
+              style={[globalStyles?.flexRow, { alignItems: "center", flex: 1 }]}
+            >
               <Text
                 style={{
                   fontWeight: "700",
@@ -966,6 +1032,7 @@ export default function ({ route, tabBarVisible }) {
                 {getTimeAgo(item.DateAdded)}
               </Text>
             </View>
+
             <View style={{ flexDirection: "row" }}>
               <View style={{ flex: 1 }}>
                 <Text
@@ -973,7 +1040,6 @@ export default function ({ route, tabBarVisible }) {
                     fontSize: 12,
                     width: "100%",
                     color: colors.textColor,
-                    lineHeight: 16,
                   }}
                 >
                   {item.JobTitle} at {item.CompanyName}
@@ -1451,7 +1517,7 @@ export default function ({ route, tabBarVisible }) {
           setModalVisible(false);
           setPage(1);
           setPostData([]);
-          fetchPosts(1);
+          fetchPosts(1, false, true);
         }
       }
     } catch (error) {
@@ -1701,7 +1767,6 @@ export default function ({ route, tabBarVisible }) {
       </Animated.View> */}
 
       <FlatList
-        //Animated.FlatList
         ref={flatListRef}
         data={postData}
         renderItem={renderItem}
@@ -1715,8 +1780,6 @@ export default function ({ route, tabBarVisible }) {
           paddingBottom: 40,
           flexGrow: 1,
         }}
-        // onScroll={scrollHandler}
-        // scrollEventThrottle={16}
         ListHeaderComponent={
           <>
             <View
@@ -1843,6 +1906,8 @@ export default function ({ route, tabBarVisible }) {
                             color: colors.textColor,
                           }}
                         >
+                          {/* {sanitizeString(userProfileData?.Data?.firstName)}{" "}
+                          {sanitizeString(userProfileData?.Data?.lastName)} */}
                           {userProfileData?.Data?.firstName}{" "}
                           {userProfileData?.Data?.lastName}
                         </Text>
@@ -2223,6 +2288,7 @@ export default function ({ route, tabBarVisible }) {
           ) : null
         }
       />
+
       <Modal
         animationType="slide"
         transparent={true}

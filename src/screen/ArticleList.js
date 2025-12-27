@@ -903,8 +903,8 @@ const ArticlesList = ({ route }) => {
                   color: colors.textColor,
                   fontSize: 14,
                   lineHeight: 22,
-                  fontFamily: "System",
-                  textAlign: "justify",
+                  // fontFamily: "System",
+                  //textAlign: "justify",
                 }}
                 tagsStyles={{
                   p: {
