@@ -2245,7 +2245,8 @@ const IntershipProject = ({ navigation, route }) => {
                     >
                       I confirm that this is a commercial internship. I am aware
                       that I may receive a written warning for violating the
-                      General
+                      General Terms and Conditions and that my internship may be
+                      deactivated.
                     </Text>
                   </View>
 

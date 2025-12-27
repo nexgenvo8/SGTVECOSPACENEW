@@ -1,17 +1,17 @@
-import {StyleSheet, Text, View, SafeAreaView, ScrollView} from 'react-native';
-import React from 'react';
-import Header from './Header/Header';
-import {useTheme} from '../theme/ThemeContext';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView } from "react-native";
+import React from "react";
+import Header from "./Header/Header";
+import { useTheme } from "../theme/ThemeContext";
 
-const AboutScreen = ({navigation}) => {
-  const {isDark, colors, toggleTheme} = useTheme();
+const AboutScreen = ({ navigation }) => {
+  const { isDark, colors, toggleTheme } = useTheme();
   const styles = createStyles(colors);
   return (
     <SafeAreaView style={styles.container}>
       <Header title="About" navigation={navigation} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.text}>
-          VECOSPACE is an education eco-space of Jamia, it started with the sole
+          VECOSPACE is an education eco-space of SGT, it started with the sole
           purpose as an opportunity to learn from your classmates and your
           professors. So that a person who's always been shy in the real-time
           class feels free to ask questions and can have a discussion with
@@ -25,14 +25,14 @@ const AboutScreen = ({navigation}) => {
           VECOSPACE enhances your experience as a student, as a TA, and as a
           Professor.
         </Text>
-        <View style={{marginTop: 20}} />
+        <View style={{ marginTop: 20 }} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 export default AboutScreen;
 
-const createStyles = colors =>
+const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

@@ -22,7 +22,7 @@ import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { showError } from "../components/Toast";
 import { useTheme } from "../../theme/ThemeContext";
-import { SpeakerGuests, universityFullName } from "../../constants";
+import { emailId, SpeakerGuests, universityFullName } from "../../constants";
 
 const GuestSpeakersTrainers = ({ navigation, route }) => {
   const { Item = {}, Type = "", GlobalSearch = {} } = route.params || {};
@@ -464,9 +464,9 @@ const GuestSpeakersTrainers = ({ navigation, route }) => {
                 }}
               >
                 <Text style={{ ...styles.bulletText, color: colors.textColor }}>
-                  Contact Us info@deboxglobal.in to learn how you can bring a
-                  top business speaker or entertainment artist to your next
-                  company event or offsite.
+                  Contact Us {emailId} to learn how you can bring a top business
+                  speaker or entertainment artist to your next company event or
+                  offsite.
                 </Text>
               </View>
 

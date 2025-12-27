@@ -322,7 +322,7 @@ const EventDetails = ({ navigation, route }) => {
               const fullImageUri = imageUriToUse
                 ? imageUriToUse.startsWith("http")
                   ? imageUriToUse
-                  : `https://sgtapi.vecospace.com/api/${imageUriToUse}`
+                  : `https://jmiapi.vecospace.com/api/${imageUriToUse}`
                 : null;
 
               return (
@@ -839,6 +839,92 @@ const EventDetails = ({ navigation, route }) => {
                 )}
               />
             </Modal>
+            {/* <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              {Item?.Images?.length > 0
+                ? Item.Images.map((img, index) => (
+                    <View style={{}}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedImageIndex(index);
+                          setModalVisibleImg(true);
+                        }}
+                      >
+                        <Image
+                          key={index}
+                          source={{ uri: img.imageName }}
+                          style={{
+                            backgroundColor: Colors?.lite_gray,
+                            width: 90,
+                            height: 90,
+                            marginRight: 10,
+                            margin: 15,
+                          }}
+                          resizeMode="contain"
+                        />
+                      </TouchableOpacity>
+                      <Modal
+                        visible={modalVisibleImg}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setModalVisibleImg(false)}
+                      >
+                        <SafeAreaView
+                          style={{
+                            flex: 1,
+                            backgroundColor: "rgba(0,0,0,0.8)",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <TouchableOpacity
+                            style={{ ...styles.closeButtonimg }}
+                            onPress={() => setModalVisibleImg(false)}
+                          >
+                            <Text style={styles.closeTextimg}>Close</Text>
+                          </TouchableOpacity>
+
+                          {Item.Images.length > 1 ? (
+                            <FlatList
+                              data={Item.Images}
+                              horizontal
+                              keyExtractor={(image, index) => index.toString()}
+                              initialScrollIndex={selectedImageIndex}
+                              getItemLayout={(data, index) => ({
+                                length: 600,
+                                offset: 600 * index,
+                                index,
+                              })}
+                              renderItem={({ item }) => (
+                                <Image
+                                  source={{ uri: item.imageName }}
+                                  style={{
+                                    width: 600,
+                                    height: 600,
+                                    marginHorizontal: 10,
+                                    marginTop: 30,
+                                  }}
+                                  resizeMode="contain"
+                                />
+                              )}
+                              showsHorizontalScrollIndicator={false}
+                            />
+                          ) : (
+                            <Image
+                              source={{ uri: Item.Images[0].imageName }}
+                              style={{
+                                width: 600,
+                                height: 600,
+                                marginTop: 30,
+                              }}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </SafeAreaView>
+                      </Modal>
+                    </View>
+                  ))
+                : null}
+            </View> */}
           </View>
           <View style={{ marginHorizontal: 10, marginTop: 20 }}>
             <Text

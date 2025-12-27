@@ -2,7 +2,7 @@
 export const universityName = "SGT VECOSPACE";
 export const universityFullName =
   "Shree Guru Gobind Singh Tricentenary VECOSPACE";
-
+export const emailId = "info@corrintech.com";
 // Image
 export const appIcon = require("./assets/appicon.png");
 //Registration
