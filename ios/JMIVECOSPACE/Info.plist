@@ -34,7 +34,7 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>vecospaceapi.nexgenov8.com</key>
+			<key>sgtapi.vecospace.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
@@ -105,7 +105,7 @@
 	<false/>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:vecospaceapi.nexgenov8.com</string>
+		<string>applinks:sgtapi.vecospace.com</string>
 	</array>
 </dict>
 </plist>

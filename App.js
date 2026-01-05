@@ -75,7 +75,7 @@ import KnowledgeDetails from "./src/screen/KnowledgeHub/KnowledgeDetails";
 import GuestDetails from "./src/Guest_Seapker/GuestDetails";
 import AddTelentProfile from "./src/Guest_Seapker/AddTelentProfile";
 import { PermissionsAndroid } from "react-native";
-// import messaging from "@react-native-firebase/messaging";
+import messaging from "@react-native-firebase/messaging";
 import notifee, { EventType } from "@notifee/react-native";
 import NotificationsScreen from "./src/screen/Notifications/NotificationsList";
 import Toast from "react-native-toast-message";
@@ -526,7 +526,7 @@ export default function App() {
   useEffect(() => {
     requestPermissionAndroid();
     requestUserPermissionIos();
-    // handleNotificationClick();
+    handleNotificationClick();
   }, []);
 
   const requestPermissionAndroid = async () => {
@@ -548,26 +548,65 @@ export default function App() {
     }
   };
 
-  // useEffect(() => {
-  //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-  //     if (remoteMessage?.notification) {
-  //       handleNotificationClick(remoteMessage);
-  //       if (remoteMessage.messageId) {
-  //         if (seenNotifications.has(remoteMessage.messageId)) {
-  //           return;
-  //         }
-  //         seenNotifications.add(remoteMessage.messageId);
-  //       }
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      if (remoteMessage?.notification) {
+        handleNotificationClick(remoteMessage);
+        if (remoteMessage.messageId) {
+          if (seenNotifications.has(remoteMessage.messageId)) {
+            return;
+          }
+          seenNotifications.add(remoteMessage.messageId);
+        }
 
-  //       onDisplayNotification(remoteMessage);
-  //     }
-  //   });
+        onDisplayNotification(remoteMessage);
+      }
+    });
 
-  //   return () => unsubscribe();
-  // }, []);
+    return () => unsubscribe();
+  }, []);
 
   const seenNotifications = new Set();
+  // const onDisplayNotification = async (remoteMessage) => {
+  //   const channelId = await notifee.createChannel({
+  //     id: "default",
+  //     name: "Default Channel",
+  //   });
 
+  //   // Log the remote message to inspect the structure
+  //   console.log(remoteMessage);
+
+  //   // Access the profile photo URL from remoteMessage.data
+  //   const profilePhotoUrl = remoteMessage?.data?.profilePhoto; // Correct path
+
+  //   // Check if the URL exists before proceeding
+  //   if (!profilePhotoUrl) {
+  //     console.error("Profile photo URL is missing");
+  //     return; // Exit if the URL doesn't exist
+  //   }
+
+  //   // Ensure the profilePhotoUrl is a valid URL string
+  //   if (
+  //     profilePhotoUrl &&
+  //     typeof profilePhotoUrl === "string" &&
+  //     profilePhotoUrl.startsWith("http")
+  //   ) {
+  //     await notifee.displayNotification({
+  //       title: remoteMessage?.notification?.title, // Notification title
+  //       body: remoteMessage?.notification?.body, // Notification body
+  //       android: {
+  //         channelId,
+  //         smallIcon: "ic_launcher", // Make sure this is the small icon in your assets
+  //         largeIcon: profilePhotoUrl, // Use the profile photo URL here
+  //         pressAction: {
+  //           id: "default",
+  //         },
+  //       },
+  //     });
+  //   } else {
+  //     console.error("Invalid profile photo URL:", profilePhotoUrl);
+  //   }
+  // };
   const onDisplayNotification = async (remoteMessage) => {
     const channelId = await notifee.createChannel({
       id: "default",
@@ -579,7 +618,7 @@ export default function App() {
       body: remoteMessage?.notification?.body,
       android: {
         channelId,
-        smallIcon: "name-of-a-small-icon",
+        smallIcon: "ic_launcher",
         pressAction: {
           id: "default",
         },
@@ -589,6 +628,7 @@ export default function App() {
   const getToken = async () => {
     const token = await messaging().getToken();
     const userId = userData?.User?.userId;
+    console.log(token, "tokentokentokentokentokentoken");
     await sendFcmTokenToServer(userId, token);
   };
   const sendFcmTokenToServer = async (userId, fcmToken) => {
@@ -620,34 +660,34 @@ export default function App() {
       console.error("Network error in FCM token:", error);
     }
   };
-  // const handleNotificationClick = (item) => {
-  //   let handledMessageId = null;
+  const handleNotificationClick = (item) => {
+    let handledMessageId = null;
 
-  //   messaging().onNotificationOpenedApp((remoteMessage) => {
-  //     if (remoteMessage && remoteMessage.messageId !== handledMessageId) {
-  //       handledMessageId = remoteMessage.messageId;
-  //     }
-  //   });
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      if (remoteMessage && remoteMessage.messageId !== handledMessageId) {
+        handledMessageId = remoteMessage.messageId;
+      }
+    });
 
-  //   messaging()
-  //     .getInitialNotification()
-  //     .then((remoteMessage) => {
-  //       if (remoteMessage && remoteMessage.messageId !== handledMessageId) {
-  //         handledMessageId = remoteMessage.messageId;
-  //       }
-  //     });
+    messaging()
+      .getInitialNotification()
+      .then((remoteMessage) => {
+        if (remoteMessage && remoteMessage.messageId !== handledMessageId) {
+          handledMessageId = remoteMessage.messageId;
+        }
+      });
 
-  //   notifee.onForegroundEvent(({ type, detail }) => {
-  //     if (
-  //       type === EventType.PRESS &&
-  //       detail.notification.id !== handledMessageId
-  //     ) {
-  //       handledMessageId = detail.notification.id;
-  //       console.log("User tapped the notification:", detail.notification);
-  //       // navigateToScreen(item);
-  //     }
-  //   });
-  // };
+    notifee.onForegroundEvent(({ type, detail }) => {
+      if (
+        type === EventType.PRESS &&
+        detail.notification.id !== handledMessageId
+      ) {
+        handledMessageId = detail.notification.id;
+        console.log("User tapped the notification:", detail.notification);
+        // navigateToScreen(item);
+      }
+    });
+  };
 
   if (isLoading || initialRoute === null) {
     return (
@@ -667,10 +707,7 @@ export default function App() {
     );
   }
   const linking = {
-    prefixes: [
-      "http://vecospaceapi.nexgenov8.com",
-      "https://sgtapi.vecospace.com",
-    ],
+    prefixes: ["https://sgtapi.vecospace.com", "https://sgtapi.vecospace.com"],
     config: {
       screens: {
         SharedPost: {
