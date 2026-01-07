@@ -996,7 +996,6 @@ const EventDetails = ({ navigation, route }) => {
               </>
             ) : (
               <>
-                {" "}
                 <View style={{ padding: 17 }}>
                   <Icon
                     type="Entypo"

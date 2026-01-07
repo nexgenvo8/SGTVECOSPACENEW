@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, SafeAreaView, ScrollView } from "react-native";
 import React from "react";
 import Header from "./Header/Header";
 import { useTheme } from "../theme/ThemeContext";
-import { universityName } from "../constants";
+import { universityemailId, universityName } from "../constants";
 
 const TermsScreen = ({ navigation }) => {
   const { isDark, colors, toggleTheme } = useTheme();
@@ -417,7 +417,7 @@ const TermsScreen = ({ navigation }) => {
           10.1 Notices -: Except as otherwise stated in this Agreement or as
           expressly required by law, any notice to us shall be given by
           certified postal mail to a given address, or by email to
-          legal@SGTVECOSPACE.com. Any notice to you shall be given to the most
+          {universityemailId}. Any notice to you shall be given to the most
           current email address in your account.
         </Text>
         <Text style={styles.text}>
@@ -428,7 +428,7 @@ const TermsScreen = ({ navigation }) => {
         </Text>
         <Text style={styles.text}>
           10.3 Violations -: Please report any violations of this Agreement by a
-          member or third party by sending an email to abuse@SGTVECOSPACE.com
+          member or third party by sending an email to {universityemailId}
         </Text>
         <Text style={styles.text}>
           10.4 Thank you -: Please accept our wholehearted thanks for reading
