@@ -82,6 +82,7 @@ export const DeleteJob = "deletejob";
 export const ApplyJob = "applyjob";
 export const ViewCountJob = "addjobview";
 export const FeaturedJob = "featuredjob";
+export const addMarketJob = "addmarketjob";
 
 // company Api's
 export const ListCompany = "listcompany";

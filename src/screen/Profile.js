@@ -118,7 +118,7 @@ const Profile = ({ navigation }) => {
     if (!trimmed) return;
 
     const exists = keyValue.some(
-      (skill) => skill.skillText?.toLowerCase() === trimmed.toLowerCase()
+      (skill) => skill.skillText?.toLowerCase() === trimmed.toLowerCase(),
     );
 
     if (exists) return;
@@ -208,7 +208,7 @@ const Profile = ({ navigation }) => {
   };
   const fetchExploringAdd_Update = async () => {
     const formattedApiValue = apiValue.map((item) =>
-      typeof item === "object" ? item.exploringText : item
+      typeof item === "object" ? item.exploringText : item,
     );
 
     const payload = {
@@ -275,7 +275,7 @@ const Profile = ({ navigation }) => {
 
   const handleDeleteJmi = () => {
     const filteredJmiValue = jmiValue.filter(
-      (item) => typeof item === "object"
+      (item) => typeof item === "object",
     );
     setJmiValue(filteredJmiValue);
   };
@@ -349,7 +349,7 @@ const Profile = ({ navigation }) => {
       // Just remove from local state
       setInterestsValue((prev) => prev.filter((i) => i.id !== item.id));
       setInterestsValueApi((prev) =>
-        prev.filter((i) => i.interestText !== item.interestText)
+        prev.filter((i) => i.interestText !== item.interestText),
       );
       return;
     }
@@ -376,7 +376,7 @@ const Profile = ({ navigation }) => {
   };
   const deleteInterests = () => {
     const filteredJmiValue = interestsValue.filter(
-      (item) => typeof item === "object"
+      (item) => typeof item === "object",
     );
     setInterestsValue(filteredJmiValue);
   };
@@ -415,7 +415,7 @@ const Profile = ({ navigation }) => {
         body: JSON.stringify({
           userId: userData?.User?.userId,
           skills: skillsValueApi.map((item) =>
-            typeof item === "object" ? item.skillText : item
+            typeof item === "object" ? item.skillText : item,
           ),
           //skills: skillsValueApi,
         }),
@@ -475,7 +475,7 @@ const Profile = ({ navigation }) => {
   };
   const closeSkillsModal = () => {
     const filteredJmiValue = keyValue.filter(
-      (item) => typeof item === "object"
+      (item) => typeof item === "object",
     );
     setKeyValue(filteredJmiValue);
   };
@@ -584,7 +584,7 @@ const Profile = ({ navigation }) => {
       if (userData?.User?.userId) {
         GetProfileData();
       }
-    }, [userData?.User?.userId])
+    }, [userData?.User?.userId]),
   );
   // useFocusEffect(
   //   useCallback(() => {
@@ -816,7 +816,7 @@ const Profile = ({ navigation }) => {
     (interestsValue?.length > 0 ? 1 : 0);
 
   const completionPercentage = Math.round(
-    (completedSections / totalSections) * 100
+    (completedSections / totalSections) * 100,
   );
   if (initialLoading) {
     return <CommonLoader visible={true} />;
@@ -861,12 +861,26 @@ const Profile = ({ navigation }) => {
                 color={colors.placeholderTextColor}
               />
             </View>
-            <Text style={{ ...styles.titleText, color: colors.textColor }}>
-              {profileData?.jobTitle}
+            <Text
+              style={{
+                ...styles.titleText,
+                color: colors.textColor,
+              }}
+            >
+              {/* {profileData?.jobTitle} */}
+              {profileData?.usersType === 4
+                ? `${profileData?.jobTitle} at ${profileData?.companyName}`
+                : profileData?.usersType === 1
+                ? `${profileData?.departmentName} at ${profileData?.courseName}`
+                : profileData?.usersType === 2
+                ? `at ${profileData?.departmentName}`
+                : profileData?.usersType === 3
+                ? `${profileData?.jobTitle} at ${profileData?.companyName}`
+                : ""}
             </Text>
-            <Text style={{ ...styles.titleText, color: colors.textColor }}>
+            {/* <Text style={{ ...styles.titleText, color: colors.textColor }}>
               DeBox Global
-            </Text>
+            </Text> */}
             <Text style={{ ...styles.titleText, color: colors.textColor }}>
               {profileData?.locationName},{profileData?.cityName},
               {profileData?.countryName}
@@ -1032,10 +1046,15 @@ const Profile = ({ navigation }) => {
           >
             <TouchableOpacity
               onPress={() => setModalVisible4()}
-              style={styles.secongSkillView}
+              style={{ ...styles.secongSkillView, flex: 1 }}
             >
               <Text
-                style={{ ...globalStyles.sectionText, color: colors.textColor }}
+                style={{
+                  ...globalStyles.sectionText,
+                  color: colors.textColor,
+                  flexShrink: 1,
+                  lineHeight: 20,
+                }}
               >
                 What am I exploring on {universityFullName}
               </Text>

@@ -114,7 +114,7 @@ const Contacts = ({ navigation, tabBarVisible, route }) => {
       const data = await response.json();
       if (response.ok) {
         setknownPeopleData((prev) =>
-          pageNumber === 1 ? data?.Users : [...prev, ...data?.Users]
+          pageNumber === 1 ? data?.Users : [...prev, ...data?.Users],
         );
         setPage((prev) => (pageNumber ? pageNumber + 1 : prev + 1));
       }
@@ -285,8 +285,18 @@ const Contacts = ({ navigation, tabBarVisible, route }) => {
             {item?.SenderUserDetail?.UserName}
           </Text>
           <Text style={{ color: colors.placeholderTextColor, marginBottom: 5 }}>
-            {item?.SenderUserDetail?.JobTitle} at{" "}
-            {item?.SenderUserDetail?.CompanyName}
+            {/* {item?.SenderUserDetail?.JobTitle} at{" "}
+            {item?.SenderUserDetail?.CompanyName} */}
+
+            {item?.SenderUserDetail?.Userstype === 4
+              ? `${item?.SenderUserDetail?.JobTitle} at ${item?.SenderUserDetail?.CompanyName}`
+              : item?.SenderUserDetail?.Userstype === 1
+              ? `${item?.SenderUserDetail?.DepartmentName} at ${item?.SenderUserDetail?.CourseName}`
+              : item?.SenderUserDetail?.Userstype === 2
+              ? `at ${item?.SenderUserDetail?.DepartmentName}`
+              : item?.SenderUserDetail?.Userstype === 3
+              ? `${item?.SenderUserDetail?.JobTitle} at ${item?.SenderUserDetail?.CompanyName}`
+              : ""}
           </Text>
         </View>
         <View style={{ flexDirection: "row", flex: 0.4 }}>
@@ -345,8 +355,8 @@ const Contacts = ({ navigation, tabBarVisible, route }) => {
           prevData.map((user) =>
             user.UserId === item.UserId
               ? { ...user, IsRequestSent: true }
-              : user
-          )
+              : user,
+          ),
         );
         console.log("Send Request Success ----->>>", JSON.stringify(data));
         showSuccess(data.Message);
@@ -368,6 +378,8 @@ const Contacts = ({ navigation, tabBarVisible, route }) => {
     }
   };
   const renderItem = ({ item }) => {
+    // console.log(item, "itemitemitemitemitemitemitem");
+
     return (
       <TouchableOpacity
         style={{
@@ -397,7 +409,15 @@ const Contacts = ({ navigation, tabBarVisible, route }) => {
             {item?.UserName}
           </Text>
           <Text style={{ color: colors.placeholderTextColor, marginBottom: 5 }}>
-            at {item?.CompanyName || item?.title}
+            {item?.Userstype === 4
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : item?.Userstype === 1
+              ? `${item?.DepartmentName} at ${item?.CourseName}`
+              : item?.Userstype === 2
+              ? `at ${item?.DepartmentName}`
+              : item?.Userstype === 3
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : ""}
           </Text>
 
           {item?.IsRequestSent ? (

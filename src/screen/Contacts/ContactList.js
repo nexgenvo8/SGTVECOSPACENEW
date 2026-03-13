@@ -229,13 +229,13 @@ const ContactList = ({ navigation, route }) => {
               if (response.ok) {
                 console.log("Deleted contact successfully:", data);
                 setKnownPeopleData((prevData) =>
-                  prevData.filter((contact) => contact.id !== item.id)
+                  prevData.filter((contact) => contact.id !== item.id),
                 );
               } else {
                 console.error(
                   "Failed to delete contact:",
                   response.status,
-                  data
+                  data,
                 );
               }
             } catch (error) {
@@ -244,7 +244,7 @@ const ContactList = ({ navigation, route }) => {
           },
         },
       ],
-      { cancelable: false }
+      { cancelable: false },
     );
   };
   const renderContacts = ({ item }) => {
@@ -298,7 +298,16 @@ const ContactList = ({ navigation, route }) => {
             {item?.UserName}
           </Text>
           <Text style={{ color: colors.placeholderTextColor, marginBottom: 5 }}>
-            at {item?.CompanyName}
+            {item?.Userstype === 4
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : item?.Userstype === 1
+              ? `${item?.DepartmentName} at ${item?.CourseName}`
+              : item?.Userstype === 2
+              ? `at ${item?.DepartmentName}`
+              : item?.Userstype === 3
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : ""}
+            {/* at {item?.CompanyName} */}
           </Text>
         </View>
         {InviteFriends ? (

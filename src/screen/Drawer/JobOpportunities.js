@@ -260,7 +260,7 @@ const JobOpportunities = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <View style={{ flexDirection: "row" }}>
+          {/* <View style={{ flexDirection: "row" }}>
             <TouchableOpacity
               style={{
                 ...globalStyles.saveButton,
@@ -316,8 +316,113 @@ const JobOpportunities = ({ navigation, route }) => {
                 Search Jobs
               </Text>
             </TouchableOpacity>
+          </View> */}
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 4,
+              marginHorizontal: 10,
+              flex: 1,
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                ...globalStyles.saveButton,
+                flex: 1,
+                // margin: 4,
+                // paddingHorizontal: 16,
+                backgroundColor: colors.AppmainColor,
+                flexDirection: "row",
+                //padding: 4,
+                gap: 4,
+                paddingHorizontal: 16,
+              }}
+              onPress={() => navigation.navigate("AddJob")}
+            >
+              <Icon
+                name="upload"
+                size={18}
+                color={colors.ButtonTextColor}
+                type="Entypo"
+                style={{}}
+              />
+              <Text
+                // numberOfLines={1}
+                // ellipsizeMode="tail"
+                style={{
+                  ...globalStyles.saveButtonText,
+                  color: colors.ButtonTextColor,
+                  fontSize: 12,
+                }}
+              >
+                Recruiters Post a Job
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                ...globalStyles.saveButton,
+                flex: 1,
+                // margin: 4,
+                paddingHorizontal: 16,
+                backgroundColor: colors.AppmainColor,
+                flexDirection: "row",
+                //padding: 4,
+                gap: 4,
+              }}
+              onPress={() =>
+                navigation.navigate("AddJob", { fromMarketPost: true })
+              }
+            >
+              <Icon
+                name="briefcase"
+                size={18}
+                color={colors.ButtonTextColor}
+                family="Feather"
+              />
+              <Text
+                // numberOfLines={1}
+                // ellipsizeMode="tail"
+                style={{
+                  ...globalStyles.saveButtonText,
+                  color: colors.ButtonTextColor,
+                  fontSize: 12,
+                }}
+              >
+                Post Market Jobs
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("JobListComponent")}
+              style={{
+                ...globalStyles.saveButton,
+                flex: 1,
+                // margin: 4,
+                backgroundColor: "#00a0af",
+                flexDirection: "row",
+                gap: 4,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Icon
+                name="search"
+                size={18}
+                color={colors.ButtonTextColor}
+                type="FontAwesome"
+                style={{}}
+              />
+              <Text
+                // numberOfLines={1}
+                // ellipsizeMode="tail"
+                style={{
+                  ...globalStyles.saveButtonText,
+                  color: colors.ButtonTextColor,
+                  fontSize: 12,
+                }}
+              >
+                Search Jobs
+              </Text>
+            </TouchableOpacity>
           </View>
-
           <View
             style={{
               ...globalStyles.ViewINter,

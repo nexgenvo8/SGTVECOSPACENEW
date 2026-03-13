@@ -355,7 +355,7 @@ const ProfileDetails = ({ navigation, route }) => {
   if (articleList?.Data) {
     shortText = truncateText(
       articleList?.Data[0]?.PostText || "<p>No content available.</p>",
-      0.25
+      0.25,
     );
   }
 
@@ -366,7 +366,7 @@ const ProfileDetails = ({ navigation, route }) => {
         baseUrl,
         contactList,
         setContacts,
-        setLoadingContacts
+        setLoadingContacts,
       );
     }
   }, [modalVisibleShare]);
@@ -385,7 +385,7 @@ const ProfileDetails = ({ navigation, route }) => {
       setFilteredContacts(contacts);
     } else {
       const filtered = contacts.filter((user) =>
-        user?.UserName?.toLowerCase().includes(query.toLowerCase())
+        user?.UserName?.toLowerCase().includes(query.toLowerCase()),
       );
       setFilteredContacts(filtered);
     }
@@ -395,7 +395,7 @@ const ProfileDetails = ({ navigation, route }) => {
     setSelectedUsers((prevSelected) =>
       prevSelected.includes(userId)
         ? prevSelected.filter((id) => id !== userId)
-        : [...prevSelected, userId]
+        : [...prevSelected, userId],
     );
   };
   const sendMessage = async (receiverId, selectedUsers) => {
@@ -452,6 +452,7 @@ const ProfileDetails = ({ navigation, route }) => {
 
       if (response.ok) {
         console.log("Message Sent Successfully");
+        showSuccess("Message Sent Successfully");
       } else {
         console.error("Message Sending Failed:", await response.text());
       }
@@ -1185,12 +1186,23 @@ const ProfileDetails = ({ navigation, route }) => {
                             {item?.UserName}
                           </Text>
                           <Text
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
                             style={{
                               color: colors.placeholderTextColor,
                               marginBottom: 5,
                             }}
                           >
-                            {item?.JobTitle} at {item?.CompanyName}
+                            {Item?.Userstype === 4
+                              ? `${Item?.JobTitle} at ${Item?.CompanyName}`
+                              : Item?.Userstype === 1
+                              ? `${Item?.DepartmentName} at ${Item?.CourseName}`
+                              : Item?.Userstype === 2
+                              ? `at ${Item?.DepartmentName}`
+                              : Item?.Userstype === 3
+                              ? `${Item?.JobTitle} at ${Item?.CompanyName}`
+                              : ""}
+                            {/* {item?.JobTitle} at {item?.CompanyName} */}
                           </Text>
                         </View>
                       </TouchableOpacity>

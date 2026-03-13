@@ -248,7 +248,7 @@ const CompanyProfiles = ({ navigation, route }) => {
             backgroundColor: colors.AppmainColor,
           }}
         >
-          <Text style={{ color: colors.textColor, fontWeight: "bold" }}>
+          <Text style={{ color: colors.ButtonTextColor, fontWeight: "bold" }}>
             Search
           </Text>
         </TouchableOpacity>
@@ -411,7 +411,7 @@ const CompanyProfiles = ({ navigation, route }) => {
                       onPress={() => {
                         const nextItems = companyList.slice(
                           index + 1,
-                          index + 4
+                          index + 4,
                         );
                         navigation.navigate("CompanyDetails", {
                           Item: item,
@@ -494,7 +494,7 @@ const CompanyProfiles = ({ navigation, route }) => {
                       onPress={() => {
                         const nextItems = companyList.slice(
                           index + 1,
-                          index + 4
+                          index + 4,
                         );
                         navigation.navigate("CompanyDetails", {
                           Item: item,
@@ -576,7 +576,7 @@ const CompanyProfiles = ({ navigation, route }) => {
                       onPress={() => {
                         const nextItems = companyList.slice(
                           index + 1,
-                          index + 4
+                          index + 4,
                         );
                         navigation.navigate("CompanyDetails", {
                           Item: item,
@@ -660,7 +660,7 @@ const CompanyProfiles = ({ navigation, route }) => {
                       onPress={() => {
                         const nextItems = companyList.slice(
                           index + 1,
-                          index + 4
+                          index + 4,
                         );
                         navigation.navigate("CompanyDetails", {
                           Item: item,

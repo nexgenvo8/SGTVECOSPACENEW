@@ -251,7 +251,7 @@ const ChatDetails = ({ navigation, route }) => {
             "X-App-Secret": "s3cr3t!123456789",
           },
           body: JSON.stringify({ id }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -273,7 +273,7 @@ const ChatDetails = ({ navigation, route }) => {
       const response = await fetch(
         `${baseUrl}${
           Type == "Mentor" ? GetMentorChat : GetMessage
-        }/${senderId}/${receiverId}`
+        }/${senderId}/${receiverId}`,
       );
       const data = await response.json();
       setMessages(data?.messages);
@@ -285,8 +285,8 @@ const ChatDetails = ({ navigation, route }) => {
   const updateMessagesAsRead = (readData) => {
     setMessages((prev) =>
       prev.map((msg) =>
-        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg
-      )
+        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg,
+      ),
     );
   };
 
@@ -294,8 +294,8 @@ const ChatDetails = ({ navigation, route }) => {
     console.log("Updating message read status with:", readData);
     setMessages((prev) =>
       prev.map((msg) =>
-        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg
-      )
+        msg.id === readData.id ? { ...msg, readDate: readData.readDate } : msg,
+      ),
     );
   };
 
@@ -313,7 +313,7 @@ const ChatDetails = ({ navigation, route }) => {
             senderId: receiverId,
             receiverId: senderId,
           }),
-        }
+        },
       );
       const data = await response.json();
       console.log();
@@ -325,7 +325,7 @@ const ChatDetails = ({ navigation, route }) => {
 
   const groupedMessages = messages.reduce((acc, message) => {
     const messageDate = moment(message.dateAdded, "YYYY-MM-DD HH:mm:ss").format(
-      "DD MMM YYYY"
+      "DD MMM YYYY",
     );
     if (!acc[messageDate]) {
       acc[messageDate] = [];
@@ -339,7 +339,7 @@ const ChatDetails = ({ navigation, route }) => {
     .sort(
       (a, b) =>
         moment(a.date, "DD MMM YYYY").unix() -
-        moment(b.date, "DD MMM YYYY").unix()
+        moment(b.date, "DD MMM YYYY").unix(),
     );
 
   const renderItem = ({ item }) => {
@@ -430,7 +430,7 @@ const ChatDetails = ({ navigation, route }) => {
                 <Text style={styles.timeText}>
                   {msg.chatText || msg.chatFileName
                     ? moment(msg.dateAdded, "YYYY-MM-DD h:mm:ss A").format(
-                        "hh:mm A"
+                        "hh:mm A",
                       )
                     : null}
                 </Text>
@@ -529,7 +529,7 @@ const ChatDetails = ({ navigation, route }) => {
             Accept: "application/json",
           },
           body: formData,
-        }
+        },
       );
 
       const responseText = await response.text();
@@ -600,7 +600,12 @@ const ChatDetails = ({ navigation, route }) => {
                   }
                 />
               </View>
-              <View>
+              <View
+                style={{
+                  flex: 1,
+                  marginRight: 10,
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 18,
@@ -610,13 +615,33 @@ const ChatDetails = ({ navigation, route }) => {
                 >
                   {Item?.UserName || "User Name"}
                 </Text>
-                {Item?.JobTitle ? (
+                {/* {Item?.JobTitle ? (
                   <Text
                     style={{ fontSize: 14, color: colors.placeholderTextColor }}
                   >
                     {Item?.JobTitle}
                   </Text>
-                ) : null}
+                ) : null} */}
+                <Text
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                  style={{
+                    fontSize: 14,
+                    color: colors.placeholderTextColor,
+                    width: "86%",
+                    //flex: 1,
+                  }}
+                >
+                  {Item?.Userstype === 4
+                    ? `${Item?.JobTitle} at ${Item?.CompanyName}`
+                    : Item?.Userstype === 1
+                    ? `${Item?.DepartmentName} at ${Item?.CourseName}`
+                    : Item?.Userstype === 2
+                    ? `at ${Item?.DepartmentName}`
+                    : Item?.Userstype === 3
+                    ? `${Item?.JobTitle} at ${Item?.CompanyName}`
+                    : ""}
+                </Text>
               </View>
             </TouchableOpacity>
           </View>

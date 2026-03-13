@@ -103,7 +103,7 @@ export default function ({ route, tabBarVisible }) {
         flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         navigation.setParams({ scrollToTop: false });
       }
-    }, [route.params?.scrollToTop])
+    }, [route.params?.scrollToTop]),
   );
   const commentSheetRef = useRef(null);
   const handleSheetChange = (index) => {
@@ -246,8 +246,8 @@ export default function ({ route, tabBarVisible }) {
     setLikedPosts((prev) => ({ ...prev, [postId]: updatedLikeStatus }));
     setPostData((prevData) =>
       prevData.map((item) =>
-        item.id === postId ? { ...item, TotalLike: updatedLikeCount } : item
-      )
+        item.id === postId ? { ...item, TotalLike: updatedLikeCount } : item,
+      ),
     );
     try {
       const response = await fetch("https://sgtapi.vecospace.com/api/addlike", {
@@ -276,13 +276,13 @@ export default function ({ route, tabBarVisible }) {
                 ...item,
                 TotalLike: finalLikeCount,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       await AsyncStorage.setItem(
         "likedPosts",
-        JSON.stringify({ ...likedPosts, [postId]: finalIsLiked })
+        JSON.stringify({ ...likedPosts, [postId]: finalIsLiked }),
       );
     } catch (error) {
       console.error("Like API Error:", error);
@@ -296,8 +296,8 @@ export default function ({ route, tabBarVisible }) {
                   ? post.TotalLike
                   : Math.max(post.TotalLike - 1, 0),
               }
-            : item
-        )
+            : item,
+        ),
       );
     }
   };
@@ -335,7 +335,7 @@ export default function ({ route, tabBarVisible }) {
   const fetchPosts = async (
     page = 1,
     isRefresh = false,
-    isAfterPost = false
+    isAfterPost = false,
   ) => {
     if (loading && !isRefresh && !isAfterPost) return;
     if (!hasMoreData && !isRefresh && !isAfterPost) return;
@@ -371,7 +371,7 @@ export default function ({ route, tabBarVisible }) {
         if (data.Data && data.Data.length > 0) {
           // If there is new data, update the state correctly
           setPostData((prev) =>
-            isRefresh || page === 1 ? data.Data : [...prev, ...data.Data]
+            isRefresh || page === 1 ? data.Data : [...prev, ...data.Data],
           );
           setHasMoreData(data.Data.length === 20);
           setCurrentPage(page);
@@ -476,7 +476,7 @@ export default function ({ route, tabBarVisible }) {
           if (response.ok) {
             await AsyncStorage.setItem(
               "userProfileData",
-              JSON.stringify(profile)
+              JSON.stringify(profile),
             );
             setUserProfileData(profile);
           } else {
@@ -488,7 +488,7 @@ export default function ({ route, tabBarVisible }) {
       };
 
       fetchLatestProfile();
-    }, [])
+    }, []),
   );
 
   const isFirstLoad = useRef(true);
@@ -671,7 +671,7 @@ export default function ({ route, tabBarVisible }) {
           setContacts(res);
           setFilteredContacts(res);
         },
-        setLoadingContacts
+        setLoadingContacts,
       );
     }
   }, [modalVisibleShare]);
@@ -766,7 +766,7 @@ export default function ({ route, tabBarVisible }) {
 
       if (response.ok) {
         setCommentList((prev) =>
-          pageNumber === 1 ? newData : [...prev, ...newData]
+          pageNumber === 1 ? newData : [...prev, ...newData],
         );
         setPage(pageNumber);
         setHasMoreData(newData.length > 0);
@@ -852,7 +852,7 @@ export default function ({ route, tabBarVisible }) {
           },
         },
       ],
-      { cancelable: false }
+      { cancelable: false },
     );
   };
   const handleUpdateComment = async () => {
@@ -923,7 +923,7 @@ export default function ({ route, tabBarVisible }) {
           },
         },
       ],
-      { cancelable: false }
+      { cancelable: false },
     );
   };
   const toggleExpand = (index) => {
@@ -941,7 +941,7 @@ export default function ({ route, tabBarVisible }) {
   };
 
   const renderItem = ({ item, index }) => {
-    // console.log(item, 'itemitemitemitemitemitemitemitem');
+    // console.log(item, "itemitemitemitemitemitemitemitem");
     const isLiked = likedPosts[item?.id] ?? item?.IsLiked ?? false;
     const getTimeAgo = (dateString) => {
       const then = moment(dateString, "DD-MMM-YYYY, hh:mm:ssa");
@@ -984,7 +984,7 @@ export default function ({ route, tabBarVisible }) {
       return text.replace(urlRegex, (url) => `<a href="${url}">${url}</a>`);
     }
     const processedHTML = convertUrlsToLinks(
-      isExpanded ? fullFormattedText : shortFormattedText
+      isExpanded ? fullFormattedText : shortFormattedText,
     );
     return (
       <View
@@ -1042,7 +1042,16 @@ export default function ({ route, tabBarVisible }) {
                     color: colors.textColor,
                   }}
                 >
-                  {item.JobTitle} at {item.CompanyName}
+                  {item?.Userstype === 4
+                    ? `${item?.JobTitle} at ${item?.CompanyName}`
+                    : item?.Userstype === 1
+                    ? `${item?.DepartmentName} at ${item?.CourseName}`
+                    : item?.Userstype === 2
+                    ? `at ${item?.DepartmentName}`
+                    : item?.Userstype === 3
+                    ? `${item?.JobTitle} at ${item?.CompanyName}`
+                    : ""}
+                  {/* {item.JobTitle} at {item.CompanyName} */}
                 </Text>
               </View>
             </View>
@@ -1195,7 +1204,7 @@ export default function ({ route, tabBarVisible }) {
                               setModalImages(
                                 item.Images.map((img) => ({
                                   url: img.PostImage,
-                                }))
+                                })),
                               );
                               setModalIndex(index + 1);
                               setModalImageVisible(true);
@@ -1508,7 +1517,7 @@ export default function ({ route, tabBarVisible }) {
               oldPostText: passImageInModal?.PostText,
               userId: userData?.User?.userId,
             }),
-          }
+          },
         );
         const data = await response.json();
 
@@ -1538,7 +1547,7 @@ export default function ({ route, tabBarVisible }) {
     }
 
     const filtered = contacts.filter((user) =>
-      user?.UserName?.toLowerCase().includes(trimmed)
+      user?.UserName?.toLowerCase().includes(trimmed),
     );
     setFilteredContacts(filtered);
   };
@@ -1547,7 +1556,7 @@ export default function ({ route, tabBarVisible }) {
     setSelectedUsers((prevSelected) =>
       prevSelected.includes(userId)
         ? prevSelected.filter((id) => id !== userId)
-        : [...prevSelected, userId]
+        : [...prevSelected, userId],
     );
   };
   const sendMessage = async (receiverId, selectedUsers) => {
@@ -1599,8 +1608,8 @@ export default function ({ route, tabBarVisible }) {
     formData.append(
       "chatText",
       cleanHtmlWithSpacing(
-        selectedUsers?.PostText || selectedUsers?.PostTitle || "No message"
-      )
+        selectedUsers?.PostText || selectedUsers?.PostTitle || "No message",
+      ),
     );
 
     formData.append("optionalType", "PostShare");
@@ -1658,7 +1667,7 @@ export default function ({ route, tabBarVisible }) {
   };
   const handleRemoveUser = (user) => {
     setSelectedUsers((prevUsers) =>
-      prevUsers.filter((u) => u.UserId !== user.UserId)
+      prevUsers.filter((u) => u.UserId !== user.UserId),
     );
   };
   if (initialLoading) {
@@ -1924,8 +1933,17 @@ export default function ({ route, tabBarVisible }) {
                                 color: colors.placeholderTextColor,
                               }}
                             >
-                              {userProfileData?.Data?.courseName} -{" "}
-                              {userProfileData?.Data?.companyName}
+                              {userProfileData?.Data?.usersType === 4
+                                ? `${userProfileData?.Data?.jobTitle} at ${userProfileData?.Data?.companyName}`
+                                : userProfileData?.Data?.usersType === 1
+                                ? `${userProfileData?.Data?.departmentName} at ${userProfileData?.Data?.courseName}`
+                                : userProfileData?.Data?.usersType === 2
+                                ? `at ${userProfileData?.Data?.departmentName}`
+                                : userProfileData?.Data?.usersType === 3
+                                ? `${userProfileData?.Data?.jobTitle} at ${userProfileData?.Data?.companyName}`
+                                : ""}
+                              {/* {userProfileData?.Data?.courseName} -{" "}
+                              {userProfileData?.Data?.companyName} */}
                             </Text>
                           </View>
                         </View>
@@ -2027,7 +2045,16 @@ export default function ({ route, tabBarVisible }) {
                                     marginBottom: 5,
                                   }}
                                 >
-                                  at {item?.CompanyName}
+                                  {/* at {item?.CompanyName} */}
+                                  {item?.Userstype === 4
+                                    ? `${item?.JobTitle} at ${item?.CompanyName}`
+                                    : item?.Userstype === 1
+                                    ? `${item?.DepartmentName} at ${item?.CourseName}`
+                                    : item?.Userstype === 2
+                                    ? `at ${item?.DepartmentName}`
+                                    : item?.Userstype === 3
+                                    ? `${item?.JobTitle} at ${item?.CompanyName}`
+                                    : ""}
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2074,7 +2101,7 @@ export default function ({ route, tabBarVisible }) {
                                     const formattedImages = images.map(
                                       (img) => ({
                                         url: img.uri,
-                                      })
+                                      }),
                                     );
                                     setModalImages(formattedImages);
                                     setModalIndex(3);
@@ -2546,7 +2573,7 @@ export default function ({ route, tabBarVisible }) {
                                   ? colors.AppmainColor
                                   : colors.placeholderTextColor,
                                 backgroundColor: selectedUsers.includes(
-                                  item.UserId
+                                  item.UserId,
                                 )
                                   ? colors.AppmainColor
                                   : "transparent",
@@ -2593,7 +2620,16 @@ export default function ({ route, tabBarVisible }) {
                                   marginBottom: 5,
                                 }}
                               >
-                                {item?.JobTitle} at {item?.CompanyName}
+                                {/* {item?.JobTitle} at {item?.CompanyName} */}
+                                {item?.Userstype === 4
+                                  ? `${item?.JobTitle} at ${item?.CompanyName}`
+                                  : item?.Userstype === 1
+                                  ? `${item?.DepartmentName} at ${item?.CourseName}`
+                                  : item?.Userstype === 2
+                                  ? `at ${item?.DepartmentName}`
+                                  : item?.Userstype === 3
+                                  ? `${item?.JobTitle} at ${item?.CompanyName}`
+                                  : ""}
                               </Text>
                             </View>
                           </TouchableOpacity>

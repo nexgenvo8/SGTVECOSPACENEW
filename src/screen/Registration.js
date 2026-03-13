@@ -14,7 +14,7 @@ import React, { useState, useEffect } from "react";
 import Colors from "./color";
 import { TextInput } from "react-native-gesture-handler";
 import Icon from "./Icons/Icons";
-import PlaneIcon from "react-native-vector-icons/AntDesign";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import {
   baseUrl,
   RegistrationApi,
@@ -32,6 +32,7 @@ import {
   registrationtopTextImage_dark,
   universityFullName,
 } from "../constants";
+import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
 
 const Registration = () => {
   const navigation = useNavigation();
@@ -56,6 +57,7 @@ const Registration = () => {
   const [industryList, setIndustryList] = useState([]);
   const [selectedIndustry, setSelectedIndustry] = useState(null);
   const [errors, setErrors] = useState({});
+  const [checked, setChecked] = useState(false);
   const { width, height } = Dimensions.get("window");
   const [isModalVisible, setModalVisible] = useState(false);
   const handleRegistrationSuccess = () => {
@@ -331,7 +333,13 @@ const Registration = () => {
         return false;
       }
     }
-
+    // ---------- TERMS & CONDITIONS ----------
+    if (!checked) {
+      tempErrors.checked = true;
+      showError("You must accept the terms and conditions");
+      setErrors(tempErrors);
+      return false;
+    }
     setErrors({});
     return true;
   };
@@ -367,7 +375,7 @@ const Registration = () => {
       jobTitle: jobTitle || "Null",
       passingyear: parseInt(passingYear) || 0,
       departmentname: selectedDepartment?.DepartmentName || "Null",
-      companyName: companyName || "Company Name.",
+      companyName: companyName || "SGT VECOSPACE",
       industryId: selectedIndustry?.Id || 1,
       countryName: "India",
       cityName: "Delhi",
@@ -421,351 +429,276 @@ const Registration = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.header}>
-          <Image
-            source={registrationlogoimage}
-            style={{ width: 50, height: 50 }}
-            resizeMode="contain"
-          />
-          <Image
-            source={
-              isDark ? registrationtopTextImage_dark : registrationtopTextImage
-            }
-            style={{ width: 150, height: 150 }}
-            resizeMode="contain"
-          />
-        </View>
+      <KeyboardAvoidingWrapper offset={40}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.header}>
+            <Image
+              source={registrationlogoimage}
+              style={{ width: 50, height: 50 }}
+              resizeMode="contain"
+            />
+            <Image
+              source={
+                isDark
+                  ? registrationtopTextImage_dark
+                  : registrationtopTextImage
+              }
+              style={{ width: 150, height: 150 }}
+              resizeMode="contain"
+            />
+          </View>
 
-        <ImageBackground
-          source={registrationbackgroundimage}
-          resizeMode="cover"
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            paddingVertical: 40,
-          }}
-        >
-          <View
+          <ImageBackground
+            source={registrationbackgroundimage}
+            resizeMode="cover"
             style={{
-              ...styles.whiteBox,
-              backgroundColor: colors.cardBackground,
+              flex: 1,
+              justifyContent: "center",
+              paddingVertical: 40,
             }}
           >
-            <Text
-              style={{ ...styles.registerText, color: colors.AppmainColor }}
+            <View
+              style={{
+                ...styles.whiteBox,
+                backgroundColor: colors.cardBackground,
+              }}
             >
-              Register Now !!!
-            </Text>
-            <View style={styles.nameBox}>
+              <Text
+                style={{ ...styles.registerText, color: colors.AppmainColor }}
+              >
+                Register Now !!!
+              </Text>
+              <View style={styles.nameBox}>
+                <TextInput
+                  style={{
+                    ...styles.inputText,
+                    borderColor: errors.firstName
+                      ? "red"
+                      : colors.textinputbordercolor,
+                    color: colors.textColor,
+                  }}
+                  value={firstName}
+                  onChangeText={(text) => {
+                    setFirstName(text);
+                    setErrors({ ...errors, firstName: null });
+                  }}
+                  placeholder="First name"
+                  placeholderTextColor={colors.placeholderTextColor}
+                />
+                <TextInput
+                  style={{
+                    ...styles.inputText,
+                    borderColor: errors.lastName
+                      ? "red"
+                      : colors.textinputbordercolor,
+                    color: colors.textColor,
+                  }}
+                  value={lastName}
+                  onChangeText={(text) => {
+                    setLastName(text);
+                    setErrors({ ...errors, lastName: null });
+                  }}
+                  placeholder="Last name"
+                  placeholderTextColor={colors.placeholderTextColor}
+                />
+              </View>
               <TextInput
                 style={{
-                  ...styles.inputText,
-                  borderColor: errors.firstName
+                  ...styles.emailTextInput,
+                  borderColor: errors.email
                     ? "red"
                     : colors.textinputbordercolor,
                   color: colors.textColor,
                 }}
-                value={firstName}
+                value={email}
                 onChangeText={(text) => {
-                  setFirstName(text);
-                  setErrors({ ...errors, firstName: null });
+                  setEmail(text);
+                  setErrors({ ...errors, email: null });
                 }}
-                placeholder="First name"
+                placeholder="Email"
                 placeholderTextColor={colors.placeholderTextColor}
               />
               <TextInput
+                maxLength={10}
+                keyboardType="numeric"
                 style={{
-                  ...styles.inputText,
-                  borderColor: errors.lastName
+                  ...styles.emailTextInput,
+                  borderColor: errors.phone
                     ? "red"
                     : colors.textinputbordercolor,
                   color: colors.textColor,
                 }}
-                value={lastName}
+                value={phone}
                 onChangeText={(text) => {
-                  setLastName(text);
-                  setErrors({ ...errors, lastName: null });
+                  setPhone(text);
+                  setErrors({ ...errors, phone: null });
                 }}
-                placeholder="Last name"
+                placeholder="Phone "
                 placeholderTextColor={colors.placeholderTextColor}
               />
-            </View>
-            <TextInput
-              style={{
-                ...styles.emailTextInput,
-                borderColor: errors.email ? "red" : colors.textinputbordercolor,
-                color: colors.textColor,
-              }}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setErrors({ ...errors, email: null });
-              }}
-              placeholder="Email"
-              placeholderTextColor={colors.placeholderTextColor}
-            />
-            <TextInput
-              maxLength={10}
-              keyboardType="numeric"
-              style={{
-                ...styles.emailTextInput,
-                borderColor: errors.phone ? "red" : colors.textinputbordercolor,
-                color: colors.textColor,
-              }}
-              value={phone}
-              onChangeText={(text) => {
-                setPhone(text);
-                setErrors({ ...errors, phone: null });
-              }}
-              placeholder="Phone "
-              placeholderTextColor={colors.placeholderTextColor}
-            />
-            <Text style={{ ...styles.birthdayText, color: colors.textColor }}>
-              Birthday
-            </Text>
-            <View style={styles.birthdayBox}>
-              <TouchableOpacity
-                style={{
-                  ...styles.dayBox,
-                  borderColor: errors.day ? "red" : colors.textinputbordercolor,
-                }}
-                onPress={() => setCurrentPicker("day")}
-              >
-                <Text style={{ ...styles.dayText, color: colors.textColor }}>
-                  {selectedDay || "Day"}
-                </Text>
-                <Icon
-                  name="down"
-                  type="AntDesign"
-                  size={15}
-                  color={colors.placeholderTextColor}
-                  style={{ paddingLeft: 10 }}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  ...styles.dayBox,
-                  borderColor: errors.month
-                    ? "red"
-                    : colors.textinputbordercolor,
-                }}
-                onPress={() => setCurrentPicker("month")}
-              >
-                <Text style={{ ...styles.dayText, color: colors.textColor }}>
-                  {selectedMonth || "Month"}
-                </Text>
-                <Icon
-                  name="down"
-                  type="AntDesign"
-                  size={15}
-                  color={colors.placeholderTextColor}
-                  style={{ paddingLeft: 10 }}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setCurrentPicker("year")}
-                style={{
-                  ...styles.dayBox,
-                  borderColor: errors.year
-                    ? "red"
-                    : colors.textinputbordercolor,
-                }}
-              >
-                <Text style={{ ...styles.dayText, color: colors.textColor }}>
-                  {selectedYear || "Year"}
-                </Text>
-                <Icon
-                  name="down"
-                  type="AntDesign"
-                  size={15}
-                  color={colors.placeholderTextColor}
-                  style={{ paddingLeft: 10 }}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.maleMainBox}>
-              <TouchableOpacity
-                style={styles.maleBox}
-                onPress={() => setSelectedGender("male")}
-              >
-                <View
-                  style={{
-                    ...styles.maleCircleBox,
-                    borderColor: colors.textinputbordercolor,
-                  }}
-                >
-                  {selectedGender === "male" && (
-                    <View
-                      style={{
-                        ...styles.selectedCircle,
-                        backgroundColor: colors.AppmainColor,
-                      }}
-                    />
-                  )}
-                </View>
-                <Text style={{ ...styles.maleText, color: colors.textColor }}>
-                  Male
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.maleBox}
-                onPress={() => setSelectedGender("female")}
-              >
-                <View
-                  style={{
-                    ...styles.maleCircleBox,
-                    borderColor: colors.textinputbordercolor,
-                  }}
-                >
-                  {selectedGender === "female" && (
-                    <View
-                      style={{
-                        ...styles.selectedCircle,
-                        backgroundColor: colors.AppmainColor,
-                      }}
-                    />
-                  )}
-                </View>
-                <Text style={{ ...styles.maleText, color: colors.textColor }}>
-                  Female
-                </Text>
-              </TouchableOpacity>
-              {/* <View></View> */}
-              <TouchableOpacity
-                style={styles.maleBox}
-                onPress={() => setSelectedGender("Others")}
-              >
-                <View
-                  style={{
-                    ...styles.maleCircleBox,
-                    borderColor: colors.textinputbordercolor,
-                  }}
-                >
-                  {selectedGender === "Others" && (
-                    <View
-                      style={{
-                        ...styles.selectedCircle,
-                        backgroundColor: colors.AppmainColor,
-                      }}
-                    />
-                  )}
-                </View>
-                <Text style={{ ...styles.maleText, color: colors.textColor }}>
-                  Others
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.studentMainBox}>
-              <TouchableOpacity
-                onPress={() => setCurrentPicker("role")}
-                style={{
-                  ...styles.StudentBox,
-                  borderColor: colors.textinputbordercolor,
-                }}
-              >
-                <Text
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  style={{ ...styles.StudentText, color: colors.textColor }}
-                >
-                  {selectedRole ? selectedRole : "Select Role"}
-                </Text>
-                <Icon
-                  name="down"
-                  type="AntDesign"
-                  size={15}
-                  color={colors.placeholderTextColor}
-                />
-              </TouchableOpacity>
-
-              {selectedRole == "Faculty" && (
+              <Text style={{ ...styles.birthdayText, color: colors.textColor }}>
+                Birthday
+              </Text>
+              <View style={styles.birthdayBox}>
                 <TouchableOpacity
-                  onPress={() => setCurrentPicker("department")}
                   style={{
-                    ...styles.StudentBox,
-                    borderColor: errors.department
+                    ...styles.dayBox,
+                    borderColor: errors.day
                       ? "red"
                       : colors.textinputbordercolor,
                   }}
+                  onPress={() => setCurrentPicker("day")}
                 >
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={{ ...styles.StudentText, color: colors.textColor }}
-                  >
-                    {selectedDepartment
-                      ? selectedDepartment.DepartmentName
-                      : "Department"}
+                  <Text style={{ ...styles.dayText, color: colors.textColor }}>
+                    {selectedDay || "Day"}
                   </Text>
                   <Icon
                     name="down"
                     type="AntDesign"
                     size={15}
                     color={colors.placeholderTextColor}
-                    // style={{right: 6}}
+                    style={{ paddingLeft: 10 }}
                   />
                 </TouchableOpacity>
-              )}
-              {selectedRole == "Industry Professional" && (
                 <TouchableOpacity
-                  onPress={() => setCurrentPicker("Industry")}
                   style={{
-                    ...styles.StudentBox,
-                    borderColor: errors.industry
+                    ...styles.dayBox,
+                    borderColor: errors.month
                       ? "red"
                       : colors.textinputbordercolor,
                   }}
+                  onPress={() => setCurrentPicker("month")}
                 >
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={{ ...styles.StudentText, color: colors.textColor }}
-                  >
-                    {selectedIndustry ? selectedIndustry.Name : "Industry"}
+                  <Text style={{ ...styles.dayText, color: colors.textColor }}>
+                    {selectedMonth || "Month"}
                   </Text>
                   <Icon
                     name="down"
                     type="AntDesign"
                     size={15}
                     color={colors.placeholderTextColor}
-                    // style={{right: 6}}
+                    style={{ paddingLeft: 10 }}
                   />
                 </TouchableOpacity>
-              )}
-
-              {selectedRole !== "Faculty" &&
-                selectedRole !== "Industry Professional" && (
-                  <TouchableOpacity
-                    onPress={() => setCurrentPicker("course")}
+                <TouchableOpacity
+                  onPress={() => setCurrentPicker("year")}
+                  style={{
+                    ...styles.dayBox,
+                    borderColor: errors.year
+                      ? "red"
+                      : colors.textinputbordercolor,
+                  }}
+                >
+                  <Text style={{ ...styles.dayText, color: colors.textColor }}>
+                    {selectedYear || "Year"}
+                  </Text>
+                  <Icon
+                    name="down"
+                    type="AntDesign"
+                    size={15}
+                    color={colors.placeholderTextColor}
+                    style={{ paddingLeft: 10 }}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.maleMainBox}>
+                <TouchableOpacity
+                  style={styles.maleBox}
+                  onPress={() => setSelectedGender("male")}
+                >
+                  <View
                     style={{
-                      ...styles.StudentBox,
-                      borderColor: errors.course
-                        ? "red"
-                        : colors.textinputbordercolor,
+                      ...styles.maleCircleBox,
+                      borderColor: colors.textinputbordercolor,
                     }}
                   >
-                    <Text
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                      style={{ ...styles.StudentText, color: colors.textColor }}
-                    >
-                      {selectedCourse ? selectedCourse.Name : "Course"}
-                    </Text>
-                    <Icon
-                      name="down"
-                      type="AntDesign"
-                      size={15}
-                      color={colors.placeholderTextColor}
-                    />
-                  </TouchableOpacity>
-                )}
-            </View>
-            {selectedRole !== "Faculty" &&
-              selectedRole !== "Industry Professional" && (
-                <View style={styles.studentMainBox}>
+                    {selectedGender === "male" && (
+                      <View
+                        style={{
+                          ...styles.selectedCircle,
+                          backgroundColor: colors.AppmainColor,
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text style={{ ...styles.maleText, color: colors.textColor }}>
+                    Male
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.maleBox}
+                  onPress={() => setSelectedGender("female")}
+                >
+                  <View
+                    style={{
+                      ...styles.maleCircleBox,
+                      borderColor: colors.textinputbordercolor,
+                    }}
+                  >
+                    {selectedGender === "female" && (
+                      <View
+                        style={{
+                          ...styles.selectedCircle,
+                          backgroundColor: colors.AppmainColor,
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text style={{ ...styles.maleText, color: colors.textColor }}>
+                    Female
+                  </Text>
+                </TouchableOpacity>
+                {/* <View></View> */}
+                <TouchableOpacity
+                  style={styles.maleBox}
+                  onPress={() => setSelectedGender("Others")}
+                >
+                  <View
+                    style={{
+                      ...styles.maleCircleBox,
+                      borderColor: colors.textinputbordercolor,
+                    }}
+                  >
+                    {selectedGender === "Others" && (
+                      <View
+                        style={{
+                          ...styles.selectedCircle,
+                          backgroundColor: colors.AppmainColor,
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text style={{ ...styles.maleText, color: colors.textColor }}>
+                    Others
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.studentMainBox}>
+                <TouchableOpacity
+                  onPress={() => setCurrentPicker("role")}
+                  style={{
+                    ...styles.StudentBox,
+                    borderColor: colors.textinputbordercolor,
+                  }}
+                >
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={{ ...styles.StudentText, color: colors.textColor }}
+                  >
+                    {selectedRole ? selectedRole : "Select Role"}
+                  </Text>
+                  <Icon
+                    name="down"
+                    type="AntDesign"
+                    size={15}
+                    color={colors.placeholderTextColor}
+                  />
+                </TouchableOpacity>
+
+                {selectedRole == "Faculty" && (
                   <TouchableOpacity
                     onPress={() => setCurrentPicker("department")}
                     style={{
@@ -792,70 +725,8 @@ const Registration = () => {
                       // style={{right: 6}}
                     />
                   </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => setCurrentPicker("passingYear")}
-                    style={{
-                      ...styles.StudentBox,
-                      borderColor: errors.passingYear
-                        ? "red"
-                        : colors.textinputbordercolor,
-                    }}
-                  >
-                    <Text
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                      style={{ ...styles.StudentText, color: colors.textColor }}
-                    >
-                      {passingYear ? passingYear : "Passing Year"}
-                    </Text>
-                    <Icon
-                      name="down"
-                      type="AntDesign"
-                      size={15}
-                      color={colors.placeholderTextColor}
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
-            {selectedRole == "Alumni" && (
-              <>
-                <View style={styles.nameBox}>
-                  <TextInput
-                    style={{
-                      ...styles.inputText,
-                      borderColor: errors.jobTitle
-                        ? "red"
-                        : colors.textinputbordercolor,
-                      color: colors.textColor,
-                    }}
-                    value={jobTitle}
-                    onChangeText={(text) => {
-                      setJobTitle(text);
-                      setErrors({ ...errors, jobTitle: null });
-                    }}
-                    placeholder="Enter Job Title"
-                    placeholderTextColor={colors.placeholderTextColor}
-                  />
-                  <TextInput
-                    style={{
-                      ...styles.inputText,
-                      borderColor: errors.companyName
-                        ? "red"
-                        : colors.textinputbordercolor,
-                      color: colors.textColor,
-                    }}
-                    value={companyName}
-                    onChangeText={(text) => {
-                      setCompanyName(text);
-                      setErrors({ ...errors, companyName: null });
-                    }}
-                    placeholder="Company Name"
-                    placeholderTextColor={colors.placeholderTextColor}
-                  />
-                </View>
-
-                <View style={styles.studentMainBox}>
+                )}
+                {selectedRole == "Industry Professional" && (
                   <TouchableOpacity
                     onPress={() => setCurrentPicker("Industry")}
                     style={{
@@ -880,136 +751,317 @@ const Registration = () => {
                       // style={{right: 6}}
                     />
                   </TouchableOpacity>
-                </View>
-              </>
-            )}
-            {selectedRole == "Industry Professional" && (
-              <>
-                <View style={styles.nameBox}>
-                  <TextInput
-                    style={{
-                      ...styles.inputText,
-                      borderColor: errors.jobTitle
-                        ? "red"
-                        : colors.textinputbordercolor,
-                      color: colors.textColor,
-                    }}
-                    value={jobTitle}
-                    onChangeText={(text) => {
-                      setJobTitle(text);
-                      setErrors({ ...errors, jobTitle: null });
-                    }}
-                    placeholder="Enter Job Title"
-                    placeholderTextColor={colors.placeholderTextColor}
+                )}
+
+                {selectedRole !== "Faculty" &&
+                  selectedRole !== "Industry Professional" && (
+                    <TouchableOpacity
+                      onPress={() => setCurrentPicker("course")}
+                      style={{
+                        ...styles.StudentBox,
+                        borderColor: errors.course
+                          ? "red"
+                          : colors.textinputbordercolor,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{
+                          ...styles.StudentText,
+                          color: colors.textColor,
+                        }}
+                      >
+                        {selectedCourse ? selectedCourse.Name : "Course"}
+                      </Text>
+                      <Icon
+                        name="down"
+                        type="AntDesign"
+                        size={15}
+                        color={colors.placeholderTextColor}
+                      />
+                    </TouchableOpacity>
+                  )}
+              </View>
+              {selectedRole !== "Faculty" &&
+                selectedRole !== "Industry Professional" && (
+                  <View style={styles.studentMainBox}>
+                    <TouchableOpacity
+                      onPress={() => setCurrentPicker("department")}
+                      style={{
+                        ...styles.StudentBox,
+                        borderColor: errors.department
+                          ? "red"
+                          : colors.textinputbordercolor,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{
+                          ...styles.StudentText,
+                          color: colors.textColor,
+                        }}
+                      >
+                        {selectedDepartment
+                          ? selectedDepartment.DepartmentName
+                          : "Department"}
+                      </Text>
+                      <Icon
+                        name="down"
+                        type="AntDesign"
+                        size={15}
+                        color={colors.placeholderTextColor}
+                        // style={{right: 6}}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setCurrentPicker("passingYear")}
+                      style={{
+                        ...styles.StudentBox,
+                        borderColor: errors.passingYear
+                          ? "red"
+                          : colors.textinputbordercolor,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{
+                          ...styles.StudentText,
+                          color: colors.textColor,
+                        }}
+                      >
+                        {passingYear ? passingYear : "Passing Year"}
+                      </Text>
+                      <Icon
+                        name="down"
+                        type="AntDesign"
+                        size={15}
+                        color={colors.placeholderTextColor}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              {selectedRole == "Alumni" && (
+                <>
+                  <View style={styles.nameBox}>
+                    <TextInput
+                      style={{
+                        ...styles.inputText,
+                        borderColor: errors.jobTitle
+                          ? "red"
+                          : colors.textinputbordercolor,
+                        color: colors.textColor,
+                      }}
+                      value={jobTitle}
+                      onChangeText={(text) => {
+                        setJobTitle(text);
+                        setErrors({ ...errors, jobTitle: null });
+                      }}
+                      placeholder="Enter Job Title"
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                    <TextInput
+                      style={{
+                        ...styles.inputText,
+                        borderColor: errors.companyName
+                          ? "red"
+                          : colors.textinputbordercolor,
+                        color: colors.textColor,
+                      }}
+                      value={companyName}
+                      onChangeText={(text) => {
+                        setCompanyName(text);
+                        setErrors({ ...errors, companyName: null });
+                      }}
+                      placeholder="Company Name"
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+
+                  <View style={styles.studentMainBox}>
+                    <TouchableOpacity
+                      onPress={() => setCurrentPicker("Industry")}
+                      style={{
+                        ...styles.StudentBox,
+                        borderColor: errors.industry
+                          ? "red"
+                          : colors.textinputbordercolor,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{
+                          ...styles.StudentText,
+                          color: colors.textColor,
+                        }}
+                      >
+                        {selectedIndustry ? selectedIndustry.Name : "Industry"}
+                      </Text>
+                      <Icon
+                        name="down"
+                        type="AntDesign"
+                        size={15}
+                        color={colors.placeholderTextColor}
+                        // style={{right: 6}}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+              {selectedRole == "Industry Professional" && (
+                <>
+                  <View style={styles.nameBox}>
+                    <TextInput
+                      style={{
+                        ...styles.inputText,
+                        borderColor: errors.jobTitle
+                          ? "red"
+                          : colors.textinputbordercolor,
+                        color: colors.textColor,
+                      }}
+                      value={jobTitle}
+                      onChangeText={(text) => {
+                        setJobTitle(text);
+                        setErrors({ ...errors, jobTitle: null });
+                      }}
+                      placeholder="Enter Job Title"
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                    <TextInput
+                      style={{
+                        ...styles.inputText,
+                        borderColor: errors.companyName
+                          ? "red"
+                          : colors.textinputbordercolor,
+                        color: colors.textColor,
+                      }}
+                      value={companyName}
+                      onChangeText={(text) => {
+                        setCompanyName(text);
+                        setErrors({ ...errors, companyName: null });
+                      }}
+                      placeholder="Company Name"
+                      placeholderTextColor={colors.placeholderTextColor}
+                    />
+                  </View>
+                </>
+              )}
+              {selectedRole !== "Industry Professional" && (
+                <TextInput
+                  // numberOfLines={1}
+                  // ellipsizeMode="tail"
+                  editable={false}
+                  style={{
+                    ...styles.jamiaTextInput,
+                    borderColor: colors.textinputbordercolor,
+                    width: "100%",
+                  }}
+                  placeholder="Shree Guru Gobind Singh Tricentenary VECOSPACE"
+                  placeholderTextColor={colors.placeholderTextColor}
+                />
+              )}
+              <View style={styles.tickTextBox}>
+                <TouchableOpacity onPress={() => setChecked(!checked)}>
+                  <MaterialCommunityIcons
+                    name={
+                      checked ? "checkbox-marked" : "checkbox-blank-outline"
+                    }
+                    size={24}
+                    color={colors.AppmainColor}
+                    style={{ marginRight: 10 }}
                   />
-                  <TextInput
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    flexShrink: 1,
+                    color: colors.textColor,
+                  }}
+                >
+                  I accept {universityFullName}'s{" "}
+                  <Text
+                    onPress={() => navigation.navigate("TermsScreen")}
                     style={{
-                      ...styles.inputText,
-                      borderColor: errors.companyName
-                        ? "red"
-                        : colors.textinputbordercolor,
-                      color: colors.textColor,
+                      fontSize: 14,
+                      flexShrink: 1,
+                      color: colors.AppmainColor,
                     }}
-                    value={companyName}
-                    onChangeText={(text) => {
-                      setCompanyName(text);
-                      setErrors({ ...errors, companyName: null });
-                    }}
-                    placeholder="Company Name"
-                    placeholderTextColor={colors.placeholderTextColor}
-                  />
-                </View>
-              </>
-            )}
-            {selectedRole !== "Industry Professional" && (
-              <TextInput
-                // numberOfLines={1}
-                // ellipsizeMode="tail"
-                editable={false}
+                  >
+                    Terms & Conditions
+                  </Text>
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleRegister}
                 style={{
-                  ...styles.jamiaTextInput,
-                  borderColor: colors.textinputbordercolor,
-                  width: "100%",
+                  alignItems: "center",
+                  backgroundColor: colors.AppmainColor,
+                  marginHorizontal: 12,
+                  padding: 10,
+                  borderRadius: 8,
+                  marginTop: 20,
                 }}
-                placeholder="Shree Guru Gobind Singh Tricentenary VECOSPACE"
-                placeholderTextColor={colors.placeholderTextColor}
-              />
-            )}
-            <View style={styles.tickTextBox}>
-              <PlaneIcon
-                name="checksquare"
-                size={20}
-                color={colors.AppmainColor}
-                style={{ marginRight: 10 }}
-              />
-              <Text
-                style={{ fontSize: 14, flexShrink: 1, color: colors.textColor }}
               >
-                I accept {universityFullName}'s Terms & Conditions
-              </Text>
+                <Text style={{ fontSize: 18, color: colors.ButtonTextColor }}>
+                  Register Now
+                </Text>
+              </TouchableOpacity>
             </View>
+          </ImageBackground>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              padding: 6,
+              marginTop: 10,
+            }}
+          >
             <TouchableOpacity
-              onPress={handleRegister}
-              style={{
-                alignItems: "center",
-                backgroundColor: colors.AppmainColor,
-                marginHorizontal: 12,
-                padding: 10,
-                borderRadius: 8,
-                marginTop: 20,
-              }}
+              onPress={() => navigation.navigate("PrivacyScreen")}
             >
-              <Text style={{ fontSize: 18, color: colors.ButtonTextColor }}>
-                Register Now
-              </Text>
+              <Text style={{ color: colors.textColor }}>Privacy</Text>
+            </TouchableOpacity>
+            <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
+              |
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("TermsScreen")}
+            >
+              <Text style={{ color: colors.textColor }}>Terms</Text>
+            </TouchableOpacity>
+            <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
+              |
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("AboutScreen")}
+            >
+              <Text style={{ color: colors.textColor }}>About</Text>
+            </TouchableOpacity>
+            <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
+              |
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ContactUsScreen")}
+            >
+              <Text style={{ color: colors.textColor }}>Contact Us</Text>
+            </TouchableOpacity>
+            <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
+              |
+            </Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate("FAQScreen")}>
+              <Text style={{ color: colors.textColor }}>FAQ's</Text>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            padding: 6,
-            marginTop: 10,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("PrivacyScreen")}
-          >
-            <Text style={{ color: colors.textColor }}>Privacy</Text>
-          </TouchableOpacity>
-          <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
-            |
-          </Text>
-
-          <TouchableOpacity onPress={() => navigation.navigate("TermsScreen")}>
-            <Text style={{ color: colors.textColor }}>Terms</Text>
-          </TouchableOpacity>
-          <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
-            |
-          </Text>
-
-          <TouchableOpacity onPress={() => navigation.navigate("AboutScreen")}>
-            <Text style={{ color: colors.textColor }}>About</Text>
-          </TouchableOpacity>
-          <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
-            |
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate("ContactUsScreen")}
-          >
-            <Text style={{ color: colors.textColor }}>Contact Us</Text>
-          </TouchableOpacity>
-          <Text style={{ marginHorizontal: 6, color: colors.textColor }}>
-            |
-          </Text>
-
-          <TouchableOpacity onPress={() => navigation.navigate("FAQScreen")}>
-            <Text style={{ color: colors.textColor }}>FAQ's</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingWrapper>
       <Modal visible={!!currentPicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View
@@ -1044,7 +1096,7 @@ const Registration = () => {
             {currentPicker === "role" &&
               renderOptions(
                 ["Student", "Faculty", "Alumni", "Industry Professional"],
-                setSelectedRole
+                setSelectedRole,
               )}
             {/* {currentPicker === 'course' &&
               renderOptions(courseList, setSelectedCourse)}
@@ -1055,26 +1107,26 @@ const Registration = () => {
                 industryList.filter(
                   (c) =>
                     c?.Name &&
-                    c.Name.toLowerCase().includes(searchQuery.toLowerCase())
+                    c.Name.toLowerCase().includes(searchQuery.toLowerCase()),
                 ),
                 (c) => {
                   setSelectedIndustry(c);
                   setCurrentPicker(null);
                   setSearchQuery("");
-                }
+                },
               )}
             {currentPicker === "course" &&
               renderOptions(
                 courseList.filter(
                   (c) =>
                     c?.Name &&
-                    c.Name.toLowerCase().includes(searchQuery.toLowerCase())
+                    c.Name.toLowerCase().includes(searchQuery.toLowerCase()),
                 ),
                 (c) => {
                   setSelectedCourse(c);
                   setCurrentPicker(null);
                   setSearchQuery("");
-                }
+                },
               )}
 
             {currentPicker === "department" &&
@@ -1083,14 +1135,14 @@ const Registration = () => {
                   (d) =>
                     d?.DepartmentName &&
                     d.DepartmentName.toLowerCase().includes(
-                      searchQuery.toLowerCase()
-                    )
+                      searchQuery.toLowerCase(),
+                    ),
                 ),
                 (d) => {
                   setSelectedDepartment(d);
                   setCurrentPicker(null);
                   setSearchQuery("");
-                }
+                },
               )}
 
             <TouchableOpacity

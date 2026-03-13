@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -11,29 +11,29 @@ import {
   TextInput,
   Button,
   FlatList,
-} from 'react-native';
-import globalStyles from '../GlobalCSS';
-import Header from '../Header/Header';
-import Colors from '../color';
-import Icon from '../Icons/Icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ViewCountApi} from '../baseURL/ExperienceList';
-import {ApplyJob, baseUrl, DeleteJob, ViewCountJob} from '../baseURL/api';
-import {showError} from '../components/Toast';
-import {useTheme} from '../../theme/ThemeContext';
+} from "react-native";
+import globalStyles from "../GlobalCSS";
+import Header from "../Header/Header";
+import Colors from "../color";
+import Icon from "../Icons/Icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ViewCountApi } from "../baseURL/ExperienceList";
+import { ApplyJob, baseUrl, DeleteJob, ViewCountJob } from "../baseURL/api";
+import { showError } from "../components/Toast";
+import { useTheme } from "../../theme/ThemeContext";
 
-const JobDetails = ({navigation, route}) => {
-  const {Item = {}, AdditionalData = []} = route.params || {};
-  const {isDark, colors, toggleTheme} = useTheme();
+const JobDetails = ({ navigation, route }) => {
+  const { Item = {}, AdditionalData = [] } = route.params || {};
+  const { isDark, colors, toggleTheme } = useTheme();
   const [userData, setUserData] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [userTitle, setUserTitle] = useState('');
-  const [userDescription, setUserDescription] = useState('');
+  const [userTitle, setUserTitle] = useState("");
+  const [userDescription, setUserDescription] = useState("");
   const [userTitleError, setUserTitleError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
-  console.log('Length of AppliedUserDetail:', Item?.AppliedUserDetail?.length);
+  console.log("Length of AppliedUserDetail:", Item?.AppliedUserDetail?.length);
 
   useEffect(() => {
     if (userTitle.trim()) {
@@ -50,11 +50,11 @@ const JobDetails = ({navigation, route}) => {
 
   const UserValue = async () => {
     try {
-      const userDta = await AsyncStorage.getItem('userData');
+      const userDta = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userDta);
       setUserData(parsedData);
     } catch (error) {
-      console.log('Error', error);
+      console.log("Error", error);
     }
   };
   // This is use for Count the Jobs Views
@@ -64,23 +64,23 @@ const JobDetails = ({navigation, route}) => {
     }
   }, [userData]);
 
-  const handleDelete = ({item}) => {
+  const handleDelete = ({ item }) => {
     Alert.alert(
-      'Confirmation',
-      'Are you sure you want to delete this Job?',
+      "Confirmation",
+      "Are you sure you want to delete this Job?",
       [
         {
-          text: 'No',
-          style: 'cancel',
+          text: "No",
+          style: "cancel",
         },
         {
-          text: 'Yes', // If Yes is pressed, proceed with deletion
+          text: "Yes", // If Yes is pressed, proceed with deletion
           onPress: async () => {
             try {
               const response = await fetch(`${baseUrl}${DeleteJob}`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                   id: Item?.id,
@@ -92,15 +92,15 @@ const JobDetails = ({navigation, route}) => {
               if (response.ok) {
                 navigation.goBack(); // Navigate back after successful delete
               } else {
-                showError('Failed to delete the item.');
+                showError("Failed to delete the item.");
               }
             } catch (error) {
-              console.error('Delete Error:', error);
+              console.error("Delete Error:", error);
             }
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
   };
 
@@ -132,21 +132,21 @@ const JobDetails = ({navigation, route}) => {
           JobDescription: userDescription,
         });
         const response = await fetch(`${baseUrl}${ApplyJob}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: payload,
         });
         // const text = await response.text();
         // console.log('texttexttexttexttexttext', text);
         const data = await response.json();
-        console.log('data', data);
+        console.log("data", data);
         if (response.ok) {
           navigation.goBack();
         }
       } catch (error) {
-        console.error('ApplyJob Error:', error);
+        console.error("ApplyJob Error:", error);
       }
     }
   };
@@ -155,23 +155,24 @@ const JobDetails = ({navigation, route}) => {
     setIsModalVisible(true);
   };
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     // console.log('item ----- >>>', item);
 
     return (
       <View style={globalStyles.FlatList2}>
         <Image
           style={globalStyles.ImageView}
-          source={{uri: item?.ProfilePhoto}}
+          source={{ uri: item?.ProfilePhoto }}
         />
         <View>
           <Text
             style={{
-              fontWeight: 'bold',
+              fontWeight: "bold",
               fontSize: 16,
               marginBottom: 5,
               color: colors.AppmainColor,
-            }}>
+            }}
+          >
             {item?.UserName}
           </Text>
           {item?.JobTitle ? (
@@ -180,7 +181,8 @@ const JobDetails = ({navigation, route}) => {
                 color: colors.placeholderTextColor,
                 fontSize: 12,
                 marginTop: 2,
-              }}>
+              }}
+            >
               {item?.JobTitle}
             </Text>
           ) : null}
@@ -191,7 +193,8 @@ const JobDetails = ({navigation, route}) => {
                 color: colors.placeholderTextColor,
                 fontSize: 12,
                 marginTop: 2,
-              }}>
+              }}
+            >
               {item?.CompanyName}
             </Text>
           ) : null}
@@ -201,7 +204,8 @@ const JobDetails = ({navigation, route}) => {
               color: colors.placeholderTextColor,
               fontSize: 12,
               marginTop: 2,
-            }}>
+            }}
+          >
             {item?.UserSubject}
           </Text>
         </View>
@@ -214,35 +218,38 @@ const JobDetails = ({navigation, route}) => {
       style={{
         ...globalStyles.SafeAreaView,
         backgroundColor: colors.background,
-      }}>
+      }}
+    >
       <Header title="Job's Details" navigation={navigation} />
-      <View style={{flex: 1, padding: 10}}>
+      <View style={{ flex: 1, padding: 10 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {userData?.User?.userId === Item?.UserDetail?.UserId ? (
             <View
               style={{
                 marginTop: 0,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <Text style={{color: colors.textColor, marginVertical: 5}}>
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ color: colors.textColor, marginVertical: 5 }}>
                 This job is posted by you
               </Text>
 
-              <View style={{flexDirection: 'row'}}>
+              <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('AddJob', {
+                    navigation.navigate("AddJob", {
                       Item: Item,
                     })
-                  }>
+                  }
+                >
                   <Icon
                     name="pencil"
                     size={20}
                     color={colors.placeholderTextColor}
                     type="Octicons"
-                    style={{paddingHorizontal: 5}}
+                    style={{ paddingHorizontal: 5 }}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDelete}>
@@ -256,14 +263,17 @@ const JobDetails = ({navigation, route}) => {
               </View>
             </View>
           ) : null}
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
             <View>
               <Text
                 style={{
                   fontSize: 25,
-                  fontWeight: '500',
+                  fontWeight: "500",
                   color: colors.textColor,
-                }}>
+                }}
+              >
                 {Item?.jobTitle}
               </Text>
               <Text
@@ -271,35 +281,39 @@ const JobDetails = ({navigation, route}) => {
                   fontSize: 16,
                   color: colors.placeholderTextColor,
                   marginTop: 3,
-                }}>
+                }}
+              >
                 Posted: {Item?.dateAdded}
               </Text>
             </View>
             <View
               style={{
-                flexDirection: 'row',
+                flexDirection: "row",
                 marginRight: 10,
-                alignItems: 'center',
-              }}>
+                alignItems: "center",
+              }}
+            >
               <Icon
                 name="eye"
                 size={20}
                 color={colors.placeholderTextColor}
                 type="AntDesign"
               />
-              <Text style={{color: colors.textColor}}>{Item?.viewStatus}</Text>
+              <Text style={{ color: colors.textColor }}>
+                {Item?.viewStatus}
+              </Text>
             </View>
           </View>
 
-          <View style={{marginTop: 20}}>
-            <Text style={{color: colors.placeholdercolor, marginVertical: 5}}>
+          <View style={{ marginTop: 20 }}>
+            <Text style={{ color: colors.placeholdercolor, marginVertical: 5 }}>
               Stipend
             </Text>
-            <View style={{flexDirection: 'row'}}>
-              <Text style={{fontSize: 22, color: colors.textColor}}>
-                {Item?.minAnnualSalary} -{' '}
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ fontSize: 22, color: colors.textColor }}>
+                {Item?.minAnnualSalary} -{" "}
               </Text>
-              <Text style={{fontSize: 22, color: colors.textColor}}>
+              <Text style={{ fontSize: 22, color: colors.textColor }}>
                 {Item?.maxAnnualSalary}
               </Text>
             </View>
@@ -309,18 +323,20 @@ const JobDetails = ({navigation, route}) => {
             style={{
               ...globalStyles.headView,
               borderColor: colors.textinputbordercolor,
-            }}>
+            }}
+          >
             <Text
               style={{
                 ...globalStyles.HeadText,
                 color: colors.placeholderTextColor,
-              }}>
+              }}
+            >
               Skills
             </Text>
-            <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
               {Item?.proSkills
-                ?.split(',')
-                .filter(skill => skill.trim() !== '') // Remove empty strings
+                ?.split(",")
+                .filter((skill) => skill.trim() !== "") // Remove empty strings
                 .map((skill, index) => (
                   <View
                     key={index}
@@ -329,8 +345,9 @@ const JobDetails = ({navigation, route}) => {
                       paddingVertical: 5,
                       paddingHorizontal: 10,
                       margin: 3,
-                    }}>
-                    <Text style={{fontSize: 14, color: colors.textColor}}>
+                    }}
+                  >
+                    <Text style={{ fontSize: 14, color: colors.textColor }}>
                       {skill.trim()}
                     </Text>
                   </View>
@@ -342,15 +359,17 @@ const JobDetails = ({navigation, route}) => {
             style={{
               ...globalStyles.headView,
               borderColor: colors.textinputbordercolor,
-            }}>
+            }}
+          >
             <Text
               style={{
                 ...globalStyles.HeadText,
                 color: colors.placeholderTextColor,
-              }}>
+              }}
+            >
               Description
             </Text>
-            <Text style={{fontSize: 15, color: colors.textColor}}>
+            <Text style={{ fontSize: 15, color: colors.textColor }}>
               {Item?.jobDetails}
             </Text>
           </View>
@@ -359,67 +378,77 @@ const JobDetails = ({navigation, route}) => {
             style={{
               ...globalStyles.headView,
               borderColor: colors.textinputbordercolor,
-            }}>
+            }}
+          >
             <Text
               style={{
                 ...globalStyles.HeadText,
                 color: colors.placeholderTextColor,
-              }}>
+              }}
+            >
               Employer Detail
             </Text>
-            <View style={{flexDirection: 'row'}}>
+            <View style={{ flexDirection: "row" }}>
               <Text
                 style={{
-                  fontWeight: '700',
+                  fontWeight: "700",
                   fontSize: 14,
                   color: colors.textColor,
-                }}>
-                Company:{' '}
+                }}
+              >
+                Company:{" "}
               </Text>
-              <Text style={{color: colors.textColor}}>
+              <Text style={{ color: colors.textColor }}>
                 {Item?.UserDetail?.CompanyName}
               </Text>
             </View>
-            <View style={{flexDirection: 'row', marginTop: 4}}>
+            <View style={{ flexDirection: "row", marginTop: 4 }}>
               <Text
                 style={{
-                  fontWeight: '700',
+                  fontWeight: "700",
                   fontSize: 14,
                   color: colors.textColor,
-                }}>
-                Industry:{' '}
+                }}
+              >
+                Industry:{" "}
               </Text>
-              <Text style={{color: colors.textColor}}>
+              <Text style={{ color: colors.textColor }}>
                 {Item?.companyTypeName}
               </Text>
             </View>
-            <View style={{flexDirection: 'row', marginTop: 4}}>
+            <View style={{ flexDirection: "row", marginTop: 4 }}>
               <Text
                 style={{
-                  fontWeight: '700',
+                  fontWeight: "700",
                   fontSize: 14,
                   color: colors.textColor,
-                }}>
-                Job Location:{' '}
+                }}
+              >
+                Job Location:{" "}
               </Text>
-              <Text style={{color: colors.textColor}}>{Item?.jobLocation}</Text>
-            </View>
-            <View style={{flexDirection: 'row', marginTop: 4}}>
-              <Text style={{fontWeight: '700', color: colors.textColor}}>
-                Postal Code:{' '}
+              <Text style={{ color: colors.textColor }}>
+                {Item?.jobLocation}
               </Text>
-              <Text style={{color: colors.textColor}}>{Item?.postalCode}</Text>
             </View>
-            <View style={{flexDirection: 'row', marginTop: 4}}>
+            <View style={{ flexDirection: "row", marginTop: 4 }}>
+              <Text style={{ fontWeight: "700", color: colors.textColor }}>
+                Postal Code:{" "}
+              </Text>
+              <Text style={{ color: colors.textColor }}>
+                {Item?.postalCode}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", marginTop: 4 }}>
               <Text
                 style={{
-                  fontWeight: '700',
+                  fontWeight: "700",
                   fontSize: 14,
                   color: colors.textColor,
-                }}>
-                Address:{' '}
+                }}
+              >
+                Address:{" "}
               </Text>
-              <Text style={{color: colors.textColor}}>
+              <Text style={{ color: colors.textColor }}>
                 {Item?.companyAddress}
               </Text>
             </View>
@@ -427,18 +456,21 @@ const JobDetails = ({navigation, route}) => {
           {userData?.User?.userId ===
           Item?.UserDetail?.UserId ? null : Item?.IsApplied == false ? (
             <View
-              style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
               <TouchableOpacity
                 style={{
                   backgroundColor: colors.AppmainColor,
                   padding: 10,
                   borderRadius: 5,
                   flex: 1,
-                  alignItems: 'center',
+                  alignItems: "center",
                 }}
-                onPress={handleApply}>
+                onPress={handleApply}
+              >
                 <Text
-                  style={{color: colors.ButtonTextColor, fontWeight: '900'}}>
+                  style={{ color: colors.ButtonTextColor, fontWeight: "900" }}
+                >
                   Apply
                 </Text>
               </TouchableOpacity>
@@ -446,17 +478,19 @@ const JobDetails = ({navigation, route}) => {
           ) : (
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Text
                 style={{
                   color: colors.AppmainColor,
                   marginVertical: 5,
                   fontSize: 18,
-                  fontWeight: 'bold',
-                }}>
+                  fontWeight: "bold",
+                }}
+              >
                 You have already applied for this job
               </Text>
             </View>
@@ -467,19 +501,22 @@ const JobDetails = ({navigation, route}) => {
               style={{
                 ...globalStyles.headView,
                 borderColor: colors.textinputbordercolor,
-              }}>
+              }}
+            >
               <View
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
                   marginBottom: 10,
-                  justifyContent: 'center',
-                }}>
+                  justifyContent: "center",
+                }}
+              >
                 <Text
                   style={{
                     ...globalStyles.HeadText,
                     color: colors.AppmainColor,
-                  }}>
+                  }}
+                >
                   {Item?.AppliedUserDetail?.length} users have applied for this
                   job
                 </Text>
@@ -487,7 +524,7 @@ const JobDetails = ({navigation, route}) => {
               <FlatList
                 data={Item?.AppliedUserDetail}
                 renderItem={renderItem}
-                keyExtractor={item => item?.id}
+                keyExtractor={(item) => item?.id}
               />
             </View>
           ) : null}
@@ -496,41 +533,52 @@ const JobDetails = ({navigation, route}) => {
             style={{
               ...globalStyles.headView,
               borderColor: colors.textinputbordercolor,
-            }}>
+            }}
+          >
             <Text
               style={{
                 ...globalStyles.HeadText,
                 color: colors.placeholderTextColor,
-              }}>
+              }}
+            >
               Posted By
             </Text>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Image
                 source={
                   Item?.UserDetail?.ProfilePhoto
-                    ? {uri: Item?.UserDetail?.ProfilePhoto}
-                    : require('../../assets/placeholderprofileimage.png')
+                    ? { uri: Item?.UserDetail?.ProfilePhoto }
+                    : require("../../assets/placeholderprofileimage.png")
                 }
                 style={{
                   width: 100,
                   height: 100,
                   borderWidth: 3,
                   borderRadius: 50,
-                  borderColor: 'yellow',
+                  borderColor: "yellow",
                   marginRight: 10,
                 }}
               />
               <View>
-                <Text style={{fontSize: 16, color: colors.AppmainColor}}>
+                <Text style={{ fontSize: 16, color: colors.AppmainColor }}>
                   {Item?.UserDetail?.UserName}
                 </Text>
-                <Text style={{fontSize: 13, color: colors.textColor}}>
-                  {Item?.UserDetail?.JobTitle}
+                <Text style={{ fontSize: 13, color: colors.textColor }}>
+                  {/* {Item?.UserDetail?.JobTitle} */}
+                  {Item?.UserDetail?.Userstype === 4
+                    ? `${Item?.UserDetail?.JobTitle} at ${Item?.UserDetail?.CompanyName}`
+                    : Item?.UserDetail?.Userstype === 1
+                    ? `${Item?.UserDetail?.DepartmentName} at ${Item?.UserDetail?.CourseName}`
+                    : Item?.UserDetail?.Userstype === 2
+                    ? `at ${Item?.UserDetail?.DepartmentName}`
+                    : Item?.UserDetail?.Userstype === 3
+                    ? `${Item?.UserDetail?.JobTitle} at ${Item?.UserDetail?.CompanyName}`
+                    : ""}
                 </Text>
 
-                <Text style={{fontSize: 13, color: colors.textColor}}>
+                {/* <Text style={{fontSize: 13, color: colors.textColor}}>
                   {Item?.UserDetail?.CompanyName}
-                </Text>
+                </Text> */}
               </View>
             </View>
           </View>
@@ -540,22 +588,25 @@ const JobDetails = ({navigation, route}) => {
             animationType="slide"
             transparent={true}
             visible={isModalVisible}
-            onRequestClose={() => setIsModalVisible(false)}>
+            onRequestClose={() => setIsModalVisible(false)}
+          >
             <View style={globalStyles.modalOverlay}>
               <View
                 style={{
                   ...globalStyles.modalContent,
                   backgroundColor: colors.modelBackground,
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 20,
-                    fontWeight: 'bold',
+                    fontWeight: "bold",
                     color: colors.textColor,
-                  }}>
+                  }}
+                >
                   Apply
                 </Text>
-                <Text style={{marginVertical: 10, color: colors.textColor}}>
+                <Text style={{ marginVertical: 10, color: colors.textColor }}>
                   Please provide your details
                 </Text>
 
@@ -567,7 +618,7 @@ const JobDetails = ({navigation, route}) => {
                   style={{
                     ...globalStyles.inputField,
                     borderColor: userTitleError
-                      ? 'red'
+                      ? "red"
                       : colors.textinputbordercolor,
                     color: colors.textColor,
                     backgroundColor: colors.textinputBackgroundcolor,
@@ -585,7 +636,7 @@ const JobDetails = ({navigation, route}) => {
                     {
                       height: 100,
                       borderColor: descriptionError
-                        ? 'red'
+                        ? "red"
                         : colors.textinputbordercolor,
                       color: colors.textColor,
                       backgroundColor: colors.textinputBackgroundcolor,
@@ -601,9 +652,10 @@ const JobDetails = ({navigation, route}) => {
                 />
 
                 <TouchableOpacity
-                  style={{marginTop: 10}}
-                  onPress={() => setIsModalVisible(false)}>
-                  <Text style={{color: colors.AppmainColor}}>Cancel</Text>
+                  style={{ marginTop: 10 }}
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Text style={{ color: colors.AppmainColor }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>

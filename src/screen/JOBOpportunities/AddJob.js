@@ -23,6 +23,7 @@ import {
   ListCompany,
   listoption,
   updatejob,
+  addMarketJob,
 } from "../baseURL/api";
 import { showError, showSuccess } from "../components/Toast";
 import { useTheme } from "../../theme/ThemeContext";
@@ -31,6 +32,7 @@ import { universityFullName } from "../../constants";
 
 const AddJob = ({ navigation, route }) => {
   const { Item = {} } = route.params || {};
+  const fromMarketPost = route?.params?.fromMarketPost;
   const { isDark, colors, toggleTheme } = useTheme();
   const [number, onChangeNumber] = useState("");
   const [selectedValue5, setSelectedValue5] = useState("Select");
@@ -84,7 +86,7 @@ const AddJob = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [perPage] = useState(20);
   const [loading, setLoading] = useState(false);
-
+  const [companyName, setCompanyName] = useState("");
   useEffect(() => {
     UserValue();
   }, []);
@@ -195,7 +197,7 @@ const AddJob = ({ navigation, route }) => {
       if (response.ok) {
         const newData = data?.DataList || [];
         setIndustryData((prev) =>
-          pageNumber === 1 ? newData : [...prev, ...newData]
+          pageNumber === 1 ? newData : [...prev, ...newData],
         );
         setHasMore(newData.length === perPage);
         setPage(pageNumber + 1);
@@ -404,10 +406,34 @@ const AddJob = ({ navigation, route }) => {
       .map((skill) => skill.trim())
       .join(", ");
     try {
+      // const payload = JSON.stringify({
+      //   id: Item?.id || "",
+      //   userId: userData?.User?.userId,
+      //   companyId: compValData?.id || Item?.id || "",
+      //   jobTitle: number,
+      //   jobDetails: description,
+      //   appliedType: 1, // 1 or 2
+      //   jobCatId: perfID1 || Item.jobCatId,
+      //   levelId: perfID2 || Item.levelId,
+      //   proSkills: cleanedSkillsArray,
+      //   minAnnualSalary: title,
+      //   maxAnnualSalary: cityTitle,
+      //   companyName: selectedValueComp,
+      //   companyTypeId: compValData?.companyTypeId || Item?.companyTypeId || 0,
+      //   jobLocation: location,
+      //   postalCode: compValData?.postalCode || Item?.postalCode,
+      //   companyAddress: address,
+      //   companyJobUrl:
+      //     compValData?.companyUrl || Item?.companyJobUrl || Item?.companyUrl,
+      //   jobKeywords: jobSeekerFind,
+      //   jobConsultant: jobConsultant === true ? 1 : 0, // 0 or 1
+      //   jobStatus: checked == true ? 1 : 0,
+      //   status: 1,
+      // });
       const payload = JSON.stringify({
         id: Item?.id || "",
         userId: userData?.User?.userId,
-        companyId: compValData?.id || Item?.id || "",
+
         jobTitle: number,
         jobDetails: description,
         appliedType: 1, // 1 or 2
@@ -416,7 +442,7 @@ const AddJob = ({ navigation, route }) => {
         proSkills: cleanedSkillsArray,
         minAnnualSalary: title,
         maxAnnualSalary: cityTitle,
-        companyName: selectedValueComp,
+        companyName: fromMarketPost ? companyName : selectedValueComp,
         companyTypeId: compValData?.companyTypeId || Item?.companyTypeId || 0,
         jobLocation: location,
         postalCode: compValData?.postalCode || Item?.postalCode,
@@ -428,18 +454,33 @@ const AddJob = ({ navigation, route }) => {
         jobStatus: checked == true ? 1 : 0,
         status: 1,
       });
+      if (!fromMarketPost) {
+        payloadData.companyId = compValData?.id || Item?.id || "";
+      }
+      const url = `${baseUrl}${
+        fromMarketPost
+          ? addMarketJob
+          : Item?.appliedType
+          ? Item?.id
+            ? updatejob
+            : addjob
+          : addjob
+      }`;
+      console.log(payload, "payloadpayloadpayloadpayloadpayloadpayloadpayload");
+      console.log("API URL:", url);
 
       const response = await fetch(
-        `${baseUrl}${
-          Item?.appliedType ? (Item?.id ? updatejob : addjob) : addjob
-        }`,
+        // `${baseUrl}${
+        //   Item?.appliedType ? (Item?.id ? updatejob : addjob) : addjob
+        // }`,
+        url,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: payload,
-        }
+        },
       );
       // const text = await response.text();
       // console.log('texttexttexttexttexttext', text);
@@ -849,51 +890,73 @@ const AddJob = ({ navigation, route }) => {
                 >
                   Company <Text style={{ color: "red" }}>*</Text>
                 </Text>
-                <TouchableOpacity
-                  onPress={toggleDropdownComp}
-                  style={{
-                    ...globalStyles.seclectIndiaView,
-                    borderColor: errorCompany
-                      ? Colors.error
-                      : colors.textinputbordercolor,
-                    backgroundColor: colors.textinputBackgroundcolor,
-                  }}
-                >
-                  <Text
+                {fromMarketPost ? (
+                  <TextInput
+                    value={companyName}
+                    onChangeText={setCompanyName}
+                    placeholder=""
                     style={{
-                      ...globalStyles.JobfiledSectionText,
-                      paddingBottom: 0,
-                      color: colors.textColor,
-                    }}
-                  >
-                    {selectedValueComp}
-                  </Text>
-                </TouchableOpacity>
-                {isOpenComp && (
-                  <View
-                    style={{
-                      ...globalStyles.dropdownList,
-                      borderColor: colors.textinputbordercolor,
+                      ...globalStyles.seclectIndiaView,
+                      borderColor: errorCompany
+                        ? Colors.error
+                        : colors.textinputbordercolor,
                       backgroundColor: colors.textinputBackgroundcolor,
+                      color: colors.textColor,
+                      paddingHorizontal: 10,
                     }}
-                  >
-                    {compData.map((item) => (
-                      <TouchableOpacity
-                        key={item.Id}
+                    placeholderTextColor={colors.textColor}
+                  />
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      onPress={toggleDropdownComp}
+                      style={{
+                        ...globalStyles.seclectIndiaView,
+                        borderColor: errorCompany
+                          ? Colors.error
+                          : colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                    >
+                      <Text
                         style={{
-                          ...globalStyles.dropdownItem,
-                          borderColor: colors.textinputbordercolor,
-                        }}
-                        onPress={() => {
-                          selectOptionComp(item);
+                          ...globalStyles.JobfiledSectionText,
+                          paddingBottom: 0,
+                          color: colors.textColor,
                         }}
                       >
-                        <Text style={{ fontSize: 14, color: colors.textColor }}>
-                          {item?.companyName}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                        {selectedValueComp}
+                      </Text>
+                    </TouchableOpacity>
+                    {isOpenComp && (
+                      <View
+                        style={{
+                          ...globalStyles.dropdownList,
+                          borderColor: colors.textinputbordercolor,
+                          backgroundColor: colors.textinputBackgroundcolor,
+                        }}
+                      >
+                        {compData.map((item) => (
+                          <TouchableOpacity
+                            key={item.Id}
+                            style={{
+                              ...globalStyles.dropdownItem,
+                              borderColor: colors.textinputbordercolor,
+                            }}
+                            onPress={() => {
+                              selectOptionComp(item);
+                            }}
+                          >
+                            <Text
+                              style={{ fontSize: 14, color: colors.textColor }}
+                            >
+                              {item?.companyName}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </>
                 )}
               </View>
 
