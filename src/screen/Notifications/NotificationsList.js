@@ -138,51 +138,66 @@ const NotificationsScreen = ({ navigation }) => {
       console.error("Error updating notification:", error);
     }
   };
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => handleNavigation(item)}
-      style={{
-        backgroundColor:
-          item.status === 0
-            ? colors.textinputBackgroundcolor
-            : colors.background,
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 8,
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Image
-          source={
-            item.UserDetail?.ProfilePhoto
-              ? { uri: item.UserDetail?.ProfilePhoto }
-              : require("../../assets/placeholderprofileimage.png")
-          }
+
+  const renderItem = ({ item }) => {
+    return (
+      <>
+        <TouchableOpacity
+          onPress={() => handleNavigation(item)}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            marginRight: 10,
             backgroundColor:
               item.status === 0
-                ? colors.placeholderTextColor
-                : colors.placeholderTextColor,
+                ? colors.textinputBackgroundcolor
+                : colors.background,
+            padding: 10,
+            marginBottom: 10,
+            borderRadius: 8,
           }}
-        />
-        <View>
-          <Text style={{ fontWeight: "bold", color: colors.textColor }}>
-            {item.UserDetail?.UserName}
-          </Text>
-          <Text style={{ color: colors.textColor }}>
-            {item.notificationText}
-          </Text>
-          <Text style={{ color: colors.placeholderTextColor }}>
-            {item.dateAdded}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Image
+              source={
+                item.UserDetail?.ProfilePhoto
+                  ? { uri: item.UserDetail?.ProfilePhoto }
+                  : require("../../assets/placeholderprofileimage.png")
+              }
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                marginRight: 10,
+                backgroundColor:
+                  item.status === 0
+                    ? colors.placeholderTextColor
+                    : colors.placeholderTextColor,
+              }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: "bold", color: colors.textColor }}>
+                {item.UserDetail?.UserName}{" "}
+                <Text style={{ fontWeight: "500", color: colors.textColor }}>
+                  {item.notificationMessage}
+                </Text>
+              </Text>
+              <Text
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={{
+                  color: colors.AppmainColor,
+                  flex: 1,
+                }}
+              >
+                {item.postText}
+              </Text>
+              <Text style={{ color: colors.placeholderTextColor }}>
+                {item.dateAdded}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </>
+    );
+  };
 
   return (
     <SafeAreaView style={globalStyles.SafeAreaView}>

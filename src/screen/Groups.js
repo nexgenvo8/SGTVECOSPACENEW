@@ -31,6 +31,7 @@ import { showError, showSuccess } from "./components/Toast";
 import CommonLoader from "./components/CommonLoader";
 import { useTheme } from "../theme/ThemeContext";
 import { universityFullName } from "../constants";
+import KeyboardAvoidingWrapper from "./components/KeyboardAvoidingWrapper";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 const Groups = ({ navigation, route }) => {
@@ -91,7 +92,7 @@ const Groups = ({ navigation, route }) => {
 
       fetchGroups("", 1, true);
       myGroupsPrivateList();
-    }, [userData])
+    }, [userData]),
   );
   const loadMoreGroups = () => {
     if (!hasMore || loading) return;
@@ -102,7 +103,7 @@ const Groups = ({ navigation, route }) => {
   const fetchGroups = async (
     searchValue = "",
     currentPage = 1,
-    showInitialLoader = false
+    showInitialLoader = false,
   ) => {
     console.log("📥 fetchGroups called with page:", currentPage);
 
@@ -145,7 +146,7 @@ const Groups = ({ navigation, route }) => {
       if (response.ok) {
         const newData = result?.Data || [];
         setGroups((prev) =>
-          currentPage === 1 ? newData : [...prev, ...newData]
+          currentPage === 1 ? newData : [...prev, ...newData],
         );
         setHasMore(newData.length === 10);
         setPage(currentPage);
@@ -163,7 +164,7 @@ const Groups = ({ navigation, route }) => {
   const myGroupsPrivateList = async (
     searchValue = "",
     pageNum = 1,
-    isLoadMore = false
+    isLoadMore = false,
   ) => {
     if (!userData || (!hasMore && isLoadMore)) return;
 
@@ -355,7 +356,7 @@ const Groups = ({ navigation, route }) => {
           },
         },
       ],
-      { cancelable: false }
+      { cancelable: false },
     );
   };
   const renderItem = ({ item }) => {
@@ -837,256 +838,267 @@ const Groups = ({ navigation, route }) => {
           setModalVisible2(false);
         }}
       >
-        <View style={styles.centeredView}>
-          <View
-            style={{
-              ...globalStyles.modalView,
-              flex: 0.7,
-              padding: 20,
-              backgroundColor: colors.modelBackground,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                setModalVisible2(false);
-              }}
-              style={{ alignSelf: "flex-end" }}
-            >
-              <CrossIcon name="cross" size={25} color={colors.backIconColor} />
-            </TouchableOpacity>
+        <KeyboardAvoidingWrapper offset={40}>
+          <View style={styles.centeredView}>
             <View
               style={{
-                alignItems: "center",
-                borderBottomWidth: 1,
-                borderColor: colors.textinputbordercolor,
+                ...globalStyles.modalView,
+                flex: 0.7,
+                padding: 20,
+                backgroundColor: colors.modelBackground,
               }}
             >
-              <Text
-                style={{
-                  fontSize: 18,
-                  padding: 15,
-                  fontWeight: "700",
-                  color: colors.textColor,
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible2(false);
                 }}
+                style={{ alignSelf: "flex-end" }}
               >
-                Create Group
-              </Text>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+                <CrossIcon
+                  name="cross"
+                  size={25}
+                  color={colors.backIconColor}
+                />
+              </TouchableOpacity>
               <View
                 style={{
-                  marginTop: 10,
+                  alignItems: "center",
+                  borderBottomWidth: 1,
+                  borderColor: colors.textinputbordercolor,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 18,
-                    fontWeight: "500",
-                    paddingVertical: 5,
+                    padding: 15,
+                    fontWeight: "700",
                     color: colors.textColor,
                   }}
                 >
-                  Group type
+                  Create Group
                 </Text>
-
-                <TouchableOpacity
+              </View>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View
                   style={{
-                    flexDirection: "row",
-                    borderWidth: 0.5,
-                    borderRadius: 8,
-                    alignItems: "center",
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    borderColor: colors.textinputbordercolor,
-                    backgroundColor: colors.textinputBackgroundcolor,
+                    marginTop: 10,
                   }}
-                  onPress={toggleDropdown}
                 >
-                  <Text style={{ ...styles.text, color: colors.textColor }}>
-                    {selectedValue || "Public"}
-                  </Text>
-                  <DownIcon
-                    name="down"
-                    size={15}
-                    color={colors.backIconColor}
-                  />
-                </TouchableOpacity>
-
-                {isOpen && (
-                  <View
+                  <Text
                     style={{
-                      ...globalStyles.dropdownList,
+                      fontSize: 18,
+                      fontWeight: "500",
+                      paddingVertical: 5,
+                      color: colors.textColor,
+                    }}
+                  >
+                    Group type
+                  </Text>
+
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      borderWidth: 0.5,
+                      borderRadius: 8,
+                      alignItems: "center",
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
                       borderColor: colors.textinputbordercolor,
                       backgroundColor: colors.textinputBackgroundcolor,
                     }}
+                    onPress={toggleDropdown}
                   >
-                    {options.map((option, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={globalStyles.dropdownItem}
-                        onPress={() => selectOption(option)}
-                      >
-                        <Text
-                          style={{ ...styles.text, color: colors.textColor }}
+                    <Text style={{ ...styles.text, color: colors.textColor }}>
+                      {selectedValue || "Public"}
+                    </Text>
+                    <DownIcon
+                      name="down"
+                      size={15}
+                      color={colors.backIconColor}
+                    />
+                  </TouchableOpacity>
+
+                  {isOpen && (
+                    <View
+                      style={{
+                        ...globalStyles.dropdownList,
+                        borderColor: colors.textinputbordercolor,
+                        backgroundColor: colors.textinputBackgroundcolor,
+                      }}
+                    >
+                      {options.map((option, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={globalStyles.dropdownItem}
+                          onPress={() => selectOption(option)}
                         >
-                          {option}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
+                          <Text
+                            style={{ ...styles.text, color: colors.textColor }}
+                          >
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
 
-              <View style={globalStyles.MT_20}>
-                <Text
-                  style={{
-                    ...globalStyles.FS_18_FW_600,
-                    paddingVertical: 8,
-                    color: colors.textColor,
-                  }}
-                >
-                  Group name<Text style={{ color: "red" }}> *</Text>
-                </Text>
-                <TextInput
-                  placeholder={`Group name`}
-                  placeholderTextColor={colors.placeholderTextColor}
-                  style={{
-                    ...styles.textInput,
-                    height: 40,
-                    marginTop: 0,
-                    paddingVertical: 0,
-                    borderColor: gNameError
-                      ? "red"
-                      : colors.textinputbordercolor,
-                    color: colors.textColor,
-
-                    backgroundColor: colors.textinputBackgroundcolor,
-                  }}
-                  value={GName}
-                  // onChangeText={value => {
-                  //   setGName(value);
-                  // }}
-                  onChangeText={(value) => {
-                    setGName(value);
-                    if (gNameError && value.trim().length > 0) {
-                      setGNameError(false);
-                    }
-                  }}
-                />
-                {gNameError && (
-                  <Text style={{ color: "red", fontSize: 12 }}>
-                    Group name is required
+                <View style={globalStyles.MT_20}>
+                  <Text
+                    style={{
+                      ...globalStyles.FS_18_FW_600,
+                      paddingVertical: 8,
+                      color: colors.textColor,
+                    }}
+                  >
+                    Group name<Text style={{ color: "red" }}> *</Text>
                   </Text>
-                )}
-              </View>
+                  <TextInput
+                    placeholder={`Group name`}
+                    placeholderTextColor={colors.placeholderTextColor}
+                    style={{
+                      ...styles.textInput,
+                      height: 40,
+                      marginTop: 0,
+                      paddingVertical: 0,
+                      borderColor: gNameError
+                        ? "red"
+                        : colors.textinputbordercolor,
+                      color: colors.textColor,
 
-              <View
-                style={{
-                  flex: 1,
-                  marginTop: 40,
-                }}
-              >
-                <Text
+                      backgroundColor: colors.textinputBackgroundcolor,
+                    }}
+                    value={GName}
+                    // onChangeText={value => {
+                    //   setGName(value);
+                    // }}
+                    onChangeText={(value) => {
+                      setGName(value);
+                      if (gNameError && value.trim().length > 0) {
+                        setGNameError(false);
+                      }
+                    }}
+                  />
+                  {gNameError && (
+                    <Text style={{ color: "red", fontSize: 12 }}>
+                      Group name is required
+                    </Text>
+                  )}
+                </View>
+
+                <View
                   style={{
-                    ...globalStyles.FS_18_FW_600,
-                    paddingVertical: 5,
-                    color: colors.textColor,
+                    flex: 1,
+                    marginTop: 40,
                   }}
                 >
-                  Short group description
-                </Text>
-                <TextInput
-                  placeholder={`Group description`}
-                  placeholderTextColor={colors.placeholderTextColor}
-                  style={{
-                    ...styles.textInput,
-                    height: 120,
-                    marginBottom: 10,
-                    textAlignVertical: "top",
-                    borderColor: colors.textinputbordercolor,
-                    color: colors.textColor,
-                    backgroundColor: colors.textinputBackgroundcolor,
-                    // opacity: isChecked ? 1 : 0.5,
-                  }}
-                  value={shortGDesciption}
-                  onChangeText={setShortGDesciption}
-                  multiline={true}
-                  maxLength={150}
-                />
-                <Text
-                  style={{ ...globalStyles.FS_15, color: colors.textColor }}
-                >
-                  Max {shortGDesciption.length}/150 Characters
-                </Text>
-              </View>
+                  <Text
+                    style={{
+                      ...globalStyles.FS_18_FW_600,
+                      paddingVertical: 5,
+                      color: colors.textColor,
+                    }}
+                  >
+                    Short group description
+                  </Text>
+                  <TextInput
+                    placeholder={`Group description`}
+                    placeholderTextColor={colors.placeholderTextColor}
+                    style={{
+                      ...styles.textInput,
+                      height: 120,
+                      marginBottom: 10,
+                      textAlignVertical: "top",
+                      borderColor: colors.textinputbordercolor,
+                      color: colors.textColor,
+                      backgroundColor: colors.textinputBackgroundcolor,
+                      // opacity: isChecked ? 1 : 0.5,
+                    }}
+                    value={shortGDesciption}
+                    onChangeText={setShortGDesciption}
+                    multiline={true}
+                    maxLength={150}
+                  />
+                  <Text
+                    style={{ ...globalStyles.FS_15, color: colors.textColor }}
+                  >
+                    Max {shortGDesciption.length}/150 Characters
+                  </Text>
+                </View>
 
-              <View style={{ ...globalStyles.flexRow, ...globalStyles?.MT_20 }}>
+                <View
+                  style={{ ...globalStyles.flexRow, ...globalStyles?.MT_20 }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (GName.trim().length === 0) {
+                        setGNameError(true);
+                        return;
+                      }
+                      setChecked((prev) => {
+                        const newValue = !prev;
+                        if (newValue) {
+                          setCheckboxError(false);
+                        }
+                        return newValue;
+                      });
+                      // setChecked(prev => !prev);
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={
+                        checked ? "checkbox-marked" : "checkbox-blank-outline"
+                      }
+                      size={24}
+                      color={colors.AppmainColor}
+                      style={{ marginRight: 10 }}
+                    />
+                  </TouchableOpacity>
+                  <Text
+                    style={{
+                      width: "90%",
+                      color: checkboxError ? "red" : colors.textColor,
+                    }}
+                  >
+                    Yes, I agree to and accept the code of conduct for
+                    moderators.
+                  </Text>
+                </View>
+              </ScrollView>
+
+              <View>
                 <TouchableOpacity
+                  style={{
+                    ...globalStyles.saveButton,
+                    ...globalStyles.MV_10,
+                    opacity: checked ? 1 : 0.5,
+                    backgroundColor: colors.AppmainColor,
+                  }}
+                  //  onPress={() => handleSaveKeySkill()}
                   onPress={() => {
-                    if (GName.trim().length === 0) {
-                      setGNameError(true);
+                    if (!checked) {
+                      setCheckboxError(true);
+                      showError(
+                        "Please accept the code of conduct to proceed.",
+                      );
                       return;
                     }
-                    setChecked((prev) => {
-                      const newValue = !prev;
-                      if (newValue) {
-                        setCheckboxError(false);
-                      }
-                      return newValue;
-                    });
-                    // setChecked(prev => !prev);
+                    handleSaveKeySkill();
                   }}
                 >
-                  <MaterialCommunityIcons
-                    name={
-                      checked ? "checkbox-marked" : "checkbox-blank-outline"
-                    }
-                    size={24}
-                    color={colors.AppmainColor}
-                    style={{ marginRight: 10 }}
-                  />
+                  <Text
+                    style={{
+                      ...globalStyles.saveButtonText,
+                      color: colors.ButtonTextColor,
+                    }}
+                  >
+                    Create
+                  </Text>
                 </TouchableOpacity>
-                <Text
-                  style={{
-                    width: "90%",
-                    color: checkboxError ? "red" : colors.textColor,
-                  }}
-                >
-                  Yes, I agree to and accept the code of conduct for moderators.
-                </Text>
               </View>
-            </ScrollView>
-
-            <View>
-              <TouchableOpacity
-                style={{
-                  ...globalStyles.saveButton,
-                  ...globalStyles.MV_10,
-                  opacity: checked ? 1 : 0.5,
-                  backgroundColor: colors.AppmainColor,
-                }}
-                //  onPress={() => handleSaveKeySkill()}
-                onPress={() => {
-                  if (!checked) {
-                    setCheckboxError(true);
-                    showError("Please accept the code of conduct to proceed.");
-                    return;
-                  }
-                  handleSaveKeySkill();
-                }}
-              >
-                <Text
-                  style={{
-                    ...globalStyles.saveButtonText,
-                    color: colors.ButtonTextColor,
-                  }}
-                >
-                  Create
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingWrapper>
       </Modal>
     </SafeAreaView>
   );

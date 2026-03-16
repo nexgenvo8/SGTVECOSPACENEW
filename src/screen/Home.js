@@ -961,6 +961,31 @@ export default function ({ route, tabBarVisible }) {
       if (diffMonths < 12) return `${diffMonths}mo ago`;
       return `${diffYears}y ago`;
     };
+    // const isExpanded = expandedPosts[index] || false;
+    // const isUserPost = item.UserId === userData?.User?.userId;
+    // const formatText = (text) => {
+    //   if (!text) return "";
+    //   return text.startsWith("<")
+    //     ? text
+    //     : `<p>${text.replace(/\n/g, "<br/>")}</p>`;
+    // };
+
+    // const truncateText = (text, wordLimit = 30) => {
+    //   const words = text.split(" ");
+    //   if (words.length <= wordLimit) return text;
+    //   return words.slice(0, wordLimit).join(" ") + "...";
+    // };
+
+    // const fullFormattedText = formatText(item?.PostText);
+    // const rawShortText = truncateText(item?.PostText || "");
+    // const shortFormattedText = formatText(rawShortText);
+    // function convertUrlsToLinks(text) {
+    //   const urlRegex = /(https?:\/\/[^\s]+)/g;
+    //   return text.replace(urlRegex, (url) => `<a href="${url}">${url}</a>`);
+    // }
+    // const processedHTML = convertUrlsToLinks(
+    //   isExpanded ? fullFormattedText : shortFormattedText,
+    // );
     const isExpanded = expandedPosts[index] || false;
     const isUserPost = item.UserId === userData?.User?.userId;
     const formatText = (text) => {
@@ -979,13 +1004,19 @@ export default function ({ route, tabBarVisible }) {
     const fullFormattedText = formatText(item?.PostText);
     const rawShortText = truncateText(item?.PostText || "");
     const shortFormattedText = formatText(rawShortText);
+
     function convertUrlsToLinks(text) {
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urlRegex = /(https?:\/\/[^\s<]+)/g;
       return text.replace(urlRegex, (url) => `<a href="${url}">${url}</a>`);
     }
-    const processedHTML = convertUrlsToLinks(
-      isExpanded ? fullFormattedText : shortFormattedText,
-    );
+
+    const rawText = isExpanded
+      ? item?.PostText || ""
+      : truncateText(item?.PostText || "");
+
+    const textWithLinks = convertUrlsToLinks(rawText);
+    const processedHTML = formatText(textWithLinks);
+
     return (
       <View
         style={{
@@ -1042,13 +1073,13 @@ export default function ({ route, tabBarVisible }) {
                     color: colors.textColor,
                   }}
                 >
-                  {item?.Userstype === 4
+                  {item?.userstype === 4
                     ? `${item?.JobTitle} at ${item?.CompanyName}`
-                    : item?.Userstype === 1
+                    : item?.userstype === 1
                     ? `${item?.DepartmentName} at ${item?.CourseName}`
-                    : item?.Userstype === 2
+                    : item?.userstype === 2
                     ? `at ${item?.DepartmentName}`
-                    : item?.Userstype === 3
+                    : item?.userstype === 3
                     ? `${item?.JobTitle} at ${item?.CompanyName}`
                     : ""}
                   {/* {item.JobTitle} at {item.CompanyName} */}

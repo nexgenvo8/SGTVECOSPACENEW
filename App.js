@@ -531,7 +531,7 @@ export default function App() {
 
   const requestPermissionAndroid = async () => {
     const granted = PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
     }
@@ -608,6 +608,11 @@ export default function App() {
   //   }
   // };
   const onDisplayNotification = async (remoteMessage) => {
+    // console.log(
+    //   remoteMessage,
+    //   "remoteMessageremoteMessageremoteMessageremoteMessage",
+    // );
+
     const channelId = await notifee.createChannel({
       id: "default",
       name: "Default Channel",
@@ -647,7 +652,7 @@ export default function App() {
             "Content-Type": "application/json",
           },
           body: payload,
-        }
+        },
       );
 
       const result = await response.json();

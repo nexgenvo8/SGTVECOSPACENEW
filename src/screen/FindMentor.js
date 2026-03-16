@@ -150,7 +150,7 @@ const FindMentor = ({ navigation }) => {
       const data = await response.json();
       console.log(
         "userId",
-        type == "Send" ? userProfileData?.Data?.userId : item?.UserId
+        type == "Send" ? userProfileData?.Data?.userId : item?.UserId,
       );
       console.log("mentorId", type == "Send" ? item?.UserId : 7358);
       console.log(`${type} Request ForMentor ----->`, data);
@@ -210,14 +210,14 @@ const FindMentor = ({ navigation }) => {
         mentorList?.MentorList || mentorList?.StudentList || [];
 
       const searchFiltered = mentorListData?.filter((item) =>
-        item?.UserName?.toLowerCase().includes(value.toLowerCase())
+        item?.UserName?.toLowerCase().includes(value.toLowerCase()),
       );
 
       const pendingFiltered = searchFiltered?.filter((item) =>
         status === "BecomeMentor"
           ? item.IsRequestSent === "Approved"
           : item.IsRequestSent === "Pending" ||
-            item.IsRequestSent === "Accepted"
+            item.IsRequestSent === "Accepted",
       );
 
       const finalFilteredData =
@@ -227,6 +227,8 @@ const FindMentor = ({ navigation }) => {
     }, 300);
   };
   const renderItem = ({ item }) => {
+    // console.log(item, "itemitemitemite34343");
+
     return (
       <TouchableOpacity
         onPress={() =>
@@ -270,8 +272,18 @@ const FindMentor = ({ navigation }) => {
           >
             {item?.UserName}
           </Text>
+
           <Text style={{ color: colors.textColor, paddingLeft: 5 }}>
-            {item?.CompanyName}
+            {/* {item?.CompanyName} */}
+            {item?.Userstype === 4
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : item?.Userstype === 1
+              ? `${item?.DepartmentName} at ${item?.CourseName}`
+              : item?.Userstype === 2
+              ? `at ${item?.DepartmentName}`
+              : item?.Userstype === 3
+              ? `${item?.JobTitle} at ${item?.CompanyName}`
+              : ""}
           </Text>
           {status == "BecomeMentor" ? (
             <View style={{ flexDirection: "row" }}>
@@ -381,7 +393,7 @@ const FindMentor = ({ navigation }) => {
                         onPress: () => cancelRequestToMentor(item),
                       },
                     ],
-                    { cancelable: true }
+                    { cancelable: true },
                   )
                 }
                 style={{
@@ -521,7 +533,7 @@ const FindMentor = ({ navigation }) => {
         status === "BecomeMentor"
           ? item.IsRequestSent === "Approved"
           : item.IsRequestSent === "Pending" ||
-            item.IsRequestSent === "Accepted"
+            item.IsRequestSent === "Accepted",
       );
 
       setFilteredData(pendingData?.length > 0 ? pendingData : mentorListData);
@@ -924,7 +936,7 @@ const FindMentor = ({ navigation }) => {
                   onPress={() => {
                     if (!takeRemoveRequest.trim()) {
                       setErrorMessage(
-                        "Please enter a message before proceeding."
+                        "Please enter a message before proceeding.",
                       );
                       return;
                     }

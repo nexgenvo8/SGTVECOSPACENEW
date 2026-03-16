@@ -27,6 +27,7 @@ import { useTheme } from "../../theme/ThemeContext";
 
 const ContactList = ({ navigation, route }) => {
   const { Item = {}, InviteFriends = false } = route.params || {};
+  console.log(Item, "ItemItemItemItem1222");
   const { isDark, colors, toggleTheme } = useTheme();
   const [userData, setUserData] = useState(null);
   const [knownPeopleData, setKnownPeopleData] = useState([]);
@@ -122,6 +123,7 @@ const ContactList = ({ navigation, route }) => {
       const data = JSON.parse(text);
 
       const newData = data?.DataList || [];
+      //console.log(newData, "newDatanewDatanewDatanewDatanewData");
 
       if (pageNumber === 1) {
         setKnownPeopleData(newData);
@@ -320,8 +322,9 @@ const ContactList = ({ navigation, route }) => {
               borderRadius: 5,
             }}
           >
-            <Text style={{ color: colors.textColor, fontWeight: "600" }}>
-              {item?.IsGroupMember}
+            <Text style={{ color: colors.ButtonTextColor, fontWeight: "600" }}>
+              {/* {item?.IsGroupMember} */}
+              {item?.IsRequest === "Yes" ? "Request Sent" : item?.IsGroupMember}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -356,7 +359,7 @@ const ContactList = ({ navigation, route }) => {
       });
       console.log("requestBody ", requestBody);
       const text = await response.text();
-
+      console.log("texttexttexttexttext ", text);
       const data = await response.json();
       if (response.ok) {
         // navigation.goBack();
